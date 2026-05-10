@@ -12,7 +12,7 @@ from typing import Optional, Dict, Any
 @dataclass
 class MeterReading:
     """Single meter reading (1 minute)."""
-    
+
     timestamp_utc: datetime
     totalizer_kwh: float
     instant_kw: float
@@ -31,7 +31,7 @@ class MeterReading:
 @dataclass
 class Heartbeat:
     """Device heartbeat (sent every 5 min)."""
-    
+
     device_id: str
     society_id: str
     panel_id: str
@@ -52,7 +52,7 @@ class Heartbeat:
 @dataclass
 class DeviceConfig:
     """Device configuration."""
-    
+
     device_id: str
     society_id: str
     panel_id: str
@@ -66,18 +66,18 @@ class DeviceConfig:
 @dataclass
 class CloudPayload:
     """Batched cloud upload payload (5-minute batch)."""
-    
+
     device_id: str
     timestamp_utc: datetime
     readings: list  # List[MeterReading]
-    heartbeat: Optional['Heartbeat'] = None
+    heartbeat: Optional["Heartbeat"] = None
     signature: Optional[str] = None  # Ed25519
 
 
 @dataclass
 class OTAManifest:
     """OTA update manifest."""
-    
+
     version: str
     timestamp_utc: datetime
     package_url: str
@@ -91,7 +91,7 @@ class OTAManifest:
 @dataclass
 class AuditLogEntry:
     """Audit trail for configuration changes, logins, OTA events."""
-    
+
     timestamp_utc: datetime
     event_type: str  # config_change, login, ota_start, ota_complete, etc.
     device_id: str
