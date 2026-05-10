@@ -1,0 +1,54 @@
+[Unit]
+Description=MeterHub Uploader Service - Cloud Data Upload
+Documentation=file:///opt/meterhub/docs/ARCHITECTURE.md
+After=network-online.target meterhub-acquisition.service
+Wants=network-online.target
+Requires=meterhub-acquisition.service
+
+[Service]
+Type=simple
+User=meterhub
+Group=meterhub
+
+# Working directory
+WorkingDirectory=/opt/meterhub/current
+
+# Executable
+ExecStart=/opt/meterhub/current/venv/bin/python -m meterhub_uploader
+
+# Restart policy
+Restart=always
+RestartSec=10
+StartLimitInterval=300
+StartLimitBurst=5
+
+# Resource limits (strict)
+MemoryMax=42M
+MemoryAccounting=true
+CPUQuota=50%
+
+# Security
+PrivateTmp=true
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/meterhub /var/log/meterhub /etc/meterhub/secrets
+
+# Environment
+Environment="METREHUB_ENV=production"
+EnvironmentFile=/etc/meterhub/config.env
+EnvironmentFile=-/etc/meterhub/secrets.env
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=meterhub-uploader
+
+# Timeout
+TimeoutStopSec=30
+
+# Watchdog
+WatchdogSec=60
+
+[Install]
+WantedBy=multi-user.target

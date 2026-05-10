@@ -1,0 +1,52 @@
+[Unit]
+Description=MeterHub Installer UI - Engineering Commissioning Tool
+Documentation=file:///opt/meterhub/docs/COMMISSIONING.md
+After=network.target
+
+[Service]
+Type=simple
+User=meterhub
+Group=meterhub
+
+# Working directory
+WorkingDirectory=/opt/meterhub/current
+
+# Executable (FastAPI via uvicorn)
+ExecStart=/opt/meterhub/current/venv/bin/python -m uvicorn meterhub_ui.app:app \
+  --host 0.0.0.0 \
+  --port 8443 \
+  --ssl-keyfile /etc/meterhub/secrets/ui.key \
+  --ssl-certfile /etc/meterhub/secrets/ui.crt \
+  --log-level warning
+
+# Restart policy (gentler than acquisition/uploader)
+Restart=on-failure
+RestartSec=5
+
+# Resource limits
+MemoryMax=64M
+MemoryAccounting=true
+CPUQuota=80%
+
+# Security
+PrivateTmp=true
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/meterhub /var/log/meterhub /etc/meterhub/secrets
+
+# Environment
+Environment="METREHUB_ENV=production"
+EnvironmentFile=/etc/meterhub/config.env
+EnvironmentFile=-/etc/meterhub/secrets.env
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=meterhub-ui
+
+# Timeout
+TimeoutStopSec=20
+
+[Install]
+WantedBy=multi-user.target

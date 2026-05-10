@@ -1,0 +1,18 @@
+# MeterHub Acquisition Service
+
+# Dependencies from common
+-e ../common
+
+# Async
+asyncio>=3.4.3
+
+# Modbus RTU
+pymodbus>=3.6.0
+
+# Serial Communication
+pyserial>=3.5
+
+# Database: sqlite3 (built-in)
+
+# Utilities
+python-dotenv>=1.0.0

@@ -1,0 +1,122 @@
+meter_name: "Schneider Electric EM6400"
+manufacturer: "Schneider Electric"
+model_number: "EM6400"
+modbus_address: 1
+protocol: "RTU"
+
+class: "industrial_3phase_ct"
+regions_supported:
+  - india
+  - asia-se
+
+communication:
+  baud_rate: 9600
+  data_bits: 8
+  stop_bits: 1
+  parity: "none"
+  timeout_ms: 2000
+
+registers:
+  totalizer_kwh:
+    address: 45568
+    count: 2
+    type: "uint32_big_endian"
+    scale: 0.01
+    unit: "kWh"
+    description: "Cumulative kilowatt-hours (export)"
+    
+  instant_kw:
+    address: 3520
+    count: 2
+    type: "int32_big_endian"
+    scale: 0.001
+    unit: "kW"
+    description: "Real power (3-phase total)"
+    
+  instant_kvar:
+    address: 3522
+    count: 2
+    type: "int32_big_endian"
+    scale: 0.001
+    unit: "kVAR"
+    
+  instant_kva:
+    address: 3524
+    count: 2
+    type: "uint32_big_endian"
+    scale: 0.001
+    unit: "kVA"
+    
+  voltage_l1_v:
+    address: 3072
+    count: 1
+    type: "uint16"
+    scale: 0.1
+    unit: "V"
+    
+  voltage_l2_v:
+    address: 3073
+    count: 1
+    type: "uint16"
+    scale: 0.1
+    unit: "V"
+    
+  voltage_l3_v:
+    address: 3074
+    count: 1
+    type: "uint16"
+    scale: 0.1
+    unit: "V"
+    
+  current_l1_a:
+    address: 3076
+    count: 1
+    type: "uint16"
+    scale: 0.01
+    unit: "A"
+    
+  current_l2_a:
+    address: 3077
+    count: 1
+    type: "uint16"
+    scale: 0.01
+    unit: "A"
+    
+  current_l3_a:
+    address: 3078
+    count: 1
+    type: "uint16"
+    scale: 0.01
+    unit: "A"
+    
+  pf_total:
+    address: 3083
+    count: 1
+    type: "int16"
+    scale: 0.001
+    unit: "PF"
+    
+  frequency_hz:
+    address: 3084
+    count: 1
+    type: "uint16"
+    scale: 0.01
+    unit: "Hz"
+
+error_handling:
+  retry_strategy:
+    max_retries: 3
+    backoff_ms: [100, 500, 2000]
+  offline_threshold_failures: 5
+
+validation:
+  voltage_reasonable_range_v: [180, 280]
+  current_max_reasonable_a: 100
+  frequency_reasonable_range_hz: [48.5, 50.5]
+  allow_zero_power: true
+
+metadata:
+  rating_kva: 100
+  max_current_a: 250
+  phases: 3
+  rs485_bus_termination_required: true

@@ -1,0 +1,84 @@
+# .gitignore — MeterHub Repository
+# Excludes artifacts, venv, test outputs, and credentials
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.venv
+.env
+.env.local
+.env.*.local
+
+# IDE & Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+
+# Build artifacts
+*.tar.gz
+*.img.xz
+*.img
+
+# Secrets (CRITICAL - Never commit)
+/etc/meterhub/secrets/*
+!/etc/meterhub/secrets/.gitkeep
+device.key
+cloud_token
+*.pem
+*.key
+
+# Database & Logs
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.log
+/var/log/
+
+# OTA & Deployment
+/opt/meterhub/v*/
+/opt/meterhub/releases/
+
+# Temp files
+/tmp/
+*.tmp
+*.temp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentation build outputs
+/docs/_build/

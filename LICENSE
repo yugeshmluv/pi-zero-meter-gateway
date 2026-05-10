@@ -1,0 +1,32 @@
+METREHUB PROPRIETARY SOFTWARE LICENSE
+
+Version 1.0 (April 2026)
+
+TERMS AND CONDITIONS
+
+This proprietary software ("MetreHub Firmware Stack") is provided exclusively for authorized fleet deployments across Indian electrical panels and housing societies. Unauthorized copying, modification, reverse engineering, or redistribution is strictly prohibited.
+
+1. GRANT OF LICENSE
+   MetreHub grants you a limited, non-exclusive, non-transferable license to use this software for the sole purpose of monitoring 3-phase electrical consumption on designated Raspberry Pi Zero W edge devices in authorized installations.
+
+2. RESTRICTIONS
+   You may NOT:
+   - Copy, modify, adapt, translate, or create derivative works
+   - Reverse engineer, decompile, or disassemble
+   - Rent, lease, lend, or distribute
+   - Use for any commercial purpose outside authorized deployments
+   - Remove or alter any proprietary notices or labels
+
+3. INTELLECTUAL PROPERTY
+   All software, documentation, and design are proprietary to MetreHub. No license is granted to any patents, trademarks, or copyrights, whether registered or unregistered.
+
+4. LIMITATION OF LIABILITY
+   THE SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND. IN NO EVENT SHALL METREHUB BE LIABLE FOR ANY DAMAGES (DIRECT, INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL) ARISING FROM USE OF THIS SOFTWARE.
+
+5. COMPLIANCE
+   Use of this software constitutes acceptance of all terms. Violation may result in legal action.
+
+6. TERMINATION
+   This license is effective until terminated. MetreHub may terminate this license immediately upon violation.
+
+All rights reserved. MetreHub, 2026.
