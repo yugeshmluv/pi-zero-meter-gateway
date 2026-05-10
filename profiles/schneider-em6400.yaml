@@ -1,122 +1,122 @@
-meter_name: "Schneider Electric EM6400"
+meter_type: "Schneider EM6400"
 manufacturer: "Schneider Electric"
-model_number: "EM6400"
-modbus_address: 1
-protocol: "RTU"
-
-class: "industrial_3phase_ct"
-regions_supported:
-  - india
-  - asia-se
-
-communication:
-  baud_rate: 9600
-  data_bits: 8
-  stop_bits: 1
-  parity: "none"
-  timeout_ms: 2000
+protocol_version: "Modbus RTU 1.1b3"
+baud_rate: 9600
+parity: "even"
+stop_bits: 1
+data_bits: 8
+timeout_ms: 1000
+description: "Multi-function 3-phase energy meter with advanced monitoring"
 
 registers:
-  totalizer_kwh:
-    address: 45568
-    count: 2
-    type: "uint32_big_endian"
+  # Three-phase voltages (Registers 0x0C00-0x0C02)
+  - name: "voltage_l1"
+    address: 0x0C00
+    data_type: "uint16"
+    scale: 0.1
+    unit: "V"
+    description: "Phase L1 RMS voltage"
+    read_only: true
+
+  - name: "voltage_l2"
+    address: 0x0C01
+    data_type: "uint16"
+    scale: 0.1
+    unit: "V"
+    description: "Phase L2 RMS voltage"
+    read_only: true
+
+  - name: "voltage_l3"
+    address: 0x0C02
+    data_type: "uint16"
+    scale: 0.1
+    unit: "V"
+    description: "Phase L3 RMS voltage"
+    read_only: true
+
+  # Three-phase currents (Registers 0x0C04-0x0C06)
+  - name: "current_l1"
+    address: 0x0C04
+    data_type: "uint16"
     scale: 0.01
-    unit: "kWh"
-    description: "Cumulative kilowatt-hours (export)"
-    
-  instant_kw:
-    address: 3520
-    count: 2
-    type: "int32_big_endian"
-    scale: 0.001
+    unit: "A"
+    description: "Phase L1 RMS current"
+    read_only: true
+
+  - name: "current_l2"
+    address: 0x0C05
+    data_type: "uint16"
+    scale: 0.01
+    unit: "A"
+    description: "Phase L2 RMS current"
+    read_only: true
+
+  - name: "current_l3"
+    address: 0x0C06
+    data_type: "uint16"
+    scale: 0.01
+    unit: "A"
+    description: "Phase L3 RMS current"
+    read_only: true
+
+  # Instantaneous Active Power (Register 0x0DC0 - 32-bit IEEE 754)
+  - name: "instant_kw"
+    address: 0x0DC0
+    data_type: "float32"
     unit: "kW"
-    description: "Real power (3-phase total)"
-    
-  instant_kvar:
-    address: 3522
-    count: 2
-    type: "int32_big_endian"
-    scale: 0.001
-    unit: "kVAR"
-    
-  instant_kva:
-    address: 3524
-    count: 2
-    type: "uint32_big_endian"
-    scale: 0.001
-    unit: "kVA"
-    
-  voltage_l1_v:
-    address: 3072
-    count: 1
-    type: "uint16"
-    scale: 0.1
-    unit: "V"
-    
-  voltage_l2_v:
-    address: 3073
-    count: 1
-    type: "uint16"
-    scale: 0.1
-    unit: "V"
-    
-  voltage_l3_v:
-    address: 3074
-    count: 1
-    type: "uint16"
-    scale: 0.1
-    unit: "V"
-    
-  current_l1_a:
-    address: 3076
-    count: 1
-    type: "uint16"
-    scale: 0.01
-    unit: "A"
-    
-  current_l2_a:
-    address: 3077
-    count: 1
-    type: "uint16"
-    scale: 0.01
-    unit: "A"
-    
-  current_l3_a:
-    address: 3078
-    count: 1
-    type: "uint16"
-    scale: 0.01
-    unit: "A"
-    
-  pf_total:
-    address: 3083
-    count: 1
-    type: "int16"
-    scale: 0.001
-    unit: "PF"
-    
-  frequency_hz:
-    address: 3084
-    count: 1
-    type: "uint16"
+    description: "Instantaneous total active power (3-phase sum)"
+    read_only: true
+
+  # Total Active Energy - Exported (Register 0xB200 - 32-bit IEEE 754)
+  # This is the BILLING REGISTER - never wraps, crash-safe in SQLite
+  - name: "totalizer_kwh"
+    address: 0xB200
+    data_type: "float32"
+    unit: "kWh"
+    description: "Total active energy delivered (billing register, export counter, never wraps)"
+    read_only: true
+
+  # Frequency (Register 0x0D04 - 16-bit unsigned)
+  - name: "frequency_hz"
+    address: 0x0D04
+    data_type: "uint16"
     scale: 0.01
     unit: "Hz"
+    description: "Line frequency"
+    read_only: true
 
-error_handling:
-  retry_strategy:
-    max_retries: 3
-    backoff_ms: [100, 500, 2000]
-  offline_threshold_failures: 5
+  # Total Power Factor (Register 0x0D0B - 16-bit signed two's complement)
+  - name: "pf_total"
+    address: 0x0D0B
+    data_type: "int16"
+    scale: 0.001
+    unit: ""
+    description: "Total 3-phase power factor (signed: -1.0 to +1.0, lagging positive)"
+    read_only: true
 
-validation:
-  voltage_reasonable_range_v: [180, 280]
-  current_max_reasonable_a: 100
-  frequency_reasonable_range_hz: [48.5, 50.5]
-  allow_zero_power: true
+  # Phase L1 Power Factor (Register 0x0D0C)
+  - name: "pf_l1"
+    address: 0x0D0C
+    data_type: "int16"
+    scale: 0.001
+    unit: ""
+    description: "L1 power factor (signed, lagging positive)"
+    read_only: true
 
-metadata:
-  rating_kva: 100
-  max_current_a: 250
-  phases: 3
-  rs485_bus_termination_required: true
+  # Phase L2 Power Factor (Register 0x0D0D)
+  - name: "pf_l2"
+    address: 0x0D0D
+    data_type: "int16"
+    scale: 0.001
+    unit: ""
+    description: "L2 power factor (signed, lagging positive)"
+    read_only: true
+
+  # Phase L3 Power Factor (Register 0x0D0E)
+  - name: "pf_l3"
+    address: 0x0D0E
+    data_type: "int16"
+    scale: 0.001
+    unit: ""
+    description: "L3 power factor (signed, lagging positive)"
+    read_only: true
