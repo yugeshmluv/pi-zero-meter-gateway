@@ -7,11 +7,13 @@ Modules:
 - models.py: Dataclass definitions (Reading, Heartbeat, etc.)
 - meter_profile_schema.py: Modbus register schema and YAML loader
 - modbus_client.py: Modbus RTU async client with retry
+- sqlite_db.py: SQLite WAL integration, crash-safe storage
+- aws_mqtt_client.py: AWS IoT Core MQTT client (TLS, QoS1)
+- https_uploader.py: HTTPS fallback uploader (OAuth2)
 - db.py: SQLite WAL integration, schema, migrations
 - config.py: Config loading from /etc/meterhub/
 - secrets.py: Secrets management (device key, cloud token, etc.)
 - logger.py: Unified structured logging
-- mqtt_client.py: MQTT TLS wrapper (with callback handling)
 """
 
 from .models import (
@@ -31,6 +33,10 @@ from .meter_profile_schema import (
 
 from .modbus_client import ModbusRTUClient, ModbusRegisterValue
 
+from .aws_mqtt_client import AWSIoTMQTTClient
+
+from .https_uploader import HTTPSFallbackUploader
+
 __version__ = "1.0.0"
 __all__ = [
     "MeterReading",
@@ -44,4 +50,6 @@ __all__ = [
     "DataType",
     "ModbusRTUClient",
     "ModbusRegisterValue",
+    "AWSIoTMQTTClient",
+    "HTTPSFallbackUploader",
 ]
