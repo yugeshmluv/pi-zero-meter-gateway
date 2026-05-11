@@ -1,0 +1,99 @@
+name: Build MeterHub Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - arch: armv8
+            board: rpi-zero-2w
+            variant: 64-bit
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            binfmt-support \
+            qemu-user-static \
+            docker.io
+
+      - name: Extract version
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Build image
+        run: |
+          python3 build/build_release.py \
+            --version ${{ steps.version.outputs.version }} \
+            --channel stable
+
+      - name: Generate checksums
+        run: |
+          cd build/dist
+          sha256sum *.img > SHA256SUMS
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: build/dist/*
+          body: "MeterHub v${{ steps.version.outputs.version }}"
+          prerelease: false
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install test dependencies
+        run: |
+          pip install pytest pytest-asyncio
+
+      - name: Run image builder tests
+        run: |
+          pytest build/tests/test_image_builder.py -v
+
+  sign:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install cryptography
+        run: pip install cryptography
+
+      - name: Sign release
+        run: |
+          python3 build/build_release.py \
+            --version ${{ github.ref_name }} \
+            --channel stable
+
+      - name: Upload signatures
+        uses: softprops/action-gh-release@v1
+        with:
+          files: build/dist/*.sig

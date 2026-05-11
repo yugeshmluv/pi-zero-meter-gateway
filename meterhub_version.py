@@ -2,9 +2,9 @@
 MeterHub Version Information
 """
 
-__version__ = "1.0.0"
-__status__ = "Phase 1: Architecture & Specification"
-__release_date__ = "2026-04-28"
+__version__ = "1.2.0"
+__status__ = "Phase 6: Image Builder & Security Hardening"
+__release_date__ = "2026-05-11"
 __author__ = "MeterHub Team"
 __license__ = "Proprietary"
 

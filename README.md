@@ -1,6 +1,6 @@
 # MeterHub — Production-Grade Firmware for Raspberry Pi Zero W Edge Gateway
 
-![Build Status](https://img.shields.io/badge/status-phase1-blue) ![License](https://img.shields.io/badge/license-proprietary-red)
+![Build Status](https://img.shields.io/badge/status-phase6-brightgreen) ![License](https://img.shields.io/badge/license-proprietary-red)
 
 A complete, hardened firmware stack for reading single 3-phase CT meters via RS485/Modbus RTU and streaming data to a cloud backend. Designed for fleet deployment across Indian electrical panels with cloud-side aggregation, daily admin digests, and automated OTA updates.
 
