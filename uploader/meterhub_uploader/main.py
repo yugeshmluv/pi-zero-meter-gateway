@@ -482,11 +482,5 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
-    while True:
-        await asyncio.sleep(300)  # Upload every 5 min
-
-
-if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     asyncio.run(main())
