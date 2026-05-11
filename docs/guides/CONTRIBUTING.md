@@ -1,294 +1,326 @@
 # Contributing to MeterHub
 
-## Philosophy
+Welcome to the MeterHub project! This guide explains how to contribute code, tests, and documentation.
 
-MeterHub is built on a single core principle: **The GPIO device is dumb and reliable. All customer-facing intelligence lives in the cloud.**
-
-Every feature addition must justify itself against this principle. Before you code:
-
-1. **Is this logic in the right place?** Should it be in the cloud instead?
-2. **Does it increase RAM/CPU/SD wear?** Performance budgets are strict.
-3. **Can it break the meter polling loop?** Process isolation is non-negotiable.
-4. **Have you tested it without power?** Crash-safety is mandatory.
+---
 
 ## Development Setup
 
 ### Prerequisites
-
 - Python 3.11+
-- systemd
-- SQLite 3.40+
+- Poetry (dependency management)
 - Git
 
-### Install Development Environment
+### Initial Setup
 
 ```bash
-cd meterhub
-./scripts/install-dev.sh
+git clone https://github.com/yugeshmluv/pi-zero-meter-gateway.git
+cd pi-zero-meter-gateway
+poetry install
 ```
 
-This installs:
-- Python virtual environment
-- Development dependencies for all three services
-- Pre-commit hooks (code style, type checking)
-- Test fixtures (pymodbus simulator, mock MQTT broker)
+### Activate Environment
+```bash
+poetry shell
+```
 
-### Running Tests
+---
+
+## Code Organization
+
+**Project Structure:**
+```
+acquisition/          → Modbus polling service
+uploader/             → Cloud connectivity service
+installer_ui/         → Web provisioning UI
+common/               → Shared utilities
+ota/                  → Over-the-air update manager
+build/                → Image builder & security hardening
+profiles/             → Meter Modbus definitions
+docs/                 → Documentation
+tests/                → Root-level tests
+```
+
+**Each service follows:**
+- `service/meterhub_service/main.py` — Service entry point
+- `service/meterhub_service/<modules>.py` — Implementation
+- `service/tests/test_<module>.py` — Unit tests
+- `service/requirements.txt` — Dependencies (optional, use pyproject.toml)
+
+---
+
+## Code Style Guidelines
+
+### Python Standards
+
+**1. Import Order**
+```python
+# Standard library
+import os
+import sys
+import asyncio
+from pathlib import Path
+from typing import Dict, Optional
+
+# Third-party
+import pytest
+import yaml
+
+# Local
+from common.meterhub_common import MeterReading
+```
+
+**2. Type Hints (Required)**
+```python
+# ✓ Good
+async def read_meter(device_path: str, timeout_s: int = 5) -> MeterReading:
+    pass
+
+# ✗ Bad
+async def read_meter(device_path, timeout_s=5):
+    pass
+```
+
+**3. Docstrings (Required)**
+```python
+def validate_reading(reading: MeterReading) -> bool:
+    """
+    Validate meter reading for sanity.
+    
+    Args:
+        reading: MeterReading instance to validate
+        
+    Returns:
+        True if valid, False otherwise
+        
+    Raises:
+        ValueError: If timestamp is in future
+    """
+    pass
+```
+
+### Formatting
+
+**Use Black:**
+```bash
+black .
+```
+
+**Use Flake8 (linting):**
+```bash
+flake8 . --max-line-length=100 --ignore=E203,W503
+```
+
+**Use Mypy (type checking):**
+```bash
+mypy . --strict --ignore-missing-imports
+```
+
+**Use Bandit (security):**
+```bash
+bandit -r . -ll
+```
+
+---
+
+## Testing Requirements
+
+### Unit Tests (Required)
+
+All new code must include unit tests.
+
+**Location:** `service/tests/test_module.py`
+
+**Naming Convention:**
+- Test files: `test_*.py`
+- Test classes: `Test*` (e.g., `TestAcquisition`)
+- Test methods: `test_*` (e.g., `test_modbus_connect`)
+
+**Example:**
+```python
+import pytest
+from acquisition.meterhub_acq.modbus_client import ModbusRTUClient
+
+class TestModbusClient:
+    """Modbus RTU client tests."""
+    
+    @pytest.mark.asyncio
+    async def test_connect_success(self):
+        """Test successful Modbus connection."""
+        client = ModbusRTUClient(device="/dev/ttyUSB0", slave_id=1)
+        success = await client.connect()
+        assert success is True
+        
+    def test_invalid_device_path(self):
+        """Test error handling for invalid device."""
+        with pytest.raises(FileNotFoundError):
+            client = ModbusRTUClient(device="/dev/invalid", slave_id=1)
+```
+
+### Test Coverage
+
+Minimum coverage per module:
+- Acquisition: 80%
+- Uploader: 75%
+- Installer UI: 70%
+- Common utilities: 85%
+- OTA manager: 80%
+
+### Run Tests
 
 ```bash
 # Run all tests
-pytest tests/
+pytest
 
-# Run with fault injection (power-loss scenarios)
-pytest tests/test_fault_injection.py -v
+# Run with coverage
+pytest --cov=. --cov-report=html
 
-# Run single test file
-pytest tests/test_acquisition.py
+# Run specific test
+pytest acquisition/tests/test_acquisition.py -v
 
-# Generate coverage report
-pytest tests/ --cov=meterhub_acq --cov=meterhub_uploader --cov=meterhub_common
+# Run async tests
+pytest -m asyncio acquisition/tests/
 ```
 
-### Testing Against Simulated Meter
+---
 
+## Making a Contribution
+
+### 1. Create a Feature Branch
 ```bash
-# Terminal 1: Start pymodbus simulator (Schneider EM6400 profile)
-python -m pymodbus.server --host 127.0.0.1 --port 5020
-
-# Terminal 2: Run acquisition service in dev mode
-python -m meterhub_acq --meter-address=127.0.0.1:5020 --profile=schneider-em6400 --log-level=debug
+git checkout -b feature/meter-profile-schneider
 ```
 
-## Build Order (Do Not Deviate)
+### 2. Make Changes
+- Write code with type hints
+- Add/update docstrings
+- Write unit tests
+- Run formatters and linters
 
-Follow the Phase structure in README.md strictly:
-
-1. **Phase 1:** Architecture + BOM + API contract (complete)
-2. **Phase 2:** Acquisition service
-3. **Phase 3:** Uploader + cloud integration
-4. **Phase 4:** Installer UI
-5. **Phase 5:** OTA + provisioning
-6. **Phase 6:** Hardening + image build
-
-Each phase includes its own test suite. Don't move to the next phase until all tests pass.
-
-## Code Style
-
-### Python
-
-- **Type hints:** Every function must have input/output type hints.
-- **Linting:** `black` for formatting, `flake8` for style, `mypy` for static type checking.
-- **Line Length:** 100 characters max.
-- **Docstrings:** Google-style, including return type and side effects.
-
-Pre-commit hook will run automatically on `git commit`. To check manually:
-
+### 3. Run CI/CD Locally
 ```bash
-black meterhub_acq meterhub_uploader meterhub_common
-flake8 meterhub_acq meterhub_uploader meterhub_common
-mypy meterhub_acq meterhub_uploader meterhub_common
+# Format code
+black .
+
+# Lint
+flake8 .
+
+# Type check
+mypy .
+
+# Security check
+bandit -r .
+
+# Run tests
+pytest
 ```
 
-### Commit Messages
-
-Format: `TYPE(scope): short description`
-
-- `feat(acquisition)`: New feature in acquisition service
-- `fix(uploader)`: Bug fix in uploader
-- `test(all)`: Add / update tests
-- `docs(provisioning)`: Documentation update
-- `refactor(common)`: Code refactoring (no behavior change)
-
-Example:
-```
-feat(acquisition): add retry with exponential backoff for Modbus timeouts
-
-- Implement 3 retries with 100 ms → 500 ms → 2 s backoff
-- Mark meter offline after 5 consecutive failures
-- Report retry count in meter quality field
-
-Closes #42
-```
-
-## Process-Specific Guidelines
-
-### meterhub-acquisition
-
-- **Single responsibility:** Read meter, write SQLite.
-- **Asyncio-based:** Use `async`/`await`; no blocking calls.
-- **No external I/O:** No HTTP, no MQTT, no cloud requests.
-- **No user-facing secrets:** Configuration loaded from `/etc/meterhub/config.yml`.
-- **Retention:** Always write cumulative totalizer + instantaneous values.
-
-### meterhub-uploader
-
-- **Primary path:** MQTT with TLS.
-- **Fallback path:** HTTPS (triggered after 15 min MQTT failure).
-- **Store-and-forward:** SQLite-backed queue; nothing lost on power cuts.
-- **Not a web server:** No HTTP listen port. Passive outbound only.
-- **Throttling:** Pause at 75°C, measured every minute.
-
-### meterhub-installer-ui
-
-- **Engineering tool only:** Not a customer product.
-- **Minimal dependencies:** FastAPI + Jinja2 only. No Chart.js, React, Vue.
-- **Plain HTML forms:** No JavaScript frameworks.
-- **HTTPS only:** Auto-generate self-signed cert on first boot.
-- **Auto-shutdown:** Wi-Fi AP mode off after 30 minutes.
-
-## Testing Checklist
-
-Every PR must include:
-
-- [ ] Unit tests for new functions.
-- [ ] Integration test (acquisition + SQLite, or uploader + queue).
-- [ ] Test against pymodbus simulator (if Modbus-related).
-- [ ] Manual test on actual Pi Zero W (if possible).
-- [ ] Power-loss fault injection (if storage-related).
-- [ ] Coverage report (target: >90% for critical paths).
-
-Example test structure:
-
-```python
-def test_acquisition_meter_offline_after_5_failures():
-    """Meter marked offline after 5 consecutive Modbus failures."""
-    # Arrange
-    mock_modbus = MagicMock()
-    mock_modbus.read_registers = side_effect([Exception()] * 5)
-    db = MemoryDatabase()
-    
-    # Act
-    result = read_meter(mock_modbus, "schneider-em6400", db)
-    
-    # Assert
-    assert result.offline is True
-    assert db.get_meter_status().consecutive_failures == 5
-```
-
-## Database Schema Changes
-
-SQLite schema is versioned. If you add/modify tables:
-
-1. Update schema version in `common/meterhub_common/db.py`.
-2. Write a migration function `migrate_v{N}_to_{N+1}()`.
-3. Include data preservation logic (never drop columns without migration).
-4. Test on a real device with populated DB (no data loss).
-5. Document in [docs/DATABASE.md](../DATABASE.md).
-
-## API Contract Changes
-
-If you modify any of these, you **must** update [CLOUD_API_CONTRACT.md](../specifications/CLOUD_API_CONTRACT.md):
-
-- MQTT payload schema (fields, types, units)
-- Heartbeat format
-- HTTPS fallback endpoints
-- Error responses
-- Authentication changes
-
-Run the contract validation script:
-
+### 4. Commit with Clear Messages
 ```bash
-python scripts/validate-cloud-contract.py
+git commit -m "feat(phase5): Add Schneider EM6400 meter profile
+
+- Support 3-phase CT readings via Modbus RTU
+- Registers: voltage (L1-L3), current (L1-L3), power, frequency
+- YAML definition with validation
+- Unit tests with mock data"
 ```
 
-This ensures cloud team is never surprised.
+**Commit Format:**
+```
+<type>(<scope>): <description>
 
-## Security Checklist
+<body (optional, detailed explanation)>
 
-Every feature must satisfy:
+<footer (optional, related issues)>
+```
 
-- [ ] No credentials in code; all secrets in `/etc/meterhub/secrets/`.
-- [ ] All external I/O is TLS 1.2+ (MQTT, HTTPS).
-- [ ] Payload signatures (Ed25519) where applicable.
-- [ ] Audit log entry for user-facing actions (config change, login, OTA).
-- [ ] No console output of secrets (even in debug mode).
-- [ ] Meter data + admin email only; no resident PII on device.
+**Types:**
+- `feat`: New feature
+- `fix`: Bug fix
+- `test`: Test addition/modification
+- `docs`: Documentation
+- `refactor`: Code restructuring
+- `perf`: Performance improvement
 
-## Performance Review
+**Scopes:**
+- `acquisition`: Modbus polling service
+- `uploader`: Cloud connectivity
+- `installer_ui`: Web UI
+- `common`: Shared utilities
+- `ota`: Update manager
+- `build`: Image builder
+- `ci`: CI/CD configuration
+- `docs`: Documentation
 
-Before submitting a PR, benchmark against these targets:
-
-- **CPU:** Run 24 h at polling interval, measure idle + peak during MQTT/SD writes.
-- **RAM:** Check resident set size (RSS) and max heap.
-- **SD writes:** Monitor `/sys/block/mmcblk0/stat` before/after test.
-
-Example:
-
+### 5. Push and Create Pull Request
 ```bash
-# In separate terminal, monitor every 10 seconds
-watch -n 10 'ps aux | grep meterhub'
-
-# Simultaneously run workload
-python tests/test_soak_24h.py --duration=3600 --meter-interval=60
-
-# Post-test, check SD wear
-tail -1 /proc/diskstats | grep mmcblk0
+git push origin feature/meter-profile-schneider
 ```
 
-If you exceed budgets, optimize: reduce logging verbosity, batch operations, defer non-critical work to cloud.
+Then create a PR on GitHub with a clear description.
 
-## Provisioning & QR Code
+---
 
-If you add setup fields:
+## Documentation Guidelines
 
-1. Update [scripts/qr-provisioning.md](../../scripts/qr-provisioning.md) with new fields.
-2. Update cloud provisioning API spec in [CLOUD_API_CONTRACT.md](../specifications/CLOUD_API_CONTRACT.md).
-3. Update installer UI setup wizard form.
-4. Test QR code generation: `python scripts/gen-qr-code.py --device-id=... --token=...`
+### Code Documentation
+- Docstrings for all public functions/classes
+- Type hints on all parameters/returns
+- Examples in docstrings for complex logic
 
-## Meter Profile Authoring
+### Markdown Documentation
+- Clear section headings (# ## ###)
+- Code examples with language tags
+- Table of contents for long documents
+- Links to related docs
 
-New meter profiles (YAML) go in `profiles/`. See [METER_PROFILES.md](METER_PROFILES.md) for format.
+### Architecture Decisions
+Document in `docs/` with:
+- Problem statement
+- Proposed solution
+- Trade-offs considered
+- Implementation details
 
-**Do not hard-code register mappings in Python.** All meter definitions live in YAML.
+---
 
-Example: `profiles/schneider-em6400.yaml`
+## Common Issues & Solutions
 
-```yaml
-meter_name: "Schneider Electric EM6400"
-modbus_address: 1
-protocol_version: "RTU"
-registers:
-  totalizer_kwh:
-    address: 45568
-    type: uint32_big_endian
-    scale: 0.01
-    unit: "kWh"
-  instant_kw:
-    address: 3520
-    type: float32_big_endian
-    unit: "kW"
-  # ... more fields
-```
+**Issue: Tests fail locally but pass in CI**
+- Solution: Ensure dependencies are installed (`poetry install`)
+- Check Python version (`python --version` should be 3.11+)
 
-## OTA Testing
+**Issue: Type checking errors**
+- Solution: Use `mypy --show-error-codes` for details
+- Add type: ignore comments only with justification
 
-Before publishing an OTA package:
+**Issue: Import errors in tests**
+- Solution: Ensure `__init__.py` exists in package directories
+- Run tests with `pytest` not `python -m pytest`
 
-1. Generate manifest: `./scripts/release-ota.sh v1.2.4 --dry-run`
-2. Verify Ed25519 signature: `python scripts/verify-manifest.py manifest.json`
-3. Test on physical Pi Zero W:
-   - Manual upload via installer UI
-   - Verify health check (meter read + heartbeat)
-   - Verify rollback on health check failure
+---
 
-## Deployment Checklist (Before Release)
+## Review Process
 
-- [ ] All tests pass: `pytest tests/ --cov`
-- [ ] Code review by 2+ team members
-- [ ] Type checking: `mypy meterhub_* --strict`
-- [ ] Linting: `black . && flake8 . --max-line-length=100`
-- [ ] Security audit: `bandit -r meterhub_*/`
-- [ ] OTA manifest signed and verified
-- [ ] Canary deployment tested (if non-critical)
-- [ ] Cloud API contract updated and validated
-- [ ] Documentation updated
+All PRs require:
+- ✅ Tests passing (CI/CD)
+- ✅ Code review (maintainer)
+- ✅ Documentation updated
+- ✅ No security issues (Bandit)
+
+---
 
 ## Questions?
 
-- **Architecture:** See [ARCHITECTURE.md](../ARCHITECTURE.md)
-- **Commissioning:** See [COMMISSIONING.md](../COMMISSIONING.md)
-- **Troubleshooting:** See [TROUBLESHOOTING.md](../TROUBLESHOOTING.md)
-- **Cloud API:** See [CLOUD_API_CONTRACT.md](../specifications/CLOUD_API_CONTRACT.md)
+- **Documentation:** Check [docs/](docs/) directory
+- **Architecture:** See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- **Issues:** Open a GitHub Issue
 
-**Golden Rule:** When in doubt, ask: "Does this make the device dumb-er or smarter?" If it's making it smarter, move it to the cloud.
+---
+
+## License
+
+By contributing, you agree that your contributions will be licensed under the project's Proprietary License.
+
+---
+
+**Happy coding! 🚀**
