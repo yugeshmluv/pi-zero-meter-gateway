@@ -15,6 +15,7 @@ COPY acquisition/ ./acquisition/
 COPY uploader/ ./uploader/
 COPY installer_ui/ ./installer_ui/
 COPY common/ ./common/
+COPY ota/ ./ota/
 COPY tests/ ./tests/
 COPY .env.example ./.env
 
