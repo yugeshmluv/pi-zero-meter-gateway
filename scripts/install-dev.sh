@@ -5,7 +5,7 @@ set -euo pipefail
 # Installs Python virtual environment, dependencies, and pre-commit hooks
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 echo "📦 MeterHub Development Environment Setup"
 echo "=========================================="
@@ -64,11 +64,11 @@ ENV_FILE="$PROJECT_ROOT/.env"
 if [[ ! -f "$ENV_FILE" ]]; then
     cat > "$ENV_FILE" << 'EOF'
 # Development environment configuration
-METREHUB_ENV=development
-METREHUB_LOG_LEVEL=debug
-METREHUB_MQTT_BROKER=tcp://localhost:1883
-METREHUB_HTTPS_FALLBACK=http://localhost:8080
-METREHUB_DB_PATH=/tmp/metrehub-dev.sqlite
+METERHUB_ENV=development
+METERHUB_LOG_LEVEL=debug
+METERHUB_MQTT_BROKER=tcp://localhost:1883
+METERHUB_HTTPS_FALLBACK=http://localhost:8080
+METERHUB_DB_PATH=/tmp/meterhub-dev.sqlite
 EOF
     echo "✅ Created $ENV_FILE (customize as needed)"
 fi
