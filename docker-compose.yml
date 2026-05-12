@@ -17,6 +17,9 @@ services:
       timeout: 5s
       retries: 3
 
+  # Note: Production uses SQLite (local only)
+  # PostgreSQL & Redis are optional for development/testing only
+  # They are NOT part of the production edge deployment
   postgres:
     image: postgres:15-alpine
     container_name: meterhub-postgres
@@ -33,6 +36,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+    profiles:
+      - dev  # Only run with: docker-compose --profile dev up
 
   redis:
     image: redis:7-alpine
@@ -46,6 +51,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+    profiles:
+      - dev  # Only run with: docker-compose --profile dev up
 
 volumes:
   mosquitto_data:
