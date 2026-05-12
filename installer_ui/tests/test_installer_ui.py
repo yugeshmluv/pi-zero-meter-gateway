@@ -161,7 +161,7 @@ class TestServices:
 
         # Check service structure
         assert "status" in data["acquisition"]
-        assert "name" in data["installation"]
+        assert "name" in data["uploader"]
         assert "uptime_seconds" in data["installer_ui"]
 
 
@@ -317,10 +317,8 @@ class TestNetworkManager:
 
     def test_wifi_string_escaping(self):
         """Test Wi-Fi string escaping."""
-        nm = NetworkManager()
-
         # Test escaping
-        escaped = nm._escape_wifi_string('Test;SSID:With"Quotes')
+        escaped = QRCodeGenerator._escape_wifi_string('Test;SSID:With"Quotes')
         assert "\\;" in escaped
         assert "\\:" in escaped
         assert '\\"' in escaped

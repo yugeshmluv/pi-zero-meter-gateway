@@ -35,9 +35,10 @@ class TestImageSigner:
     @pytest.fixture
     def sample_image(self):
         """Create sample image file."""
-        with tempfile.NamedTemporaryFile(mode="wb", delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="wb", delete=False, suffix=".img") as f:
             f.write(b"fake OS image data" * 100)
-            yield Path(f.name)
+            temp_path = f.name
+        yield Path(temp_path)
 
     def test_signer_initialization(self, signer):
         """Test signer initialization."""
