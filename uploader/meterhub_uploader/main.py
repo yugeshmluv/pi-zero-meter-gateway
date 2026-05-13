@@ -27,7 +27,7 @@ import os
 import signal
 import logging
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, List, Set, Tuple
 import json
 import hashlib
 import hmac
@@ -91,13 +91,25 @@ class UploaderService:
         self.https_uploader: Optional[HTTPSFallbackUploader] = None
         self.telemetry_db: Optional[TelemetryDatabase] = None
         self.state_db: Optional[StateDatabase] = None
+        self.start_time = datetime.utcnow()
+        self.running_tasks: Set[asyncio.Task] = set()  # Task tracking for graceful shutdown
 
         self.upload_count = 0
         self.error_count = 0
         self.last_heartbeat_time = datetime.utcnow()
 
+    def _get_system_uptime_seconds(self) -> int:
+        """Get system uptime from /proc/uptime. Falls back to service uptime."""
+        try:
+            with open('/proc/uptime', 'r') as f:
+                return int(float(f.read().split()[0]))
+        except (FileNotFoundError, ValueError, OSError) as e:
+            logger.debug(f"Failed to read /proc/uptime: {e}")
+            # Fallback: use service uptime
+            return int((datetime.utcnow() - self.start_time).total_seconds())
+
     async def _initialize_clients(self) -> bool:
-        """Initialize MQTT and HTTPS clients."""
+        """Initialize MQTT and HTTPS clients with database connections."""
         try:
             logger.info("Initializing cloud clients...")
 
@@ -117,12 +129,14 @@ class UploaderService:
                 oauth2_token=self.oauth2_token,
             )
 
-            # Databases
+            # Databases - initialize with persistent connections
             self.telemetry_db = TelemetryDatabase(self.telemetry_db_path)
             self.telemetry_db.initialize_schema()
+            self.telemetry_db.db.connect()  # Keep connection open
 
             self.state_db = StateDatabase(self.state_db_path)
             self.state_db.initialize_schema()
+            self.state_db.db.connect()  # Keep connection open
 
             logger.info("Cloud clients initialized")
             return True
@@ -148,13 +162,18 @@ class UploaderService:
         ).hexdigest()
         return signature
 
-    async def _fetch_readings(self, limit: int = 100) -> list:
-        """Fetch un-uploaded readings from database."""
+    async def _fetch_readings(self, limit: int = 100) -> List[Tuple[int, MeterReading]]:
+        """Fetch un-uploaded readings from database with validation.
+        
+        Args:
+            limit: Maximum readings to fetch
+            
+        Returns:
+            List of (id, MeterReading) tuples
+        """
         try:
             if not self.telemetry_db:
                 return []
-
-            self.telemetry_db.db.connect()
 
             cursor = self.telemetry_db.db.execute(
                 """
@@ -169,24 +188,32 @@ class UploaderService:
                 (limit,),
             )
 
-            readings = []
+            readings: List[Tuple[int, MeterReading]] = []
             for row in cursor.fetchall():
-                reading = MeterReading(
-                    timestamp_utc=datetime.fromisoformat(row[1]),
-                    totalizer_kwh=row[2],
-                    instant_kw=row[3],
-                    frequency_hz=row[4],
-                    voltage_l1=row[5],
-                    voltage_l2=row[6],
-                    voltage_l3=row[7],
-                    current_l1=row[8],
-                    current_l2=row[9],
-                    current_l3=row[10],
-                    pf_total=row[11],
-                    modbus_retry_count=row[12],
-                    meter_online=bool(row[13]),
-                )
-                readings.append((row[0], reading))  # (id, reading)
+                if len(row) < 14:  # Validate expected column count
+                    logger.error(f"Unexpected row format: {len(row)} columns, expected 14")
+                    continue
+                
+                try:
+                    reading = MeterReading(
+                        timestamp_utc=datetime.fromisoformat(row[1]),
+                        totalizer_kwh=float(row[2]),
+                        instant_kw=float(row[3]),
+                        frequency_hz=float(row[4]),
+                        voltage_l1=float(row[5]),
+                        voltage_l2=float(row[6]),
+                        voltage_l3=float(row[7]),
+                        current_l1=float(row[8]),
+                        current_l2=float(row[9]),
+                        current_l3=float(row[10]),
+                        pf_total=float(row[11]),
+                        modbus_retry_count=int(row[12]),
+                        meter_online=bool(row[13]),
+                    )
+                    readings.append((int(row[0]), reading))
+                except (ValueError, TypeError) as e:
+                    logger.error(f"Failed to parse reading row {row[0] if len(row) > 0 else 'unknown'}: {e}")
+                    continue
 
             return readings
 
@@ -194,8 +221,15 @@ class UploaderService:
             logger.error(f"Failed to fetch readings: {e}")
             return []
 
-    async def _create_payload(self, readings: list) -> Optional[CloudPayload]:
-        """Create CloudPayload from readings."""
+    async def _create_payload(self, readings: List[Tuple[int, MeterReading]]) -> Optional[CloudPayload]:
+        """Create CloudPayload from readings.
+        
+        Args:
+            readings: List of (id, MeterReading) tuples
+            
+        Returns:
+            CloudPayload or None if readings empty
+        """
         try:
             if not readings:
                 return None
@@ -210,7 +244,7 @@ class UploaderService:
                 panel_id=self.panel_id,
                 timestamp_utc=datetime.utcnow(),
                 firmware_version="1.0.0",
-                uptime_seconds=0,  # TODO: Get from system
+                uptime_seconds=self._get_system_uptime_seconds(),  # Get from system
                 cpu_percent=5.0,
                 ram_mb=50,
                 temperature_c=45.0,
@@ -237,12 +271,15 @@ class UploaderService:
             return None
 
     async def _get_queue_depth(self) -> int:
-        """Get current queue depth."""
+        """Get current queue depth (readings waiting to upload).
+        
+        Returns:
+            Number of readings in queue
+        """
         try:
             if not self.telemetry_db:
                 return 0
 
-            self.telemetry_db.db.connect()
             cursor = self.telemetry_db.db.execute(
                 "SELECT COUNT(*) FROM meter_readings"
             )
@@ -379,7 +416,7 @@ class UploaderService:
             logger.error(f"Heartbeat error: {e}")
 
     async def run(self) -> None:
-        """Main uploader loop."""
+        """Main uploader loop with proper task tracking for graceful shutdown."""
         self.running = True
 
         # Initialize
@@ -398,25 +435,15 @@ class UploaderService:
                 readings = await self._fetch_readings(limit=100)
 
                 if readings:
-                    # Create payload
-                    payload = await self._create_payload(readings)
-                    if payload:
-                        # Try MQTT first
-                        uploaded = await self._upload_mqtt(payload)
+                    # Create upload task and track it
+                    upload_task = asyncio.create_task(self._upload_batch(readings))
+                    self.running_tasks.add(upload_task)
+                    upload_task.add_done_callback(self.running_tasks.discard)
 
-                        # Fallback to HTTPS
-                        if not uploaded:
-                            uploaded = await self._upload_https(payload)
-
-                        if uploaded:
-                            self.upload_count += 1
-                            logger.info(f"Batch uploaded (total: {self.upload_count})")
-                        else:
-                            self.error_count += 1
-                            logger.warning("Upload failed, queued for retry")
-
-                # Send heartbeat periodically
-                await self._send_heartbeat()
+                # Schedule heartbeat task
+                hb_task = asyncio.create_task(self._send_heartbeat())
+                self.running_tasks.add(hb_task)
+                hb_task.add_done_callback(self.running_tasks.discard)
 
                 # Wait before next batch
                 await asyncio.sleep(10)
@@ -428,10 +455,51 @@ class UploaderService:
         finally:
             await self.shutdown()
 
+    async def _upload_batch(self, readings: List[Tuple[int, MeterReading]]) -> None:
+        """Upload a batch of readings (wrapper for task tracking).
+        
+        Args:
+            readings: List of (id, MeterReading) tuples
+        """
+        try:
+            payload = await self._create_payload(readings)
+            if payload:
+                # Try MQTT first
+                uploaded = await self._upload_mqtt(payload)
+
+                # Fallback to HTTPS
+                if not uploaded:
+                    uploaded = await self._upload_https(payload)
+
+                if uploaded:
+                    self.upload_count += 1
+                    logger.info(f"Batch uploaded (total: {self.upload_count})")
+                else:
+                    self.error_count += 1
+                    logger.warning("Upload failed, queued for retry")
+        except Exception as e:
+            logger.error(f"Upload batch error: {e}")
+            self.error_count += 1
+
     async def shutdown(self) -> None:
-        """Graceful shutdown."""
+        """Graceful shutdown with task cleanup."""
         logger.info("Shutting down uploader service...")
         self.running = False
+
+        # Cancel pending tasks
+        if self.running_tasks:
+            for task in self.running_tasks:
+                if not task.done():
+                    task.cancel()
+            
+            # Wait for cancellation with timeout
+            try:
+                await asyncio.wait_for(
+                    asyncio.gather(*self.running_tasks, return_exceptions=True),
+                    timeout=5.0
+                )
+            except asyncio.TimeoutError:
+                logger.warning("Task cancellation timeout")
 
         # Close MQTT
         if self.mqtt_client:
@@ -440,6 +508,17 @@ class UploaderService:
         # Close HTTPS
         if self.https_uploader:
             await self.https_uploader.disconnect()
+
+        # Close databases
+        if self.telemetry_db and self.telemetry_db.db.connection:
+            self.telemetry_db.db.disconnect()
+        if self.state_db and self.state_db.db.connection:
+            self.state_db.db.disconnect()
+
+        logger.info(
+            f"Uploader shutdown complete "
+            f"(uploads: {self.upload_count}, errors: {self.error_count})"
+        )
 
         # Close databases
         if self.telemetry_db and self.telemetry_db.db.connection:

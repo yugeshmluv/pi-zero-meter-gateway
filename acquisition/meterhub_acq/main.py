@@ -98,14 +98,16 @@ class AcquisitionService:
             return False
 
     def _initialize_databases(self) -> bool:
-        """Initialize SQLite databases."""
+        """Initialize SQLite databases with persistent connections."""
         try:
             logger.info("Initializing SQLite databases...")
             self.telemetry_db = TelemetryDatabase(self.telemetry_db_path)
             self.telemetry_db.initialize_schema()
+            self.telemetry_db.db.connect()  # Keep connection persistent
 
             self.state_db = StateDatabase(self.state_db_path)
             self.state_db.initialize_schema()
+            self.state_db.db.connect()  # Keep connection persistent
 
             logger.info("Databases initialized successfully")
             return True
@@ -167,10 +169,9 @@ class AcquisitionService:
             return None
 
     async def _store_reading(self, reading: MeterReading) -> None:
-        """Store reading in databases."""
+        """Store reading in databases (reuse persistent connections)."""
         try:
-            # Store in telemetry (performance-optimized)
-            self.telemetry_db.db.connect()
+            # Store in telemetry (performance-optimized, reuse connection)
             reading_dict = {
                 "timestamp_utc": reading.timestamp_utc.isoformat(),
                 "totalizer_kwh": reading.totalizer_kwh,
@@ -188,29 +189,30 @@ class AcquisitionService:
             }
             self.telemetry_db.insert_reading(reading_dict)
 
-            # Update billing state (crash-safe)
-            self.state_db.db.connect()
+            # Update billing state (crash-safe, reuse connection)
             self.state_db.update_billing_state(
                 reading.totalizer_kwh, reading.timestamp_utc
             )
 
             self.read_count += 1
-            logger.debug(
-                f"Read #{self.read_count}: "
-                f"{reading.totalizer_kwh} kWh, "
-                f"{reading.instant_kw} kW"
-            )
+            # Log every 60 reads (hourly) instead of every read
+            if self.read_count % 60 == 0:
+                logger.info(
+                    f"Acquisition progress: read count={self.read_count}, "
+                    f"totalizer={reading.totalizer_kwh:.2f} kWh, "
+                    f"instant={reading.instant_kw:.2f} kW"
+                )
 
         except Exception as e:
             logger.error(f"Failed to store reading: {e}")
             self.error_count += 1
 
     async def _cleanup_databases(self) -> None:
-        """Cleanup old telemetry records."""
+        """Cleanup old telemetry records (reuse persistent connection)."""
         try:
             if self.telemetry_db:
-                self.telemetry_db.db.connect()
                 self.telemetry_db.cleanup_old_readings()
+                logger.debug(f"Database cleanup complete at read count {self.read_count}")
         except Exception as e:
             logger.error(f"Cleanup failed: {e}")
 
