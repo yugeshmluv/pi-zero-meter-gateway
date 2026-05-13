@@ -11,7 +11,7 @@ packages = [
     { include = "meterhub_ui", from = "installer_ui" },
     { include = "meterhub_common", from = "common" },
     { include = "meterhub_ota_manager", from = "ota" },
-    { include = "build", from = "build" },
+    { include = "meterhub_build_manager", from = "build" },
 ]
 
 [tool.poetry.dependencies]
