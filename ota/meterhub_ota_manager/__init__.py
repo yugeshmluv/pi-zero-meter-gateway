@@ -1,4 +1,8 @@
 """
+MeterHub OTA (Over-The-Air) Manager
+
+Atomic OS updates with A/B partitions and automatic rollback.
+
 OTA Manager - Update Orchestration
 
 Handles:
@@ -9,6 +13,8 @@ Handles:
 - Rollback on failure
 - Delta update support
 """
+
+__version__ = "1.0.0"
 
 import logging
 import asyncio
