@@ -39,13 +39,13 @@ jobs:
 
       - name: Build image
         run: |
-          python3 build/build_release.py \
+          python3 build/meterhub_build_manager/build_release.py \
             --version ${{ steps.version.outputs.version }} \
             --channel stable
 
       - name: Generate checksums
         run: |
-          cd build/dist
+          cd build/meterhub_build_manager/dist
           sha256sum *.img > SHA256SUMS
 
       - name: Create Release
@@ -96,4 +96,4 @@ jobs:
       - name: Upload signatures
         uses: softprops/action-gh-release@v1
         with:
-          files: build/dist/*.sig
+          files: build/meterhub_build_manager/dist/*.sig
