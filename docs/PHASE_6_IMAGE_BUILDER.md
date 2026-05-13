@@ -347,7 +347,9 @@ GitHub Release created
 ✅ **Boot Security:** U-Boot verification  
 ✅ **Network Isolation:** UFW firewall by default  
 
-⚠️ **TODO:**
-- Trusted Platform Module (TPM) integration
-- Secure key storage (HSM support)
-- Rate limiting on release API
+## Future Enhancements (Phase 7+)
+
+The following advanced security features are planned for future releases and do not block v1.2.0:
+- **Trusted Platform Module (TPM) Integration:** Hardware-based key storage and attestation
+- **Secure Key Storage (HSM Support):** Hardware security module integration for enterprise deployments
+- **Rate Limiting on Release API:** DDoS protection for release distribution endpoints

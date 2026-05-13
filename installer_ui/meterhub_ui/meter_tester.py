@@ -222,17 +222,43 @@ class MeterTester:
             logger.info(f"Testing baud rate: {baud_rate}")
 
             try:
-                from common.meterhub_common import MeterProfile
+                from common.meterhub_common import MeterProfile, ModbusRTUClient
 
+                # Load profile and override baud rate for testing
                 profile = MeterProfile.from_yaml(meter_profile_path)
                 profile.baud_rate = baud_rate
 
-                # TODO: Create temporary ModbusRTUClient and test
+                # Create temporary client with test baud rate
+                client = ModbusRTUClient(
+                    device_path=device,
+                    meter_profile=profile,
+                    slave_id=1,
+                )
+
+                # Try to connect and read one register
+                await client.connect()
+                if not client.connected:
+                    results[baud_rate] = {
+                        "baud_rate": baud_rate,
+                        "success": False,
+                        "error": "Failed to connect at this baud rate",
+                    }
+                    continue
+
+                # Try reading a simple register
+                result = await client.read_register("voltage_l1", force_refresh=True)
+                await client.disconnect()
+
+                success = result.read_successful
                 results[baud_rate] = {
                     "baud_rate": baud_rate,
-                    "success": False,  # Placeholder
-                    "error": "Not yet implemented",
+                    "success": success,
+                    "error": None if success else result.error_message,
+                    "raw_value": result.raw_value if success else None,
                 }
+
+                if success:
+                    logger.info(f"✓ Baud rate {baud_rate} working")
 
             except Exception as e:
                 logger.error(f"Baud rate {baud_rate} test failed: {e}")

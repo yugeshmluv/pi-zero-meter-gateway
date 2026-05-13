@@ -174,14 +174,24 @@ class AWSIoTMQTTClient:
             return False
 
     async def disconnect(self) -> None:
-        """Disconnect from AWS IoT Core."""
+        """Disconnect from AWS IoT Core with proper cleanup."""
         try:
+            # Stop loop first (might block)
             self.client.loop_stop()
+            
+            # Small delay to ensure loop stopped
+            await asyncio.sleep(0.1)
+            
+            # Now disconnect
             self.client.disconnect()
+            
+            # Ensure state is clean
             self.connected = False
             logger.info(f"MQTT disconnected from {self.endpoint}")
         except Exception as e:
             logger.error(f"Disconnect error: {e}")
+            # Force state cleanup even on error
+            self.connected = False
 
     async def publish(
         self,
