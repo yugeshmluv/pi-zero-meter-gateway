@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class MeterTestResult:
     """Result of meter connectivity test."""
+
     device: str
     connected: bool
     registers_read: int

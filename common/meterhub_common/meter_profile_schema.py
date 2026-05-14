@@ -5,7 +5,7 @@ Defines the YAML schema for Modbus meter profiles and validates profile files.
 Supports Schneider EM6400, ABB, Siemens, and other 3-phase energy meter profiles.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict, Any
 from enum import Enum
 import yaml
@@ -63,7 +63,7 @@ class MeterProfile:
     stop_bits: int = 1  # 1 or 2
     data_bits: int = 8  # 7 or 8
     timeout_ms: int = 1000  # Modbus timeout
-    registers: Dict[str, ModbusRegister] = None  # Register map
+    registers: dict[str, ModbusRegister] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         """Initialize registers dict if not provided."""
@@ -81,9 +81,9 @@ class MeterProfile:
 
         # Validate required fields
         required = ["meter_type", "manufacturer", "protocol_version"]
-        for field in required:
-            if field not in data:
-                raise ValueError(f"Missing required field '{field}' in {yaml_path}")
+        for required_field in required:
+            if required_field not in data:
+                raise ValueError(f"Missing required field '{required_field}' in {yaml_path}")
 
         # Parse registers
         registers = {}

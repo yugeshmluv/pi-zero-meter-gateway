@@ -13,7 +13,7 @@ Production-grade MQTT client with:
 import asyncio
 import json
 import logging
-from typing import Type, Dict, Any, Optional, Callable, Awaitable
+from typing import Any, Optional, Callable, Awaitable, Self, Dict, Type
 from datetime import datetime
 import ssl
 
@@ -108,7 +108,13 @@ class AWSIoTMQTTClient:
     def _set_callbacks(self) -> None:
         """Set paho-mqtt callbacks."""
 
-        def on_connect(client, userdata, flags, rc, properties=None) -> None:
+        def on_connect(
+            client: Any,
+            userdata: Any,
+            flags: Any,
+            rc: int,
+            properties: Any = None,
+        ) -> None:
             if rc == 0:
                 self.connected = True
                 self.connection_failed_count = 0
@@ -119,15 +125,25 @@ class AWSIoTMQTTClient:
                 self.last_error = f"Connection failed: rc={rc}"
                 logger.error(self.last_error)
 
-        def on_disconnect(client, userdata, rc, properties=None) -> None:
+        def on_disconnect(
+            client: Any,
+            userdata: Any,
+            rc: int,
+            properties: Any = None,
+        ) -> None:
             self.connected = False
             if rc != 0:
                 logger.warning(f"Unexpected MQTT disconnection: rc={rc}")
 
-        def on_publish(client, userdata, mid, properties=None) -> None:
+        def on_publish(
+            client: Any,
+            userdata: Any,
+            mid: int,
+            properties: Any = None,
+        ) -> None:
             logger.debug(f"Message published: mid={mid}")
 
-        def on_message(client, userdata, msg) -> None:
+        def on_message(client: Any, userdata: Any, msg: Any) -> None:
             payload_preview = msg.payload[:100].decode("utf-8", errors="ignore")
             logger.debug(f"Message received on {msg.topic}: {payload_preview}")
 
@@ -159,7 +175,7 @@ class AWSIoTMQTTClient:
 
             # Wait for connection
             max_wait = 10  # seconds
-            waited = 0
+            waited = 0.0
             while not self.connected and waited < max_wait:
                 await asyncio.sleep(0.1)
                 waited += 0.1
@@ -327,7 +343,7 @@ class AWSIoTMQTTClient:
 
         return True
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> Self:
         """Async context manager entry."""
         await self.connect()
         return self

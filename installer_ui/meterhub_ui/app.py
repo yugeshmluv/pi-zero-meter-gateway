@@ -23,7 +23,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Query, Body, status
 from fastapi.responses import HTMLResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import aiofiles
 
 # Global state
@@ -48,8 +48,9 @@ class StatusEnum:
 
 class ProvisioningState(BaseModel):
     """Provisioning state tracker."""
-    status: str = StatusEnum.NOT_STARTED  # Enum value
-    step: int = 0  # Current step (0-5)
+
+    status: str = StatusEnum.NOT_STARTED
+    step: int = 0
     device_id: Optional[str] = None
     society_id: Optional[str] = None
     panel_id: Optional[str] = None
@@ -58,8 +59,8 @@ class ProvisioningState(BaseModel):
     https_endpoint: Optional[str] = None
     meter_profile: Optional[str] = None
     meter_device: Optional[str] = None
-    created_at: datetime = None
-    updated_at: datetime = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
 
     def __init__(self, **data) -> None:
         super().__init__(**data)
@@ -70,6 +71,7 @@ class ProvisioningState(BaseModel):
 
 class DeviceConfig(BaseModel):
     """Device configuration."""
+
     device_id: str
     society_id: str
     panel_id: str
@@ -82,7 +84,7 @@ class DeviceConfig(BaseModel):
     meter_device: str
     meter_baud_rate: int = 9600
     meter_parity: str = "N"
-    created_at: datetime = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
 
     def __init__(self, **data) -> None:
         super().__init__(**data)
@@ -98,14 +100,14 @@ class InstallerService:
         self.provisioning_state = ProvisioningState()
         self.device_config: Optional[DeviceConfig] = None
         self.start_time = datetime.utcnow()
-        self.auto_shutdown_timer: Optional[asyncio.Task] = None
+        self.auto_shutdown_timer: Optional[asyncio.Task[None]] = None
 
     async def reset_provisioning(self) -> None:
         """Reset to new provisioning session."""
         self.provisioning_state = ProvisioningState()
         logger.info("Provisioning state reset")
 
-    async def update_provisioning(self, **updates) -> None:
+    async def update_provisioning(self, **updates: Any) -> None:
         """Update provisioning state."""
         for key, value in updates.items():
             if hasattr(self.provisioning_state, key):

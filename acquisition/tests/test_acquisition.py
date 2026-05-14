@@ -27,9 +27,7 @@ from acquisition.meterhub_acq.main import AcquisitionService
 @pytest.mark.unit
 def test_meter_profile_load() -> None:
     """Test loading Schneider EM6400 profile."""
-    profile = MeterProfile.from_yaml(
-        "profiles/schneider-em6400.yaml"
-    )
+    profile = MeterProfile.from_yaml("profiles/schneider-em6400.yaml")
     assert profile.meter_type == "Schneider EM6400"
     assert profile.manufacturer == "Schneider Electric"
     assert profile.baud_rate == 9600
@@ -40,9 +38,7 @@ def test_meter_profile_load() -> None:
 @pytest.mark.unit
 def test_meter_profile_registers() -> None:
     """Test registers are properly defined."""
-    profile = MeterProfile.from_yaml(
-        "profiles/schneider-em6400.yaml"
-    )
+    profile = MeterProfile.from_yaml("profiles/schneider-em6400.yaml")
 
     # Check critical billing register
     totalizer = profile.registers["totalizer_kwh"]
@@ -90,9 +86,7 @@ def test_telemetry_database_init() -> None:
         telem.initialize_schema()
 
         # Check tables exist
-        cursor = telem.db.connection.execute(
-            "SELECT name FROM sqlite_master WHERE type='table'"
-        )
+        cursor = telem.db.connection.execute("SELECT name FROM sqlite_master WHERE type='table'")
         tables = {row[0] for row in cursor.fetchall()}
         assert "meter_readings" in tables
         assert "heartbeats" in tables
@@ -126,9 +120,7 @@ def test_telemetry_database_insert() -> None:
         telem.insert_reading(reading_dict)
 
         # Verify inserted
-        cursor = telem.db.connection.execute(
-            "SELECT COUNT(*) FROM meter_readings"
-        )
+        cursor = telem.db.connection.execute("SELECT COUNT(*) FROM meter_readings")
         count = cursor.fetchone()[0]
         assert count == 1
 
@@ -170,9 +162,7 @@ def test_acquisition_service_init() -> None:
 @pytest.mark.unit
 def test_acquisition_profile_load() -> None:
     """Test acquisition service profile loading."""
-    service = AcquisitionService(
-        meter_profile_path="profiles/schneider-em6400.yaml"
-    )
+    service = AcquisitionService(meter_profile_path="profiles/schneider-em6400.yaml")
 
     assert service._load_profile()
     assert service.meter_profile is not None

@@ -12,7 +12,7 @@ Handles:
 import logging
 import subprocess
 from typing import Optional, List, Dict, Any
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class WiFiNetwork:
     """Scanned Wi-Fi network information."""
+
     ssid: str
     signal_strength: int  # 0-100
     security: str  # WPA2, WPA, Open, WEP
@@ -32,14 +33,15 @@ class WiFiNetwork:
 @dataclass
 class NetworkConfig:
     """Network configuration."""
+
     hostname: str
     wi_fi_ssid: str
     wi_fi_psk: str
     use_dhcp: bool = True
     static_ip: Optional[str] = None
     gateway: Optional[str] = None
-    dns_servers: List[str] = None
-    ntp_servers: List[str] = None
+    dns_servers: list[str] = field(default_factory=lambda: ["8.8.8.8", "8.8.4.4"])
+    ntp_servers: list[str] = field(default_factory=lambda: ["pool.ntp.org"])
 
     def __post_init__(self) -> None:
         if self.dns_servers is None:
@@ -137,7 +139,7 @@ class NetworkManager:
             # Parse iwlist output (line-by-line parsing)
             lines = result.stdout.split("\n")
 
-            current_network = {}
+            current_network: dict[str, Any] = {}
             for line in lines:
                 line = line.strip()
 
@@ -348,7 +350,7 @@ class NetworkManager:
             return (freq_mhz - 5000) // 5
 
     @staticmethod
-    def _build_wifi_network(data: dict) -> WiFiNetwork:
+    def _build_wifi_network(data: dict[str, Any]) -> WiFiNetwork:
         """Build WiFiNetwork from parsed data."""
         freq_ghz = "2.4" if data.get("frequency", 2400) < 4000 else "5"
         return WiFiNetwork(

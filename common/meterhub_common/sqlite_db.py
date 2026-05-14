@@ -218,6 +218,7 @@ class TelemetryDatabase:
             "DELETE FROM meter_readings WHERE timestamp_utc < ?",
             (cutoff_date.isoformat(),),
         )
+        assert self.db.connection is not None, "Database not connected"
         deleted = self.db.connection.total_changes
         if deleted > 0:
             logger.debug(f"Deleted {deleted} old readings")

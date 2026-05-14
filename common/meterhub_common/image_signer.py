@@ -30,9 +30,10 @@ except ImportError:
 @dataclass
 class OTAManifest:
     """OTA update manifest metadata."""
+
     version: str  # Semantic version (e.g., "1.2.3")
     timestamp: str  # ISO 8601 timestamp
-    device_types: list  # List of compatible device types (e.g., ["rpi-zero-2w"])
+    device_types: list[str]  # List of compatible device types (e.g., ["rpi-zero-2w"])
     image_size_bytes: int
     image_sha256: str  # Hex-encoded SHA256 of image
     delta_base_version: Optional[str] = None  # If delta update, base version
@@ -121,11 +122,16 @@ class ImageSigner:
             public_pem = self.public_key_path.read_text() if self.public_key_path.exists() else ""
 
             if HAS_CRYPTO:
-                self.private_key = serialization.load_pem_private_key(
+                loaded_key = serialization.load_pem_private_key(
                     private_pem.encode("utf-8"),
                     password=None,
                 )
-                self.public_key = self.private_key.public_key()
+                if not isinstance(loaded_key, ed25519.Ed25519PrivateKey):
+                    raise TypeError(
+                        f"Expected Ed25519 private key, got {type(loaded_key).__name__}"
+                    )
+                self.private_key = loaded_key
+                self.public_key = loaded_key.public_key()
 
             return (private_pem, public_pem)
 
@@ -153,12 +159,18 @@ class ImageSigner:
                 private_pem, _ = self._load_keypair()
                 if not private_pem:
                     return None
-                self.private_key = serialization.load_pem_private_key(
+                loaded_key = serialization.load_pem_private_key(
                     private_pem.encode("utf-8"),
                     password=None,
                 )
+                if not isinstance(loaded_key, ed25519.Ed25519PrivateKey):
+                    raise TypeError(
+                        f"Expected Ed25519 private key, got {type(loaded_key).__name__}"
+                    )
+                self.private_key = loaded_key
 
             # Read image and compute signature
+            assert self.private_key is not None  # narrowing for mypy
             image_data = image_path.read_bytes()
             signature = self.private_key.sign(image_data)
 
@@ -193,17 +205,21 @@ class ImageSigner:
         try:
             # Load public key
             if public_key_pem:
-                public_key = serialization.load_pem_public_key(
-                    public_key_pem.encode("utf-8")
-                )
+                loaded_pub = serialization.load_pem_public_key(public_key_pem.encode("utf-8"))
+                if not isinstance(loaded_pub, ed25519.Ed25519PublicKey):
+                    raise TypeError(f"Expected Ed25519 public key, got {type(loaded_pub).__name__}")
+                public_key = loaded_pub
             else:
                 if not self.public_key:
                     _, public_pem = self._load_keypair()
                     if not public_pem:
                         return False
-                    public_key = serialization.load_pem_public_key(
-                        public_pem.encode("utf-8")
-                    )
+                    loaded_pub = serialization.load_pem_public_key(public_pem.encode("utf-8"))
+                    if not isinstance(loaded_pub, ed25519.Ed25519PublicKey):
+                        raise TypeError(
+                            f"Expected Ed25519 public key, got {type(loaded_pub).__name__}"
+                        )
+                    public_key = loaded_pub
                 else:
                     public_key = self.public_key
 
@@ -247,7 +263,7 @@ class ImageSigner:
         version: str,
         timestamp: str,
         image_path: Path,
-        device_types: list,
+        device_types: list[str],
         release_notes: Optional[str] = None,
         signature: Optional[str] = None,
     ) -> OTAManifest:

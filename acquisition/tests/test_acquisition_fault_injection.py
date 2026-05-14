@@ -56,9 +56,7 @@ def test_power_loss_telemetry_recovery() -> None:
         telem_recovered.db.connect()
 
         # Verify all 10 readings survived
-        cursor = telem_recovered.db.execute(
-            "SELECT COUNT(*) FROM meter_readings"
-        )
+        cursor = telem_recovered.db.execute("SELECT COUNT(*) FROM meter_readings")
         count = cursor.fetchone()[0]
         assert count == 10, "Data loss after power failure!"
 
