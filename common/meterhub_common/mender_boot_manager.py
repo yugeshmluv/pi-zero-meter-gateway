@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 class BootPartition(str, Enum):
     """Boot partition enumeration."""
+
     A = "a"
     B = "b"
 
@@ -32,6 +33,7 @@ class BootPartition(str, Enum):
 @dataclass
 class BootState:
     """Current boot state information."""
+
     active_partition: BootPartition
     staged_partition: Optional[BootPartition]
     boot_count: int  # Number of boot attempts on staged partition
@@ -309,7 +311,7 @@ class MenderBootManager:
                 partition_info[partition] = {
                     "path": str(partition_path),
                     "size_bytes": size_bytes,
-                    "size_gb": size_bytes / (1024 ** 3),
+                    "size_gb": size_bytes / (1024**3),
                 }
 
             return partition_info
@@ -383,9 +385,7 @@ class MenderBootManager:
         try:
             import hashlib
 
-            partition_path = (
-                self.partition_a if partition == BootPartition.A else self.partition_b
-            )
+            partition_path = self.partition_a if partition == BootPartition.A else self.partition_b
 
             sha256 = hashlib.sha256()
             with open(partition_path, "rb") as f:
