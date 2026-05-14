@@ -224,7 +224,7 @@ class UploaderService:
             return []
 
     async def _create_payload(self, readings: List[Tuple[int, MeterReading]]
-                            ) -> Optional[CloudPayload]:
+                             ) -> Optional[CloudPayload]:
         """Create CloudPayload from readings.
 
         Args:
