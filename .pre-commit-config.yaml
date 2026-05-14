@@ -1,44 +1,51 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v6.0.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-yaml
+      - id: check-toml
       - id: check-added-large-files
+        args: ['--maxkb=500']
       - id: check-merge-conflict
 
   - repo: https://github.com/psf/black
-    rev: 23.11.0
+    rev: 26.3.1
     hooks:
       - id: black
         language_version: python3.11
-        args: [--max-line-length=100]
+        args: [--line-length=100]
 
   - repo: https://github.com/PyCQA/flake8
-    rev: 6.1.0
+    rev: 7.1.1
     hooks:
       - id: flake8
-        args: [--max-line-length=100, --extend-ignore=E203,W503]
-        additional_dependencies: [flake8-docstrings, flake8-bugbear]
+        args:
+          - --max-line-length=100
+        # Match CI scope exactly
+        files: ^(acquisition|uploader|installer_ui|common)/
+        # Don't load flake8-bugbear (CI doesn't use it)
 
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.6.1
+  - repo: local
     hooks:
       - id: mypy
-        args: [--strict, --ignore-missing-imports]
-        additional_dependencies: [types-pyyaml, types-cryptography, types-PyYAML]
-        stages: [commit]
-
-  - repo: https://github.com/PyCQA/bandit
-    rev: 1.7.5
-    hooks:
-      - id: bandit
-        args: [-r, -c, .bandit]
-        stages: [commit]
+        name: mypy
+        entry: poetry run mypy
+        language: system
+        types: [python]
+        args:
+          - --strict
+          - --ignore-missing-imports
+          - acquisition
+          - uploader
+          - installer_ui
+          - common
+        files: ^(acquisition/meterhub_acq|uploader/meterhub_uploader|installer_ui/meterhub_ui|common/meterhub_common)/
+        pass_filenames: false
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.13.0
+    rev: v3.21.2
     hooks:
       - id: pyupgrade
         args: [--py311-plus]

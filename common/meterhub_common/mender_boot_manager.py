@@ -11,7 +11,7 @@ Handles:
 
 import logging
 import subprocess
-from typing import Optional, Dict, Any
+from typing import Any
 from pathlib import Path
 from dataclasses import dataclass
 from enum import Enum
@@ -35,7 +35,7 @@ class BootState:
     """Current boot state information."""
 
     active_partition: BootPartition
-    staged_partition: Optional[BootPartition]
+    staged_partition: BootPartition | None
     boot_count: int  # Number of boot attempts on staged partition
     boot_attempts: int  # Maximum allowed boot attempts
     committed: bool  # Whether current boot is committed
@@ -114,7 +114,7 @@ class MenderBootManager:
             logger.warning(f"Could not read active partition: {e}")
             return BootPartition.A
 
-    async def _get_staged_partition(self) -> Optional[BootPartition]:
+    async def _get_staged_partition(self) -> BootPartition | None:
         """Get staged partition (if any)."""
         try:
             result = subprocess.run(
@@ -264,7 +264,7 @@ class MenderBootManager:
             logger.error(f"Rollback failed: {e}")
             return False
 
-    async def reboot(self, target_partition: Optional[BootPartition] = None) -> bool:
+    async def reboot(self, target_partition: BootPartition | None = None) -> bool:
         """
         Reboot system (after staging partition).
 
@@ -288,7 +288,7 @@ class MenderBootManager:
             logger.error(f"Reboot failed: {e}")
             return False
 
-    async def get_partition_info(self) -> Dict[BootPartition, Dict[str, Any]]:
+    async def get_partition_info(self) -> dict[BootPartition, dict[str, Any]]:
         """Get information about A/B partitions."""
         try:
             partition_info = {}

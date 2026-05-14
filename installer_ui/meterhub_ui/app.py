@@ -18,7 +18,7 @@ import logging
 import json
 import asyncio
 from datetime import datetime
-from typing import Optional, List, Dict, Any
+from typing import Any
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Query, Body, status
@@ -51,14 +51,14 @@ class ProvisioningState(BaseModel):
 
     status: str = StatusEnum.NOT_STARTED
     step: int = 0
-    device_id: Optional[str] = None
-    society_id: Optional[str] = None
-    panel_id: Optional[str] = None
-    wi_fi_ssid: Optional[str] = None
-    mqtt_endpoint: Optional[str] = None
-    https_endpoint: Optional[str] = None
-    meter_profile: Optional[str] = None
-    meter_device: Optional[str] = None
+    device_id: str | None = None
+    society_id: str | None = None
+    panel_id: str | None = None
+    wi_fi_ssid: str | None = None
+    mqtt_endpoint: str | None = None
+    https_endpoint: str | None = None
+    meter_profile: str | None = None
+    meter_device: str | None = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
@@ -98,9 +98,9 @@ class InstallerService:
 
     def __init__(self) -> None:
         self.provisioning_state = ProvisioningState()
-        self.device_config: Optional[DeviceConfig] = None
+        self.device_config: DeviceConfig | None = None
         self.start_time = datetime.utcnow()
-        self.auto_shutdown_timer: Optional[asyncio.Task[None]] = None
+        self.auto_shutdown_timer: asyncio.Task[None] | None = None
 
     async def reset_provisioning(self) -> None:
         """Reset to new provisioning session."""
@@ -131,7 +131,7 @@ class InstallerService:
             logger.error(f"Failed to save config: {e}")
             return False
 
-    async def load_device_config(self) -> Optional[DeviceConfig]:
+    async def load_device_config(self) -> DeviceConfig | None:
         """Load device configuration from disk."""
         try:
             config_path = CONFIG_DIR / "device_config.json"
@@ -169,7 +169,7 @@ app = FastAPI(
 
 
 @app.get("/health", tags=["System"])
-async def health_check() -> Dict[str, Any]:
+async def health_check() -> dict[str, Any]:
     """Health check endpoint."""
     return {
         "status": "ok",
@@ -179,7 +179,7 @@ async def health_check() -> Dict[str, Any]:
 
 
 @app.get("/info", tags=["System"])
-async def device_info() -> Dict[str, Any]:
+async def device_info() -> dict[str, Any]:
     """Get device information."""
     return {
         "device_id": service.device_config.device_id if service.device_config else None,
@@ -281,7 +281,7 @@ async def dashboard() -> str:
 
 
 @app.post("/api/provisioning/step/next", tags=["Provisioning"])
-async def next_provisioning_step() -> Dict[str, Any]:
+async def next_provisioning_step() -> dict[str, Any]:
     """Advance to next provisioning step."""
     step = service.provisioning_state.step
     if step < 5:
@@ -295,14 +295,14 @@ async def next_provisioning_step() -> Dict[str, Any]:
 
 
 @app.post("/api/provisioning/reset", tags=["Provisioning"])
-async def reset_provisioning() -> Dict[str, str]:
+async def reset_provisioning() -> dict[str, str]:
     """Reset provisioning state."""
     await service.reset_provisioning()
     return {"message": "Provisioning reset"}
 
 
 @app.get("/api/provisioning/status", tags=["Provisioning"])
-async def get_provisioning_status() -> Dict[str, Any]:
+async def get_provisioning_status() -> dict[str, Any]:
     """Get current provisioning status."""
     return {
         "status": service.provisioning_state.status,
@@ -317,7 +317,7 @@ async def get_provisioning_status() -> Dict[str, Any]:
 
 
 @app.post("/api/config/set", tags=["Configuration"])
-async def set_device_config(config: DeviceConfig = Body(...)) -> Dict[str, str]:
+async def set_device_config(config: DeviceConfig = Body(...)) -> dict[str, str]:
     """Save device configuration."""
     success = await service.save_device_config(config)
     if success:
@@ -330,7 +330,7 @@ async def set_device_config(config: DeviceConfig = Body(...)) -> Dict[str, str]:
 
 
 @app.get("/api/config/get", tags=["Configuration"])
-async def get_device_config() -> Optional[Dict[str, Any]]:
+async def get_device_config() -> dict[str, Any] | None:
     """Get device configuration."""
     config = await service.load_device_config()
     if config:
@@ -344,7 +344,7 @@ async def get_device_config() -> Optional[Dict[str, Any]]:
 
 
 @app.get("/api/services/status", tags=["Services"])
-async def get_services_status() -> Dict[str, Dict[str, Any]]:
+async def get_services_status() -> dict[str, dict[str, Any]]:
     """Get status of all MeterHub services."""
     return {
         "acquisition": {
@@ -372,7 +372,7 @@ async def get_services_status() -> Dict[str, Dict[str, Any]]:
 
 
 @app.get("/api/qrcode/device", tags=["QR Code"])
-async def get_device_qr_code(format: str = Query("svg")) -> Dict[str, str]:
+async def get_device_qr_code(format: str = Query("svg")) -> dict[str, str]:
     """Generate QR code for device credentials (placeholder)."""
     if not service.device_config:
         raise HTTPException(status_code=404, detail="Device not configured")
@@ -391,7 +391,7 @@ async def get_device_qr_code(format: str = Query("svg")) -> Dict[str, str]:
 
 
 @app.get("/api/qrcode/wifi", tags=["QR Code"])
-async def get_wifi_qr_code() -> Dict[str, str]:
+async def get_wifi_qr_code() -> dict[str, str]:
     """Generate QR code for Wi-Fi provisioning."""
     if not service.device_config:
         raise HTTPException(status_code=404, detail="Device not configured")
@@ -413,7 +413,7 @@ async def get_wifi_qr_code() -> Dict[str, str]:
 
 
 @app.get("/api/network/scan", tags=["Network"])
-async def scan_networks() -> Dict[str, List[Dict[str, Any]]]:
+async def scan_networks() -> dict[str, list[dict[str, Any]]]:
     """Scan for available Wi-Fi networks."""
     # Placeholder: In production, use nmcli or iwlist
     return {
@@ -425,7 +425,7 @@ async def scan_networks() -> Dict[str, List[Dict[str, Any]]]:
 
 
 @app.get("/api/network/status", tags=["Network"])
-async def get_network_status() -> Dict[str, Any]:
+async def get_network_status() -> dict[str, Any]:
     """Get current network status."""
     return {
         "ip_address": "192.168.1.100",
@@ -442,7 +442,7 @@ async def get_network_status() -> Dict[str, Any]:
 
 
 @app.post("/api/meter/test", tags=["Meter"])
-async def test_meter_connectivity(device: str = Query("/dev/ttyUSB0")) -> Dict[str, Any]:
+async def test_meter_connectivity(device: str = Query("/dev/ttyUSB0")) -> dict[str, Any]:
     """Test Modbus meter connectivity."""
     # Placeholder: In production, use ModbusRTUClient from common
     await asyncio.sleep(1)  # Simulate test delay
@@ -458,7 +458,7 @@ async def test_meter_connectivity(device: str = Query("/dev/ttyUSB0")) -> Dict[s
 
 
 @app.get("/api/meter/profiles", tags=["Meter"])
-async def list_meter_profiles() -> Dict[str, List[str]]:
+async def list_meter_profiles() -> dict[str, list[str]]:
     """List available meter profiles."""
     return {
         "profiles": [
@@ -477,7 +477,7 @@ async def list_meter_profiles() -> Dict[str, List[str]]:
 @app.post("/api/registration/submit", tags=["Registration"])
 async def submit_device_registration(
     device_id: str = Body(...), oauth2_token: str = Body(...)
-) -> Dict[str, str]:
+) -> dict[str, str]:
     """Register device with cloud backend."""
     # Placeholder: In production, call cloud API
     return {"message": "Device registered", "device_id": device_id}
@@ -489,13 +489,13 @@ async def submit_device_registration(
 
 
 @app.post("/api/system/shutdown", tags=["System"])
-async def shutdown_installer_ui() -> Dict[str, str]:
+async def shutdown_installer_ui() -> dict[str, str]:
     """Gracefully shutdown installer UI (30 min timeout)."""
     return {"message": "Installer UI will shutdown in 30 minutes"}
 
 
 @app.get("/api/system/logs", tags=["System"])
-async def get_system_logs(lines: int = Query(100)) -> Dict[str, List[str]]:
+async def get_system_logs(lines: int = Query(100)) -> dict[str, list[str]]:
     """Get recent system logs."""
     return {"logs": ["Log entry 1", "Log entry 2", "..."]}
 

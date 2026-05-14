@@ -9,7 +9,7 @@ Generates QR codes for:
 
 import json
 import logging
-from typing import Dict, Any
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +38,7 @@ class QRCodeGenerator:
         society_id: str,
         panel_id: str,
         format: str = "svg",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Generate QR code for device credentials.
 
@@ -106,7 +106,7 @@ class QRCodeGenerator:
         password: str = "",
         security: str = "WPA",
         hidden: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Generate QR code for Wi-Fi provisioning (WiFi QR Standard).
 
@@ -169,7 +169,7 @@ class QRCodeGenerator:
         device_id: str,
         mqtt_endpoint: str,
         https_endpoint: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Generate QR code for cloud provisioning (endpoints + credentials).
 

@@ -11,7 +11,7 @@ Handles:
 
 import logging
 import subprocess
-from typing import Optional, List, Dict, Any
+from typing import Any
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -27,7 +27,7 @@ class WiFiNetwork:
     security: str  # WPA2, WPA, Open, WEP
     channel: int
     frequency_ghz: str  # 2.4 or 5
-    bssid: Optional[str] = None  # MAC address
+    bssid: str | None = None  # MAC address
 
 
 @dataclass
@@ -38,8 +38,8 @@ class NetworkConfig:
     wi_fi_ssid: str
     wi_fi_psk: str
     use_dhcp: bool = True
-    static_ip: Optional[str] = None
-    gateway: Optional[str] = None
+    static_ip: str | None = None
+    gateway: str | None = None
     dns_servers: list[str] = field(default_factory=lambda: ["8.8.8.8", "8.8.4.4"])
     ntp_servers: list[str] = field(default_factory=lambda: ["pool.ntp.org"])
 
@@ -65,7 +65,7 @@ class NetworkManager:
         self.config_dir = Path("/etc/NetworkManager/conf.d")
         self.wpa_config_file = Path("/etc/wpa_supplicant/wpa_supplicant.conf")
 
-    async def scan_networks(self) -> List[WiFiNetwork]:
+    async def scan_networks(self) -> list[WiFiNetwork]:
         """
         Scan for available Wi-Fi networks.
 
@@ -81,7 +81,7 @@ class NetworkManager:
             logger.error(f"Network scan failed: {e}")
             return []
 
-    async def _scan_nmcli(self) -> List[WiFiNetwork]:
+    async def _scan_nmcli(self) -> list[WiFiNetwork]:
         """Scan using nmcli (NetworkManager CLI)."""
         try:
             # List available networks (JSON output)
@@ -125,7 +125,7 @@ class NetworkManager:
             logger.error(f"nmcli scan failed: {e}")
             return []
 
-    async def _scan_iwlist(self) -> List[WiFiNetwork]:
+    async def _scan_iwlist(self) -> list[WiFiNetwork]:
         """Scan using iwlist (fallback for systems without NetworkManager)."""
         try:
             result = subprocess.run(
@@ -272,7 +272,7 @@ class NetworkManager:
             logger.error(f"wpa_cli connect error: {e}")
             return False
 
-    async def get_status(self) -> Dict[str, Any]:
+    async def get_status(self) -> dict[str, Any]:
         """Get current network status."""
         try:
             if self.use_nmcli:
@@ -283,7 +283,7 @@ class NetworkManager:
             logger.error(f"Failed to get network status: {e}")
             return {"status": "unknown"}
 
-    async def _status_nmcli(self) -> Dict[str, Any]:
+    async def _status_nmcli(self) -> dict[str, Any]:
         """Get status using nmcli."""
         try:
             result = subprocess.run(
@@ -316,7 +316,7 @@ class NetworkManager:
             logger.error(f"nmcli status failed: {e}")
             return {"status": "unknown"}
 
-    async def _status_ip(self) -> Dict[str, Any]:
+    async def _status_ip(self) -> dict[str, Any]:
         """Get status using ip command."""
         try:
             result = subprocess.run(

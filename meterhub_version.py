@@ -14,6 +14,7 @@ VERSION_MINOR = 2
 VERSION_PATCH = 0
 VERSION_PRERELEASE = ""  # alpha, beta, rc, etc.
 
+
 def get_version() -> str:
     """Return full version string."""
     version = f"{VERSION_MAJOR}.{VERSION_MINOR}.{VERSION_PATCH}"

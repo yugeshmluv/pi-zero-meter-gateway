@@ -1,7 +1,7 @@
 # MeterHub v1.2.0 Release Notes
 
-**Release Date:** May 11, 2026  
-**Status:** ✅ Production Ready  
+**Release Date:** May 11, 2026
+**Status:** ✅ Production Ready
 **Commit:** (Phase 6 - to be pushed)
 
 ## What's New in v1.2.0
@@ -59,7 +59,7 @@ python3 build/build_release.py --version 1.2.0 --channel stable
 - **Ed25519 Signing:** All images cryptographically signed
 - **GitHub Releases:** Automatic release creation with checksums
 
-**Build Time:** ~20 minutes  
+**Build Time:** ~20 minutes
 **Compressed Size:** 100-120 MB
 
 #### 📦 Release Artifacts

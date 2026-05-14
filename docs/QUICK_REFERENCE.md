@@ -133,7 +133,7 @@ cat CONTRIBUTING.md
 
 ## 🎯 Phase 2 Scope (Next)
 
-**Duration:** 2–3 weeks  
+**Duration:** 2–3 weeks
 **Owner:** Development team
 
 **Deliverables:**
@@ -175,25 +175,25 @@ cat CONTRIBUTING.md
 
 ## 📞 Common Questions
 
-**Q: Where do I start as a developer?**  
+**Q: Where do I start as a developer?**
 A: Start with [CONTRIBUTING.md](CONTRIBUTING.md), then [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
-**Q: I'm the cloud team. What's my spec?**  
+**Q: I'm the cloud team. What's my spec?**
 A: [CLOUD_API_CONTRACT.md](CLOUD_API_CONTRACT.md) — everything you need. Read it first.
 
-**Q: Can I modify the meter profile without code changes?**  
+**Q: Can I modify the meter profile without code changes?**
 A: **YES** — meter profiles are YAML in `profiles/`. See [docs/METER_PROFILES.md](docs/METER_PROFILES.md)
 
-**Q: What's the total cost per device?**  
+**Q: What's the total cost per device?**
 A: ₹9,200–13,000. See [HARDWARE_BOM.md](HARDWARE_BOM.md) for breakdown.
 
-**Q: When does Phase 2 start?**  
+**Q: When does Phase 2 start?**
 A: After sign-off on Phase 1 (architecture + BOM + API contract). You're reading the sign-off docs now.
 
-**Q: What about OTA updates?**  
+**Q: What about OTA updates?**
 A: Fully specified in [CLOUD_API_CONTRACT.md](CLOUD_API_CONTRACT.md) (OTA manifest, canary delay, rollback logic). Implemented in Phase 5.
 
-**Q: Is the device secure?**  
+**Q: Is the device secure?**
 A: Yes — isolation, Ed25519 signing, audit logs, bearer tokens. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) Security section.
 
 ---
@@ -225,6 +225,6 @@ For questions, refer to:
 
 **🎉 Phase 1 Complete — Ready for Phase 2 Kickoff**
 
-**Last Updated:** April 28, 2026  
-**Repository:** `metrehub/`  
+**Last Updated:** April 28, 2026
+**Repository:** `metrehub/`
 **Status:** ✅ All deliverables ready

@@ -3,7 +3,7 @@ MeterHub Performance & Optimization Module
 
 Comprehensive performance profiling and optimization strategies for:
 - Memory footprint reduction
-- Startup time optimization  
+- Startup time optimization
 - Power consumption minimization
 - Resource monitoring and tracking
 
@@ -16,19 +16,19 @@ Components:
 """
 
 __all__ = [
-    'PerformanceProfiler',
-    'ProfileCache',
-    'LazyModbusClient',
-    'SQLiteConnectionPool',
-    'LazyCloudClientInitializer',
-    'EfficientPayloadBuilder',
-    'LazyFastAPIApp',
-    'TemplateCache',
-    'QRCodeGeneratorOptimized',
-    'NetworkScanCache',
-    'PowerManager',
-    'PollingIntervalOptimizer',
-    'PowerConsumptionMonitor',
+    "PerformanceProfiler",
+    "ProfileCache",
+    "LazyModbusClient",
+    "SQLiteConnectionPool",
+    "LazyCloudClientInitializer",
+    "EfficientPayloadBuilder",
+    "LazyFastAPIApp",
+    "TemplateCache",
+    "QRCodeGeneratorOptimized",
+    "NetworkScanCache",
+    "PowerManager",
+    "PollingIntervalOptimizer",
+    "PowerConsumptionMonitor",
 ]
 
 from .performance_profiler import (

@@ -41,7 +41,7 @@ communication:
 # Register definitions (ALL registers must include address + type + scale)
 # NOTE: Always include 'totalizer_kwh' in every read
 registers:
-  
+
   # =========== ENERGY (MANDATORY) ===========
   totalizer_kwh:
     address: 45568
@@ -51,7 +51,7 @@ registers:
     unit: "kWh"
     description: "Cumulative kilowatt-hours (export energy)"
     frequency_hz: 0.1  # Polled every 10 seconds typically
-    
+
   totalizer_kvarh:
     address: 45570
     count: 2
@@ -59,7 +59,7 @@ registers:
     scale: 0.01
     unit: "kVARh"
     description: "Cumulative reactive energy"
-    
+
   # =========== INSTANTANEOUS POWER ===========
   instant_kw:
     address: 3520
@@ -68,7 +68,7 @@ registers:
     scale: 0.001
     unit: "kW"
     description: "Real power (3-phase total)"
-    
+
   instant_kvar:
     address: 3522
     count: 2
@@ -76,7 +76,7 @@ registers:
     scale: 0.001
     unit: "kVAR"
     description: "Reactive power (3-phase total)"
-    
+
   instant_kva:
     address: 3524
     count: 2
@@ -84,7 +84,7 @@ registers:
     scale: 0.001
     unit: "kVA"
     description: "Apparent power (3-phase total)"
-    
+
   # =========== VOLTAGE ===========
   voltage_l1_v:
     address: 3072
@@ -93,7 +93,7 @@ registers:
     scale: 0.1
     unit: "V"
     description: "L1 RMS voltage"
-    
+
   voltage_l2_v:
     address: 3073
     count: 1
@@ -101,7 +101,7 @@ registers:
     scale: 0.1
     unit: "V"
     description: "L2 RMS voltage"
-    
+
   voltage_l3_v:
     address: 3074
     count: 1
@@ -109,7 +109,7 @@ registers:
     scale: 0.1
     unit: "V"
     description: "L3 RMS voltage"
-    
+
   # =========== CURRENT ===========
   current_l1_a:
     address: 3076
@@ -118,7 +118,7 @@ registers:
     scale: 0.01
     unit: "A"
     description: "L1 RMS current"
-    
+
   current_l2_a:
     address: 3077
     count: 1
@@ -126,7 +126,7 @@ registers:
     scale: 0.01
     unit: "A"
     description: "L2 RMS current"
-    
+
   current_l3_a:
     address: 3078
     count: 1
@@ -134,7 +134,7 @@ registers:
     scale: 0.01
     unit: "A"
     description: "L3 RMS current"
-    
+
   # =========== FREQUENCY ===========
   frequency_hz:
     address: 3084
@@ -143,7 +143,7 @@ registers:
     scale: 0.01
     unit: "Hz"
     description: "Supply frequency"
-    
+
   # =========== POWER FACTOR (per phase + total) ===========
   pf_l1:
     address: 3080
@@ -152,7 +152,7 @@ registers:
     scale: 0.001
     unit: "PF"
     description: "Power factor L1 (signed: -1.0 to +1.0)"
-    
+
   pf_l2:
     address: 3081
     count: 1
@@ -160,7 +160,7 @@ registers:
     scale: 0.001
     unit: "PF"
     description: "Power factor L2"
-    
+
   pf_l3:
     address: 3082
     count: 1
@@ -168,7 +168,7 @@ registers:
     scale: 0.001
     unit: "PF"
     description: "Power factor L3"
-    
+
   pf_total:
     address: 3083
     count: 1
@@ -185,13 +185,13 @@ read_groups:
       - "totalizer_kwh"
       - "totalizer_kvarh"
     reason: "Contiguous addresses for efficiency"
-    
+
   - name: "power_batch"
     registers:
       - "instant_kw"
       - "instant_kvar"
       - "instant_kva"
-      
+
   - name: "voltage_current_batch"
     registers:
       - "voltage_l1_v"
@@ -212,7 +212,7 @@ validation:
   current_max_reasonable_a: 100
   frequency_reasonable_range_hz: [48.5, 50.5]
   pf_valid_range: [-1.0, 1.0]  # PF always between -1 and +1
-  
+
   # Special case: zero values are valid (no consumption)
   allow_zero_power: true
   allow_zero_current: true
@@ -224,10 +224,10 @@ error_handling:
   retry_strategy:
     max_retries: 3
     backoff_ms: [100, 500, 2000]  # 100ms, 500ms, 2000ms
-    
+
   # If register read returns unreasonable value (out of validation bounds)
   bad_register_value_action: "skip_register"  # or "mark_meter_offline"
-  
+
   # If >5 consecutive failures, mark meter offline in heartbeat
   offline_threshold_failures: 5
 
@@ -236,12 +236,12 @@ quirks:
   # Some meters have register address gaps; reading contiguously may fail
   - name: "register_gap_at_3085"
     description: "Meter has unmapped registers 3085–3099; read as separate batch"
-    
+
   # Some meters return wrong endianness for certain registers
   - name: "voltage_little_endian"
     description: "Voltage registers are little-endian (non-standard); adjust decoder"
     registers: ["voltage_l1_v", "voltage_l2_v", "voltage_l3_v"]
-    
+
   # Some meters require write before read (initialization sequence)
   - name: "requires_modbus_preset"
     description: "Must write 0x0001 to register 100 before reading"
@@ -258,7 +258,7 @@ commissioning:
     - "Use installer UI → Meter Test to confirm communication"
     - "Verify all registers return reasonable values"
     - "Check kWh totalizer increments every minute"
-    
+
   expected_first_read: "Takes <5 seconds via installer UI test page"
   troubleshooting_links:
     - "See HARDWARE_BOM.md for RS485 isolation confirm"
@@ -270,7 +270,7 @@ known_issues:
   - name: "Meter goes offline after 24h of continuous polling"
     workaround: "Oldest EM6400 firmware; upgrade to 2.x.x or add 30-second idle between polls"
     affected_firmware_versions: ["1.0.x"]
-    
+
   - name: "KVARH register contains stale value (not updating)"
     workaround: "Quirk of this meter; cloud ignores KVARH, uses only KWH"
 

@@ -108,42 +108,42 @@ cd pi-gen-overlay
 ## �🔧 Key Features
 
 ✅ **Hardware**
-- Isolated RS485 transceiver (safety-critical) + TVS diodes  
-- Industrial-grade SD card (SanDisk/ATP/Swissbit)  
-- IP54 DIN-rail enclosure with passive ventilation  
-- Thermal monitoring: warn at 70°C, throttle at 75°C, pause at 80°C  
+- Isolated RS485 transceiver (safety-critical) + TVS diodes
+- Industrial-grade SD card (SanDisk/ATP/Swissbit)
+- IP54 DIN-rail enclosure with passive ventilation
+- Thermal monitoring: warn at 70°C, throttle at 75°C, pause at 80°C
 
 ✅ **Reliability**
-- Crash-safe SQLite (WAL mode, no corruption on power cuts)  
-- Store-and-forward queue: survives 7-day cloud outages  
-- Modbus 3 retries with exponential backoff  
-- Fallback email to admin if offline >24 h  
+- Crash-safe SQLite (WAL mode, no corruption on power cuts)
+- Store-and-forward queue: survives 7-day cloud outages
+- Modbus 3 retries with exponential backoff
+- Fallback email to admin if offline >24 h
 
 ✅ **Performance**
-- CPU <10% average, <30% peak  
-- RAM <200 MB total  
-- SD writes <30 MB/day (wear optimized)  
-- Runs on 512 MB RAM without swap  
+- CPU <10% average, <30% peak
+- RAM <200 MB total
+- SD writes <30 MB/day (wear optimized)
+- Runs on 512 MB RAM without swap
 
 ✅ **Security**
-- HTTPS-only installer UI (self-signed cert auto-generated)  
-- Ed25519 device signing; cloud token bearer auth  
-- Audit log (config changes, logins, OTA events)  
-- SSH disabled by default; key-only when enabled  
-- DPDP Act compliant (no resident PII on device)  
+- HTTPS-only installer UI (self-signed cert auto-generated)
+- Ed25519 device signing; cloud token bearer auth
+- Audit log (config changes, logins, OTA events)
+- SSH disabled by default; key-only when enabled
+- DPDP Act compliant (no resident PII on device)
 
 ✅ **Fleet Management**
-- QR-code provisioning (device ID + public key in QR)  
-- OTA updates with Ed25519 signature verification  
-- Canary delays for non-critical updates  
-- Health-check rollback on update failure  
-- Cloud-side telemetry: CPU, RAM, temp, SD wear, queue depth  
+- QR-code provisioning (device ID + public key in QR)
+- OTA updates with Ed25519 signature verification
+- Canary delays for non-critical updates
+- Health-check rollback on update failure
+- Cloud-side telemetry: CPU, RAM, temp, SD wear, queue depth
 
 ✅ **Cloud Integration** (Specified for parallel cloud team)
-- MQTT (HiveMQ Cloud / AWS IoT Core) primary path  
-- HTTPS fallback for restricted networks  
-- Heartbeat every 5 min with health metrics  
-- Per-device audit logs uploaded on reconnect  
+- MQTT (HiveMQ Cloud / AWS IoT Core) primary path
+- HTTPS fallback for restricted networks
+- Heartbeat every 5 min with health metrics
+- Per-device audit logs uploaded on reconnect
 
 ---
 

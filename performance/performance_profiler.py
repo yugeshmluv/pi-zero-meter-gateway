@@ -31,6 +31,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class StartupMetric:
     """Single startup timing measurement."""
+
     stage: str
     duration_ms: float
     memory_mb: float
@@ -41,6 +42,7 @@ class StartupMetric:
 @dataclass
 class ResourceSnapshot:
     """Snapshot of resource usage at a point in time."""
+
     timestamp: datetime
     memory_mb: float
     cpu_percent: float
@@ -62,20 +64,20 @@ class PerformanceProfiler:
         self.service_name = service_name
         self.process = psutil.Process(os.getpid())
         self.start_time = time.perf_counter()
-        self.metrics: List[StartupMetric] = []
-        self.snapshots: List[ResourceSnapshot] = []
-        
+        self.metrics: list[StartupMetric] = []
+        self.snapshots: list[ResourceSnapshot] = []
+
     def mark_stage(self, stage_name: str) -> None:
         """Mark a startup stage completion."""
         elapsed = (time.perf_counter() - self.start_time) * 1000
         mem_info = self.process.memory_info()
         memory_mb = mem_info.rss / (1024 * 1024)
-        
+
         try:
             cpu_percent = self.process.cpu_percent(interval=0.1)
         except:
             cpu_percent = 0.0
-        
+
         metric = StartupMetric(
             stage=stage_name,
             duration_ms=elapsed,
@@ -94,14 +96,14 @@ class PerformanceProfiler:
         """Take a resource snapshot."""
         mem_info = self.process.memory_info()
         memory_mb = mem_info.rss / (1024 * 1024)
-        
+
         try:
             cpu_percent = self.process.cpu_percent(interval=0.05)
             open_fds = self.process.num_fds()
         except:
             cpu_percent = 0.0
             open_fds = 0
-        
+
         try:
             io_counters = self.process.io_counters()
             io_read_bytes = io_counters.read_bytes
@@ -109,7 +111,7 @@ class PerformanceProfiler:
         except:
             io_read_bytes = 0
             io_write_bytes = 0
-        
+
         snap = ResourceSnapshot(
             timestamp=datetime.utcnow(),
             memory_mb=memory_mb,
@@ -125,7 +127,7 @@ class PerformanceProfiler:
         """Get peak memory usage in MB."""
         if not self.metrics and not self.snapshots:
             return 0.0
-        
+
         metric_mem = [m.memory_mb for m in self.metrics] if self.metrics else [0.0]
         snapshot_mem = [s.memory_mb for s in self.snapshots] if self.snapshots else [0.0]
         return max(metric_mem + snapshot_mem)
@@ -136,7 +138,7 @@ class PerformanceProfiler:
             return 0.0
         return self.metrics[-1].duration_ms
 
-    def report(self) -> Dict:
+    def report(self) -> dict:
         """Generate profiling report."""
         return {
             "service": self.service_name,
@@ -160,7 +162,7 @@ class PerformanceProfiler:
         logger.info(f"\n=== Performance Report: {report['service']} ===")
         logger.info(f"Total startup: {report['total_startup_ms']:.1f}ms")
         logger.info(f"Peak memory: {report['peak_memory_mb']:.1f}MB")
-        for stage in report['stages']:
+        for stage in report["stages"]:
             logger.info(
                 f"  {stage['name']:<30} "
                 f"{stage['duration_ms']:>7.1f}ms "
@@ -208,10 +210,7 @@ class NetworkLatencyMeasurer:
     """Measures network latency for MQTT and HTTPS."""
 
     @staticmethod
-    async def measure_mqtt_latency(
-        endpoint: str,
-        timeout_s: float = 5.0
-    ) -> Optional[float]:
+    async def measure_mqtt_latency(endpoint: str, timeout_s: float = 5.0) -> float | None:
         """
         Measure MQTT connection latency.
 
@@ -221,12 +220,12 @@ class NetworkLatencyMeasurer:
         start = time.perf_counter()
         try:
             import socket
-            host, port = endpoint.split(':') if ':' in endpoint else (endpoint, 8883)
+
+            host, port = endpoint.split(":") if ":" in endpoint else (endpoint, 8883)
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(timeout_s)
             await asyncio.wait_for(
-                asyncio.get_event_loop().sock_connect(sock, (host, int(port))),
-                timeout=timeout_s
+                asyncio.get_event_loop().sock_connect(sock, (host, int(port))), timeout=timeout_s
             )
             sock.close()
             elapsed = (time.perf_counter() - start) * 1000
@@ -236,10 +235,7 @@ class NetworkLatencyMeasurer:
             return None
 
     @staticmethod
-    async def measure_https_latency(
-        endpoint: str,
-        timeout_s: float = 5.0
-    ) -> Optional[float]:
+    async def measure_https_latency(endpoint: str, timeout_s: float = 5.0) -> float | None:
         """
         Measure HTTPS connection latency.
 
@@ -250,15 +246,15 @@ class NetworkLatencyMeasurer:
         try:
             import socket
             from urllib.parse import urlparse
+
             parsed = urlparse(endpoint)
             host = parsed.hostname or endpoint
             port = parsed.port or 443
-            
+
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(timeout_s)
             await asyncio.wait_for(
-                asyncio.get_event_loop().sock_connect(sock, (host, port)),
-                timeout=timeout_s
+                asyncio.get_event_loop().sock_connect(sock, (host, port)), timeout=timeout_s
             )
             sock.close()
             elapsed = (time.perf_counter() - start) * 1000
@@ -269,9 +265,7 @@ class NetworkLatencyMeasurer:
 
 
 def estimate_power_consumption(
-    cpu_percent: float,
-    memory_mb: float,
-    devices_active: Dict[str, bool]
+    cpu_percent: float, memory_mb: float, devices_active: dict[str, bool]
 ) -> float:
     """
     Estimate power consumption in milliwatts.
@@ -286,22 +280,22 @@ def estimate_power_consumption(
     """
     # Pi Zero W base: ~100 mW idle
     base_power = 100.0
-    
+
     # CPU contribution: ~150 mW at 100%
     cpu_power = (cpu_percent / 100.0) * 150.0
-    
+
     # Memory contribution: ~10 mW per 100MB
     memory_power = (memory_mb / 100.0) * 10.0
-    
+
     # Device contributions
     device_power = 0.0
-    if devices_active.get('uart', False):
+    if devices_active.get("uart", False):
         device_power += 20.0  # UART: ~20 mW
-    if devices_active.get('wifi', False):
+    if devices_active.get("wifi", False):
         device_power += 80.0  # WiFi: ~80 mW
-    if devices_active.get('bluetooth', False):
+    if devices_active.get("bluetooth", False):
         device_power += 60.0  # Bluetooth: ~60 mW
-    
+
     total = base_power + cpu_power + memory_power + device_power
     return total
 
@@ -309,17 +303,17 @@ def estimate_power_consumption(
 if __name__ == "__main__":
     # Example usage
     profiler = PerformanceProfiler("example_service")
-    
+
     profiler.mark_stage("initialization")
     time.sleep(0.1)
-    
+
     profiler.mark_stage("load_config")
     time.sleep(0.05)
-    
+
     profiler.mark_stage("connect_db")
     time.sleep(0.08)
-    
+
     profiler.mark_stage("ready")
-    
+
     profiler.log_report()
     print(profiler.report())

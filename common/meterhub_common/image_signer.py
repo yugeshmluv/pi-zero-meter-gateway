@@ -10,7 +10,6 @@ Handles:
 
 import logging
 import hashlib
-from typing import Optional, Dict, Tuple
 from pathlib import Path
 from dataclasses import dataclass
 
@@ -36,10 +35,10 @@ class OTAManifest:
     device_types: list[str]  # List of compatible device types (e.g., ["rpi-zero-2w"])
     image_size_bytes: int
     image_sha256: str  # Hex-encoded SHA256 of image
-    delta_base_version: Optional[str] = None  # If delta update, base version
-    replaces_version: Optional[str] = None  # Current version being replaced
-    release_notes: Optional[str] = None
-    signature: Optional[str] = None  # Hex-encoded Ed25519 signature
+    delta_base_version: str | None = None  # If delta update, base version
+    replaces_version: str | None = None  # Current version being replaced
+    release_notes: str | None = None
+    signature: str | None = None  # Hex-encoded Ed25519 signature
 
 
 class ImageSigner:
@@ -58,10 +57,10 @@ class ImageSigner:
         self.private_key_path = self.key_dir / "ota_private.pem"
         self.public_key_path = self.key_dir / "ota_public.pem"
 
-        self.private_key: Optional[ed25519.Ed25519PrivateKey] = None
-        self.public_key: Optional[ed25519.Ed25519PublicKey] = None
+        self.private_key: ed25519.Ed25519PrivateKey | None = None
+        self.public_key: ed25519.Ed25519PublicKey | None = None
 
-    def generate_keypair(self, force: bool = False) -> Tuple[str, str]:
+    def generate_keypair(self, force: bool = False) -> tuple[str, str]:
         """
         Generate Ed25519 keypair.
 
@@ -111,7 +110,7 @@ class ImageSigner:
             logger.error(f"Failed to generate keypair: {e}")
             return ("", "")
 
-    def _load_keypair(self) -> Tuple[str, str]:
+    def _load_keypair(self) -> tuple[str, str]:
         """Load existing keypair from disk."""
         try:
             if not self.private_key_path.exists():
@@ -139,7 +138,7 @@ class ImageSigner:
             logger.error(f"Failed to load keypair: {e}")
             return ("", "")
 
-    def sign_image(self, image_path: Path) -> Optional[str]:
+    def sign_image(self, image_path: Path) -> str | None:
         """
         Sign OTA image file.
 
@@ -175,7 +174,7 @@ class ImageSigner:
             signature = self.private_key.sign(image_data)
 
             logger.info(f"Signed image: {image_path} ({len(image_data)} bytes)")
-            return signature.hex()
+            return str(signature.hex())
 
         except Exception as e:
             logger.error(f"Failed to sign image: {e}")
@@ -185,7 +184,7 @@ class ImageSigner:
         self,
         image_path: Path,
         signature_hex: str,
-        public_key_pem: Optional[str] = None,
+        public_key_pem: str | None = None,
     ) -> bool:
         """
         Verify image signature.
@@ -264,8 +263,8 @@ class ImageSigner:
         timestamp: str,
         image_path: Path,
         device_types: list[str],
-        release_notes: Optional[str] = None,
-        signature: Optional[str] = None,
+        release_notes: str | None = None,
+        signature: str | None = None,
     ) -> OTAManifest:
         """
         Create OTA manifest for image.
@@ -297,7 +296,7 @@ class ImageSigner:
         return manifest
 
     @staticmethod
-    def validate_manifest(manifest: OTAManifest) -> Dict[str, bool]:
+    def validate_manifest(manifest: OTAManifest) -> dict[str, bool]:
         """
         Validate OTA manifest structure.
 

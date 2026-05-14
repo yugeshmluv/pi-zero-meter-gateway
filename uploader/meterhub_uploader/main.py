@@ -28,7 +28,7 @@ import signal
 import logging
 from datetime import datetime
 from types import FrameType
-from typing import Optional, List, Set, Tuple, Any
+from typing import Any
 import json
 import hashlib
 import hmac
@@ -88,12 +88,12 @@ class UploaderService:
 
         # State
         self.running = False
-        self.mqtt_client: Optional[AWSIoTMQTTClient] = None
-        self.https_uploader: Optional[HTTPSFallbackUploader] = None
-        self.telemetry_db: Optional[TelemetryDatabase] = None
-        self.state_db: Optional[StateDatabase] = None
+        self.mqtt_client: AWSIoTMQTTClient | None = None
+        self.https_uploader: HTTPSFallbackUploader | None = None
+        self.telemetry_db: TelemetryDatabase | None = None
+        self.state_db: StateDatabase | None = None
         self.start_time = datetime.utcnow()
-        self.running_tasks: Set[asyncio.Task[Any]] = set()
+        self.running_tasks: set[asyncio.Task[Any]] = set()
 
         self.upload_count = 0
         self.error_count = 0
@@ -102,7 +102,7 @@ class UploaderService:
     def _get_system_uptime_seconds(self) -> int:
         """Get system uptime from /proc/uptime. Falls back to service uptime."""
         try:
-            with open("/proc/uptime", "r") as f:
+            with open("/proc/uptime") as f:
                 return int(float(f.read().split()[0]))
         except (FileNotFoundError, ValueError, OSError) as e:
             logger.debug(f"Failed to read /proc/uptime: {e}")
@@ -163,7 +163,7 @@ class UploaderService:
         ).hexdigest()
         return signature
 
-    async def _fetch_readings(self, limit: int = 100) -> List[Tuple[int, MeterReading]]:
+    async def _fetch_readings(self, limit: int = 100) -> list[tuple[int, MeterReading]]:
         """Fetch un-uploaded readings from database with validation.
 
         Args:
@@ -189,7 +189,7 @@ class UploaderService:
                 (limit,),
             )
 
-            readings: List[Tuple[int, MeterReading]] = []
+            readings: list[tuple[int, MeterReading]] = []
             for row in cursor.fetchall():
                 if len(row) < 14:
                     msg = f"Row format {len(row)} columns, expected 14"
@@ -225,8 +225,8 @@ class UploaderService:
             return []
 
     async def _create_payload(
-        self, readings: List[Tuple[int, MeterReading]]
-    ) -> Optional[CloudPayload]:
+        self, readings: list[tuple[int, MeterReading]]
+    ) -> CloudPayload | None:
         """Create CloudPayload from readings.
 
         Args:
@@ -464,7 +464,7 @@ class UploaderService:
         finally:
             await self.shutdown()
 
-    async def _upload_batch(self, readings: List[Tuple[int, MeterReading]]) -> None:
+    async def _upload_batch(self, readings: list[tuple[int, MeterReading]]) -> None:
         """Upload a batch of readings (wrapper for task tracking).
 
         Args:
@@ -506,7 +506,7 @@ class UploaderService:
                 await asyncio.wait_for(
                     asyncio.gather(*self.running_tasks, return_exceptions=True), timeout=5.0
                 )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 logger.warning("Task cancellation timeout")
 
         # Close MQTT
@@ -538,7 +538,7 @@ class UploaderService:
             f"Uploader shutdown complete (uploads: {self.upload_count}, errors: {self.error_count})"
         )
 
-    def handle_signal(self, signum: int, frame: Optional[FrameType]) -> None:
+    def handle_signal(self, signum: int, frame: FrameType | None) -> None:
         """Handle shutdown signals."""
         logger.info(f"Received signal {signum}, shutting down...")
         self.running = False

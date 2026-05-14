@@ -1,7 +1,7 @@
 # MeterHub Installation Guide: Southeast Asia & International
 
-**Version:** 1.0  
-**Date:** May 2026  
+**Version:** 1.0
+**Date:** May 2026
 **Target Regions:** Thailand, Vietnam, Philippines, Indonesia, Malaysia
 
 ---
@@ -30,7 +30,7 @@ grid:
   frequency_hz: 60.0  # NOT 50 Hz!
   frequency_tolerance: 0.5
   nominal_voltage: 220  # Single-phase
-  
+
 acquisition:
   meter_profile: "schneider-em6400-60hz"  # Special variant
   frequency_check_enabled: true  # Monitor grid quality
@@ -49,7 +49,7 @@ power_monitoring:
   voltage_surge_threshold: 240  # V (above 240V triggers alert)
   sag_duration_threshold_ms: 500  # Sustained sags only
   recording_enabled: true  # Log all sags/surges
-  
+
 acquisition:
   retry_on_low_voltage: true
   voltage_range: [180, 245]  # Extended tolerance
@@ -68,13 +68,13 @@ hardware:
   humidity_check_interval_hours: 4
   humidity_alert_threshold: 80
   desiccant_replacement_interval_days: 30  # Monthly in monsoon
-  
+
 storage:
   # More aggressive log rotation in humidity
   log_rotation_size_mb: 10
   log_retention_days: 7
   sd_health_check_interval_days: 14
-  
+
 firmware:
   # Reduced CPU load in humid conditions (less heat dissipation)
   cpu_frequency_scaling: true
@@ -93,11 +93,11 @@ firmware:
 hardware:
   thermal_throttle_temp: 50  # Reduce frequency at 50°C
   thermal_shutdown_temp: 55  # Shut down at 55°C
-  
+
 acquisition:
   polling_interval_offset: +30  # Increase to 90s in extreme heat
   modbus_timeout_s: 8  # Longer timeouts at high temp
-  
+
 storage:
   # SD card endurance is reduced at high temps
   log_rotation_size_mb: 5  # Smaller logs
@@ -124,7 +124,7 @@ network:
   reconnect_backoff_base_ms: 1000
   reconnect_backoff_max_ms: 30000
   max_reconnect_attempts: 10
-  
+
 cloud:
   # MQTT with extended offline buffering
   mqtt_fallback_to_https: true
@@ -141,7 +141,7 @@ network:
   primary_dns: "8.8.8.8"  # Google
   secondary_dns: "1.1.1.1"  # Cloudflare
   ntp_server: "0.pool.ntp.org"  # Global pool
-  
+
   # Use hardcoded IPs as fallback
   mqtt_endpoint_ip: "52.123.45.67"  # Your AWS region IP
   mqtt_endpoint_dns: "iot.us-east-1.amazonaws.com"
@@ -157,7 +157,7 @@ cloud:
   offline_queue_days: 14  # 2 weeks of readings
   local_analytics_enabled: true  # Compute locally
   sync_retry_days: 30  # Retry for 30 days if no connection
-  
+
 storage:
   # Reserve space for extended buffering
   min_free_space_mb: 200  # Keep 200MB always free
@@ -223,7 +223,7 @@ hardware:
 # 1. Measure voltage with multimeter
 #    - Should be within ±10% of nominal (220V ± 22V)
 # 2. Check for visible interference near panel
-#    - Industrial machinery running? 
+#    - Industrial machinery running?
 #    - Heavy load equipment nearby?
 
 # 3. WiFi signal survey

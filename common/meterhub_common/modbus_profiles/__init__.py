@@ -8,4 +8,4 @@ Device loads profiles from /etc/meterhub/profiles/*.yaml dynamically at startup.
 Cloud team can add new meter models without touching edge firmware.
 """
 
-__all__ = []
+__all__: list[str] = []

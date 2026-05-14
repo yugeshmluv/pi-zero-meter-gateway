@@ -8,7 +8,7 @@ meterhub/
 │   ├── meterhub_acq/        # Python package
 │   ├── tests/               # Service tests
 │   └── requirements.txt
-├── uploader/                # Cloud uploader service  
+├── uploader/                # Cloud uploader service
 │   ├── meterhub_uploader/   # Python package
 │   ├── tests/               # Service tests
 │   └── requirements.txt

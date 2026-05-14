@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 class ProfileCache:
     """
     In-memory cache for parsed meter profiles.
-    
+
     Reduces YAML parsing overhead on repeated loads.
     Uses weak references to allow garbage collection.
     """
@@ -35,10 +35,10 @@ class ProfileCache:
             max_size: Maximum number of profiles to cache
         """
         self.max_size = max_size
-        self._cache: Dict[str, Dict[str, Any]] = {}
-        self._access_times: Dict[str, datetime] = {}
+        self._cache: dict[str, dict[str, Any]] = {}
+        self._access_times: dict[str, datetime] = {}
 
-    def get(self, profile_path: str) -> Optional[Dict[str, Any]]:
+    def get(self, profile_path: str) -> dict[str, Any] | None:
         """
         Get profile from cache.
 
@@ -54,7 +54,7 @@ class ProfileCache:
             return self._cache[profile_path]
         return None
 
-    def put(self, profile_path: str, profile_data: Dict[str, Any]) -> None:
+    def put(self, profile_path: str, profile_data: dict[str, Any]) -> None:
         """
         Put profile in cache.
 
@@ -64,8 +64,7 @@ class ProfileCache:
         """
         if len(self._cache) >= self.max_size:
             # Evict least recently accessed
-            lru_key = min(self._access_times.keys(),
-                         key=lambda k: self._access_times[k])
+            lru_key = min(self._access_times.keys(), key=lambda k: self._access_times[k])
             del self._cache[lru_key]
             del self._access_times[lru_key]
             logger.debug(f"Evicted profile from cache: {lru_key}")
@@ -90,7 +89,7 @@ def get_profile_cache() -> ProfileCache:
     return _profile_cache
 
 
-def load_profile_cached(profile_path: str) -> Optional[Dict[str, Any]]:
+def load_profile_cached(profile_path: str) -> dict[str, Any] | None:
     """
     Load meter profile with caching.
 
@@ -101,7 +100,7 @@ def load_profile_cached(profile_path: str) -> Optional[Dict[str, Any]]:
         Parsed profile dictionary
     """
     cache = get_profile_cache()
-    
+
     # Check cache first
     cached = cache.get(profile_path)
     if cached is not None:
@@ -109,7 +108,7 @@ def load_profile_cached(profile_path: str) -> Optional[Dict[str, Any]]:
 
     # Load from disk
     try:
-        with open(profile_path, 'r') as f:
+        with open(profile_path) as f:
             profile_data = yaml.safe_load(f)
         cache.put(profile_path, profile_data)
         return profile_data
@@ -126,7 +125,7 @@ class LazyModbusClient:
     reducing startup time and memory footprint.
     """
 
-    def __init__(self, device: str, meter_profile: Dict[str, Any], enable_cache: bool = True):
+    def __init__(self, device: str, meter_profile: dict[str, Any], enable_cache: bool = True):
         """
         Initialize lazy Modbus client.
 
@@ -155,6 +154,7 @@ class LazyModbusClient:
         logger.debug("Initializing Modbus client (lazy)")
         try:
             from common.meterhub_common import ModbusRTUClient
+
             self._client = ModbusRTUClient(
                 device=self.device,
                 meter_profile=self.meter_profile,
@@ -244,28 +244,28 @@ class SQLiteConnectionPool:
 class OptimizedLogging:
     """
     Optimized logging configuration for reduced startup overhead.
-    
+
     - Disables verbose debug logging during startup
     - Uses lazy formatting for log messages
     - Batches log entries for I/O efficiency
     """
 
     @staticmethod
-    def get_startup_config() -> Dict[str, Any]:
+    def get_startup_config() -> dict[str, Any]:
         """Get logging config optimized for startup."""
         return {
-            'level': logging.INFO,  # Higher than DEBUG
-            'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s',
-            'disable_existing_loggers': False,
+            "level": logging.INFO,  # Higher than DEBUG
+            "format": "%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+            "disable_existing_loggers": False,
         }
 
     @staticmethod
-    def get_runtime_config() -> Dict[str, Any]:
+    def get_runtime_config() -> dict[str, Any]:
         """Get logging config optimized for runtime."""
         return {
-            'level': logging.DEBUG,
-            'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s',
-            'disable_existing_loggers': False,
+            "level": logging.DEBUG,
+            "format": "%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+            "disable_existing_loggers": False,
         }
 
     @staticmethod
@@ -297,6 +297,7 @@ class AsyncTaskOptimizer:
     async def init_semaphore(self):
         """Initialize semaphore for concurrency control."""
         import asyncio
+
         self._semaphore = asyncio.Semaphore(self.max_concurrent)
 
     async def run_limited(self, coro):
@@ -320,9 +321,9 @@ class AsyncTaskOptimizer:
             Results as batches complete
         """
         import asyncio
-        
+
         for i in range(0, len(coros), max_concurrent):
-            batch = coros[i:i + max_concurrent]
+            batch = coros[i : i + max_concurrent]
             results = await asyncio.gather(*batch)
             for result in results:
                 yield result
@@ -353,5 +354,6 @@ def enable_memory_tracking():
     Should be called after startup for monitoring.
     """
     import gc
+
     gc.enable()
     logger.debug("Memory tracking enabled")

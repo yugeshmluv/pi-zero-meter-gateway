@@ -6,7 +6,7 @@ Dataclasses for readings, heartbeats, configurations, etc.
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import Optional, Any
 
 
 @dataclass
@@ -46,7 +46,7 @@ class Heartbeat:
     queue_depth: int
     last_meter_read_age_seconds: int
     sd_writes_mb_today: float
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -59,7 +59,7 @@ class DeviceConfig:
     meter_address: str
     meter_profile: str
     cloud_endpoint: str
-    fallback_email_recipient: Optional[str] = None
+    fallback_email_recipient: str | None = None
     polling_interval_seconds: int = 60
 
 
@@ -71,7 +71,7 @@ class CloudPayload:
     timestamp_utc: datetime
     readings: list[MeterReading]  # List
     heartbeat: Optional["Heartbeat"] = None
-    signature: Optional[str] = None  # Ed25519
+    signature: str | None = None  # Ed25519
 
 
 @dataclass
@@ -84,7 +84,7 @@ class OTAManifest:
     checksum_sha256: str
     signature_ed25519: str
     size_bytes: int
-    rollback_version: Optional[str] = None
+    rollback_version: str | None = None
     canary_delay_seconds: int = 0
 
 
@@ -95,5 +95,5 @@ class AuditLogEntry:
     timestamp_utc: datetime
     event_type: str  # config_change, login, ota_start, ota_complete, etc.
     device_id: str
-    user_id: Optional[str] = None
-    details: Dict[str, Any] = field(default_factory=dict)
+    user_id: str | None = None
+    details: dict[str, Any] = field(default_factory=dict)

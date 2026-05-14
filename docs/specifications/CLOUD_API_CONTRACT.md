@@ -1,7 +1,7 @@
 # MeterHub Cloud API Contract
 
-**Document Version:** 1.0  
-**Status:** Phase 1 — Specification (pre-implementation)  
+**Document Version:** 1.0
+**Status:** Phase 1 — Specification (pre-implementation)
 **Audience:** Cloud backend team (to build in parallel with edge firmware)
 
 ---
@@ -40,14 +40,14 @@ All payloads are JSON. All timestamps in UTC ISO 8601 format. Device authenticat
 ## 3. MQTT Primary Path
 
 ### Broker Configuration
-- **Endpoint:** HiveMQ Cloud managed endpoint or AWS IoT Core  
-- **Port:** 8883 (TLS, no fallback to 1883)  
-- **Client ID:** `meterhub_{device_id}`  
-- **Protocol Version:** MQTT 3.1.1  
-- **QoS:** 1 (at-least-once delivery)  
-- **Persistent Session:** Enabled (`clean_session=false`)  
-- **Keep-alive:** 60 seconds  
-- **TLS Versions:** 1.2+ (self-signed certs not acceptable; use public CA)  
+- **Endpoint:** HiveMQ Cloud managed endpoint or AWS IoT Core
+- **Port:** 8883 (TLS, no fallback to 1883)
+- **Client ID:** `meterhub_{device_id}`
+- **Protocol Version:** MQTT 3.1.1
+- **QoS:** 1 (at-least-once delivery)
+- **Persistent Session:** Enabled (`clean_session=false`)
+- **Keep-alive:** 60 seconds
+- **TLS Versions:** 1.2+ (self-signed certs not acceptable; use public CA)
 - **CA Bundle:** Include AWS, HiveMQ, or DigiCert root CAs in image
 
 ### Topic Schema
@@ -492,8 +492,8 @@ OTA Update Scenario:
 
 ## 12. Versioning & Evolution
 
-**Current API Version:** v1 (April 2026)  
-**Backward Compatibility:** Device firmware v1.x will only accept v1 API.  
+**Current API Version:** v1 (April 2026)
+**Backward Compatibility:** Device firmware v1.x will only accept v1 API.
 **Future:** v2 API (if major changes) will have sunset notice and migration window.
 
 **Keep in Contracts:**

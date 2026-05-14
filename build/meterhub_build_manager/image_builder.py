@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ImageConfig:
     """Image build configuration."""
+
     output_path: Path
     hostname: str = "meterhub-device"
     timezone: str = "UTC"
@@ -42,7 +43,7 @@ class ImageConfig:
 class ImageBuilder:
     """Build minimal MeterHub OS images."""
 
-    def __init__(self, work_dir: Optional[Path] = None):
+    def __init__(self, work_dir: Path | None = None):
         """
         Initialize image builder.
 
@@ -102,7 +103,7 @@ class ImageBuilder:
         logger.info("✓ All prerequisites met")
         return True
 
-    async def build_image(self, config: ImageConfig) -> Optional[Path]:
+    async def build_image(self, config: ImageConfig) -> Path | None:
         """
         Build minimal OS image.
 
@@ -198,9 +199,7 @@ dosfstools
             ]
         }
 
-        (stage0_dir / "partition_layout.json").write_text(
-            json.dumps(partition_layout, indent=2)
-        )
+        (stage0_dir / "partition_layout.json").write_text(json.dumps(partition_layout, indent=2))
 
         # U-Boot environment
         uboot_env = f"""
@@ -453,7 +452,7 @@ supervisor
             logger.error(f"Compression error: {e}")
             return False
 
-    async def compute_image_hash(self, image_path: Path) -> Dict[str, str]:
+    async def compute_image_hash(self, image_path: Path) -> dict[str, str]:
         """
         Compute hashes for built image.
 
@@ -494,7 +493,7 @@ supervisor
             logger.error(f"Hash computation failed: {e}")
             return hashes
 
-    def get_build_info(self, image_path: Path) -> Dict[str, str]:
+    def get_build_info(self, image_path: Path) -> dict[str, str]:
         """
         Get built image information.
 
@@ -509,8 +508,8 @@ supervisor
         return {
             "path": str(image_path),
             "size_bytes": stat.st_size,
-            "size_mb": stat.st_size / (1024 ** 2),
-            "size_gb": stat.st_size / (1024 ** 3),
+            "size_mb": stat.st_size / (1024**2),
+            "size_gb": stat.st_size / (1024**3),
             "modified": datetime.fromtimestamp(stat.st_mtime).isoformat(),
             "created": datetime.fromtimestamp(stat.st_ctime).isoformat(),
         }

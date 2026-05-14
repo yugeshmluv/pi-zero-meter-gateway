@@ -1,7 +1,7 @@
 # MeterHub Troubleshooting Runbook
 
-**Version:** 1.0  
-**Date:** May 2026  
+**Version:** 1.0
+**Date:** May 2026
 **Updated:** May 12, 2026
 
 ---
@@ -58,11 +58,11 @@ sqlite3 /var/lib/meterhub/state.db "SELECT * FROM sync_state LIMIT 1;"
    # Measure with multimeter at Pi's USB port
    # Should read: 5.0V ±0.2V (4.8-5.2V acceptable)
    # If <4.8V: PSU is undersized or cable has high resistance
-   
+
    # Check PSU spec
    cat /proc/cpuinfo | grep "Revision"  # Check Pi version
    # Pi Zero W needs minimum 2.5A at 5V
-   
+
    # Solution: Replace PSU with higher capacity (2.5A+)
    ```
 
@@ -131,7 +131,7 @@ journalctl -b --no-pager | head -100
 1. **Check Acquisition Service Status**
    ```bash
    systemctl status meterhub-acquisition
-   
+
    # Output should show: active (running)
    # If failed: systemctl start meterhub-acquisition
    ```
@@ -140,7 +140,7 @@ journalctl -b --no-pager | head -100
    ```bash
    # View recent logs
    journalctl -u meterhub-acquisition -n 20
-   
+
    # Look for:
    # - "Failed to open /dev/ttyUSB0" → Serial device issue
    # - "Modbus connection timeout" → Meter not responding
@@ -150,7 +150,7 @@ journalctl -b --no-pager | head -100
 3. **Verify Serial Device Exists**
    ```bash
    ls -la /dev/ttyUSB* /dev/ttyAMA* /dev/serial*
-   
+
    # Should show at least one device (e.g., /dev/ttyUSB0)
    # If empty: RS485 converter not connected or not detected
    # Solution: Check USB connection, try different USB port
@@ -159,7 +159,7 @@ journalctl -b --no-pager | head -100
 4. **Check Meter Profile Configuration**
    ```bash
    cat /etc/meterhub/profiles/schneider-em6400.yaml
-   
+
    # Verify:
    # - device_name matches actual meter
    # - slave_id matches meter's slave address (usually 1)
@@ -170,11 +170,11 @@ journalctl -b --no-pager | head -100
    ```bash
    # Install pymodbus CLI tool
    sudo pip install pymodbus
-   
+
    # Query meter (example: slave 1, register 0 = frequency)
    python -m pymodbus.client.serial --device /dev/ttyUSB0 \
      --baudrate 9600 --address 1 --registers 0
-   
+
    # Should return frequency value (50 Hz for India/SE Asia)
    # If timeout: Meter not responding
    # If value garbage: Baud rate or parity wrong
@@ -192,7 +192,7 @@ journalctl -b --no-pager | head -100
      Pi TX → RS485 RX (converter input)
      Pi RX → RS485 TX (converter output)
      Pi GND → RS485 GND
-   
+
    ✗ Common Mistake:
      Pi TX → RS485 TX (swapped!)
      Pi RX → RS485 RX (swapped!)
@@ -202,7 +202,7 @@ journalctl -b --no-pager | head -100
    ```bash
    # Use continuity tester on RS485 A/B lines
    # Both should measure ~60 ohms resistance (twisted pair impedance)
-   
+
    # If open (infinite): Cable broken
    # If shorted (<10Ω): Wires touching
    # If very high (>1000Ω): Corrosion in connectors
@@ -220,7 +220,7 @@ journalctl -b --no-pager | head -100
    # Meter may not respond during voltage sags
    # Monitor: journalctl -u meterhub-acquisition -f
    # Look for: "Modbus timeout" during periods of readings
-   
+
    # Enable power monitoring:
    # (Add to acquisition config)
    voltage_monitoring: true
@@ -257,7 +257,7 @@ systemctl restart meterhub-acquisition
    ```
    ✗ Bad:  RS485 cable runs alongside 220V power lines
    ✓ Good: RS485 cable runs >30cm from power lines
-   
+
    Solution: Reroute cable away from power lines
    ```
 
@@ -266,7 +266,7 @@ systemctl restart meterhub-acquisition
    # RS485 should use shielded twisted pair cable
    # Shield should be grounded at one end only (meter or Pi)
    # Not at both ends (creates ground loop)
-   
+
    # If experiencing CRC errors:
    # - Check shield continuity (should be <1Ω)
    # - Verify ground connection at only one end
@@ -279,7 +279,7 @@ systemctl restart meterhub-acquisition
      polling_interval_s: 120  # Increase from 60 to 120
      modbus_timeout_s: 10     # Increase timeout
      retry_count: 5           # Allow more retries
-   
+
    # Slower polling may improve reliability
    # (Not ideal; indicates cable/noise problem)
    ```
@@ -297,7 +297,7 @@ systemctl restart meterhub-acquisition
 1. **Check Cloud Sync Service**
    ```bash
    systemctl status meterhub-uploader
-   
+
    # If not running:
    systemctl start meterhub-uploader
    systemctl log -u meterhub-uploader -n 50
@@ -307,7 +307,7 @@ systemctl restart meterhub-acquisition
    ```bash
    ip link show wlan0
    # Should show: "state UP"
-   
+
    # If state DOWN:
    sudo nmtui  # Network manager UI
    # Or:
@@ -320,7 +320,7 @@ systemctl restart meterhub-acquisition
    # Verify AWS IoT certificates exist
    ls -la /etc/meterhub/certs/
    # Should show: device.crt, device.key, ca.pem
-   
+
    # If missing: Provisioning incomplete
    # Solution: Run provisioning again via installer-ui
    ```
@@ -332,7 +332,7 @@ systemctl restart meterhub-acquisition
      -cert /etc/meterhub/certs/device.crt \
      -key /etc/meterhub/certs/device.key \
      -CAfile /etc/meterhub/certs/ca.pem -brief
-   
+
    # Should show: "Verify return code: 0 (ok)"
    # If "verify return code: 1": Certificate issue
    ```
@@ -341,7 +341,7 @@ systemctl restart meterhub-acquisition
    ```bash
    sqlite3 /var/cache/meterhub/telemetry.db \
      "SELECT COUNT(*) FROM meter_readings;"
-   
+
    # Should show number of unsent readings
    # If stays same for >1 hour: Uploader stuck
    # Solution: systemctl restart meterhub-uploader
@@ -434,7 +434,7 @@ ping 8.8.8.8
    ```bash
    iw dev wlan0 get power_save
    # Should show: "Power save: off"
-   
+
    # If on:
    iw dev wlan0 set power_save off
    ```
@@ -443,7 +443,7 @@ ping 8.8.8.8
    ```bash
    # Use WiFi analyzer on phone (WiFi Analyzer app)
    # Look for overlapping networks on same channel
-   
+
    # If congested:
    # Change router to less-congested channel (1, 6, 11 for 2.4GHz)
    # Or use 5GHz band (if router supports and Pi has 5G module)
@@ -452,7 +452,7 @@ ping 8.8.8.8
 3. **Check WiFi Rate**
    ```bash
    iw dev wlan0 station dump | grep "bitrate"
-   
+
    # Should be >6 Mbps
    # If <2 Mbps: Weak signal or interference
    # Solution: Move Pi closer to router or use WiFi extender
@@ -571,7 +571,7 @@ journalctl | grep -i "thermal"
 ✓ Correct CT connection:
   CT primary (from meter breaker) → Live conductor
   CT secondary → Meter current input
-  
+
 ✗ Common mistakes:
   - CT on neutral line (reads zero current)
   - CT not fully engaged on conductor

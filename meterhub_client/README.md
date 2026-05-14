@@ -1,6 +1,6 @@
 # MeterHub Python Client SDK
 
-**Version:** 1.0.0  
+**Version:** 1.0.0
 **Python:** 3.8+
 
 A simple, powerful Python client for interacting with MeterHub devices and cloud API.
@@ -49,7 +49,7 @@ async def main():
         print(f"Uptime: {status.uptime_seconds} seconds")
         print(f"Memory: {status.memory_mb:.1f} MB")
         print(f"WiFi: {status.wifi_signal_strength} dBm")
-        
+
         # Get latest reading
         reading = await client.get_latest_reading()
         if reading:
@@ -481,16 +481,16 @@ asyncio.run(monitor_power())
 ```python
 async with MeterHubClient(device_ip="192.168.1.100") as client:
     status = await client.get_device_status()
-    
+
     if status.temperature_c > 50:
         print("⚠️  WARNING: High temperature!")
-    
+
     if status.sd_free_mb < 100:
         print("⚠️  WARNING: Low SD card space!")
-    
+
     if not status.mqtt_connected:
         print("⚠️  WARNING: Cloud disconnected!")
-    
+
     if status.queue_depth > 1000:
         print("⚠️  WARNING: Large sync queue!")
 ```
@@ -508,18 +508,18 @@ async def export_daily_report(date_str: str):
     ) as client:
         # Get daily summary
         daily = await client.get_daily_consumption(date_str, use_cloud=True)
-        
+
         if daily:
             print(f"=== Report for {daily.date} ===")
             print(f"Energy: {daily.energy_kwh:.2f} kWh")
             print(f"Peak: {daily.peak_power_kw:.2f} kW")
             print(f"Average: {daily.avg_power_kw:.2f} kW")
             print(f"Uptime: {daily.uptime_percent:.1f}%")
-        
+
         # Export readings to CSV
         start = datetime.strptime(date_str, "%Y-%m-%d")
         end = start + timedelta(days=1)
-        
+
         await client.export_readings_csv(
             start_time=start,
             end_time=end,

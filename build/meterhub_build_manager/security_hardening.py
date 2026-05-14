@@ -435,7 +435,7 @@ class KernelHardening:
     """Kernel hardening utilities."""
 
     @staticmethod
-    def get_build_flags() -> Dict[str, str]:
+    def get_build_flags() -> dict[str, str]:
         """Get recommended kernel build flags for hardening."""
         return {
             "CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS": "n",  # Enable alignment checks
@@ -465,7 +465,7 @@ class KernelHardening:
         }
 
     @staticmethod
-    def get_module_blacklist() -> List[str]:
+    def get_module_blacklist() -> list[str]:
         """Get list of kernel modules to blacklist."""
         return [
             "cramfs",  # Unused filesystem

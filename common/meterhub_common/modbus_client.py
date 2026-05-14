@@ -11,7 +11,7 @@ Implements Modbus RTU protocol with:
 
 import asyncio
 import struct
-from typing import Type, Dict, Any, Optional, Tuple
+from typing import Any
 from dataclasses import dataclass
 from datetime import datetime
 import logging
@@ -36,7 +36,7 @@ class ModbusRegisterValue:
     timestamp: datetime
     read_successful: bool
     retry_count: int = 0
-    error_message: Optional[str] = None
+    error_message: str | None = None
 
 
 class ModbusRTUClient:
@@ -76,7 +76,7 @@ class ModbusRTUClient:
         self.slave_id = slave_id
         self.enable_cache = enable_cache
         self.cache_ttl_seconds = cache_ttl_seconds
-        self.cache: Dict[str, Tuple[ModbusRegisterValue, datetime]] = {}
+        self.cache: dict[str, tuple[ModbusRegisterValue, datetime]] = {}
 
         # Serial client connection
         self.client = AsyncModbusSerialClient(
@@ -90,7 +90,7 @@ class ModbusRTUClient:
         )
 
         self.connected = False
-        self.last_error: Optional[str] = None
+        self.last_error: str | None = None
         self.connection_failed_count = 0
 
     @staticmethod
@@ -168,7 +168,7 @@ class ModbusRTUClient:
 
     async def read_all_registers(
         self, force_refresh: bool = False
-    ) -> Dict[str, ModbusRegisterValue]:
+    ) -> dict[str, ModbusRegisterValue]:
         """
         Read all registers defined in the meter profile.
 
@@ -184,7 +184,7 @@ class ModbusRTUClient:
     async def _read_with_retry(self, register_def: Any) -> ModbusRegisterValue:
         """Read register with exponential backoff retry."""
         max_retries = len(self.BACKOFF_MS)
-        last_error: Optional[str] = None
+        last_error: str | None = None
 
         for attempt in range(max_retries):
             try:
@@ -318,7 +318,7 @@ class ModbusRTUClient:
         scaled = (raw_value * register_def.scale) + register_def.offset
         return float(scaled)
 
-    def _check_cache(self, register_name: str) -> Optional[ModbusRegisterValue]:
+    def _check_cache(self, register_name: str) -> ModbusRegisterValue | None:
         """Check if cached value is fresh."""
         if register_name not in self.cache:
             return None
@@ -339,9 +339,9 @@ class ModbusRTUClient:
 
     async def __aexit__(
         self,
-        exc_type: Optional[Type[BaseException]],
-        exc_val: Optional[BaseException],
-        exc_tb: Optional[TracebackType],
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
     ) -> None:
         """Async context manager exit."""
         await self.disconnect()

@@ -86,13 +86,13 @@ async def read_meter(device_path, timeout_s=5):
 def validate_reading(reading: MeterReading) -> bool:
     """
     Validate meter reading for sanity.
-    
+
     Args:
         reading: MeterReading instance to validate
-        
+
     Returns:
         True if valid, False otherwise
-        
+
     Raises:
         ValueError: If timestamp is in future
     """
@@ -143,14 +143,14 @@ from acquisition.meterhub_acq.modbus_client import ModbusRTUClient
 
 class TestModbusClient:
     """Modbus RTU client tests."""
-    
+
     @pytest.mark.asyncio
     async def test_connect_success(self):
         """Test successful Modbus connection."""
         client = ModbusRTUClient(device="/dev/ttyUSB0", slave_id=1)
         success = await client.connect()
         assert success is True
-        
+
     def test_invalid_device_path(self):
         """Test error handling for invalid device."""
         with pytest.raises(FileNotFoundError):

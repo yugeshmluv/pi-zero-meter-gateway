@@ -31,6 +31,7 @@ logger = logging.getLogger(__name__)
 
 class UpdateState(str, Enum):
     """OTA update state machine."""
+
     IDLE = "idle"
     CHECKING = "checking"  # Checking for updates
     DOWNLOADING = "downloading"  # Downloading image
@@ -44,12 +45,13 @@ class UpdateState(str, Enum):
 @dataclass
 class UpdateProgress:
     """OTA update progress information."""
+
     state: UpdateState
     version: str
     bytes_downloaded: int
     bytes_total: int
     percent_complete: float
-    error_message: Optional[str] = None
+    error_message: str | None = None
     timestamp: datetime = None
 
     def __post_init__(self):
@@ -86,7 +88,7 @@ class OTAManager:
         # State
         self.current_state = UpdateState.IDLE
         self.current_version = "1.0.0"
-        self.progress: Optional[UpdateProgress] = None
+        self.progress: UpdateProgress | None = None
 
         # Import dependencies (deferred to avoid circular imports)
         self.boot_manager = None
@@ -104,7 +106,7 @@ class OTAManager:
 
             self.image_signer = ImageSigner()
 
-    async def check_for_updates(self) -> Dict[str, str]:
+    async def check_for_updates(self) -> dict[str, str]:
         """
         Check cloud for available updates.
 
@@ -122,9 +124,7 @@ class OTAManager:
                 async with session.get(url, timeout=aiohttp.ClientTimeout(total=30)) as resp:
                     if resp.status == 200:
                         update_info = await resp.json()
-                        logger.info(
-                            f"Update available: v{update_info.get('version')}"
-                        )
+                        logger.info(f"Update available: v{update_info.get('version')}")
                         return update_info
                     elif resp.status == 204:
                         logger.info("No updates available")
@@ -142,7 +142,7 @@ class OTAManager:
         self,
         update_url: str,
         target_version: str,
-    ) -> Optional[Path]:
+    ) -> Path | None:
         """
         Download OTA image from cloud.
 
@@ -190,7 +190,7 @@ class OTAManager:
             logger.info(f"Downloaded image: {image_path} ({bytes_downloaded} bytes)")
             return image_path
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.error("Download timeout")
             self.current_state = UpdateState.FAILED
             return None
@@ -202,7 +202,7 @@ class OTAManager:
     async def verify_image(
         self,
         image_path: Path,
-        manifest: Dict,
+        manifest: dict,
     ) -> bool:
         """
         Verify image signature, checksum, and metadata.
@@ -229,9 +229,7 @@ class OTAManager:
             image_size = image_path.stat().st_size
             expected_size = manifest.get("image_size_bytes", 0)
             if expected_size > 0 and image_size != expected_size:
-                logger.error(
-                    f"Image size mismatch: expected {expected_size}, got {image_size}"
-                )
+                logger.error(f"Image size mismatch: expected {expected_size}, got {image_size}")
                 return False
 
             # Verify SHA256
@@ -239,9 +237,7 @@ class OTAManager:
                 actual_hash = self.image_signer.compute_image_sha256(image_path)
                 expected_hash = manifest["image_sha256"]
                 if actual_hash != expected_hash:
-                    logger.error(
-                        f"SHA256 mismatch: expected {expected_hash}, got {actual_hash}"
-                    )
+                    logger.error(f"SHA256 mismatch: expected {expected_hash}, got {actual_hash}")
                     return False
 
             # Verify signature
@@ -326,9 +322,7 @@ class OTAManager:
                 logger.warning("No staged partition to commit")
                 return False
 
-            success = await self.boot_manager.commit_partition(
-                boot_state.staged_partition
-            )
+            success = await self.boot_manager.commit_partition(boot_state.staged_partition)
 
             if success:
                 logger.info(f"✓ Update committed: {boot_state.staged_partition}")
@@ -441,8 +435,8 @@ class OTAManager:
 
     async def perform_full_update(
         self,
-        update_info: Dict,
-        public_key_pem: Optional[str] = None,
+        update_info: dict,
+        public_key_pem: str | None = None,
     ) -> bool:
         """
         Perform complete OTA workflow (check → download → verify → stage → reboot).
@@ -506,7 +500,7 @@ class OTAManager:
             )
         return self.progress
 
-    async def get_state(self) -> Dict[str, str]:
+    async def get_state(self) -> dict[str, str]:
         """Get OTA manager state."""
         bootstate = await self.boot_manager.get_boot_state() if self.boot_manager else None
 
@@ -514,5 +508,9 @@ class OTAManager:
             "update_state": self.current_state.value,
             "current_version": self.current_version,
             "boot_active": bootstate.active_partition.value if bootstate else "unknown",
-            "boot_staged": bootstate.staged_partition.value if bootstate and bootstate.staged_partition else None,
+            "boot_staged": (
+                bootstate.staged_partition.value
+                if bootstate and bootstate.staged_partition
+                else None
+            ),
         }

@@ -10,13 +10,13 @@ Complete guides for developers contributing to MeterHub across all phases.
   - Pre-commit hooks & code quality
   - Running tests locally
   - Docker for isolated testing
-  
+
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** — Contribution guidelines
   - Code style (Black, Flake8, Mypy)
   - Branch naming & commit messages
   - Testing requirements
   - Deployment checklist
-  
+
 - **[METER_PROFILES.md](METER_PROFILES.md)** — Meter Profile Authoring
   - YAML schema for new meters
   - Register mapping & scaling

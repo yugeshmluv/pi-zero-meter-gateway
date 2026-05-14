@@ -42,7 +42,7 @@ class LazyCloudClientInitializer:
         self.mqtt_ca_path = mqtt_ca_path
         self.https_endpoint = https_endpoint
         self.oauth2_token = oauth2_token
-        
+
         self._mqtt_client = None
         self._https_uploader = None
         self._mqtt_initialized = False
@@ -56,6 +56,7 @@ class LazyCloudClientInitializer:
         logger.debug("Initializing MQTT client (lazy)")
         try:
             from common.meterhub_common import AWSIoTMQTTClient
+
             self._mqtt_client = AWSIoTMQTTClient(
                 endpoint=self.mqtt_endpoint,
                 device_id="",  # Will be set later
@@ -79,6 +80,7 @@ class LazyCloudClientInitializer:
         logger.debug("Initializing HTTPS uploader (lazy)")
         try:
             from common.meterhub_common import HTTPSFallbackUploader
+
             self._https_uploader = HTTPSFallbackUploader(
                 endpoint=self.https_endpoint,
                 device_id="",  # Will be set later
@@ -101,7 +103,7 @@ class EfficientPayloadBuilder:
     """
 
     @staticmethod
-    def build_readings_json(readings: List[Dict[str, Any]]) -> str:
+    def build_readings_json(readings: list[dict[str, Any]]) -> str:
         """
         Build readings JSON efficiently.
 
@@ -127,10 +129,10 @@ class EfficientPayloadBuilder:
             }
             for r in readings
         ]
-        return json.dumps(readings_json, separators=(',', ':'))
+        return json.dumps(readings_json, separators=(",", ":"))
 
     @staticmethod
-    def build_heartbeat_json(heartbeat: Dict[str, Any]) -> str:
+    def build_heartbeat_json(heartbeat: dict[str, Any]) -> str:
         """
         Build heartbeat JSON efficiently.
 
@@ -148,7 +150,7 @@ class EfficientPayloadBuilder:
             "ram_mb": heartbeat.get("ram_mb"),
             "queue_depth": heartbeat.get("queue_depth"),
         }
-        return json.dumps(hb, separators=(',', ':'))
+        return json.dumps(hb, separators=(",", ":"))
 
     @staticmethod
     def estimate_payload_size(readings_count: int) -> int:
@@ -181,7 +183,7 @@ class BatchedDatabaseQueries:
             batch_size: Queries per batch
         """
         self.batch_size = batch_size
-        self._pending_queries: List[tuple] = []
+        self._pending_queries: list[tuple] = []
 
     def add_query(self, query: str, params: tuple) -> None:
         """
@@ -193,7 +195,7 @@ class BatchedDatabaseQueries:
         """
         self._pending_queries.append((query, params))
 
-    async def execute_batch(self, db_connection) -> List[Any]:
+    async def execute_batch(self, db_connection) -> list[Any]:
         """
         Execute all pending queries in a batch.
 
@@ -249,7 +251,7 @@ class ConnectionReuse:
 
         age = (datetime.utcnow() - self._last_mqtt_use).total_seconds()
         should_reconnect = age > self._connection_timeout_s
-        
+
         if should_reconnect:
             logger.debug(f"MQTT connection aged {age:.0f}s, will reconnect")
 
@@ -312,9 +314,7 @@ class QueueDepthOptimizer:
             return self._cached_depth
 
         try:
-            cursor = db_connection.execute(
-                "SELECT COUNT(*) FROM meter_readings"
-            )
+            cursor = db_connection.execute("SELECT COUNT(*) FROM meter_readings")
             count = cursor.fetchone()[0]
             self._cached_depth = count
             self._cached_time = datetime.utcnow()
@@ -338,7 +338,7 @@ class UploadMetrics:
         self.avg_upload_time_ms = 0
         self.mqtt_failures = 0
         self.https_fallback_count = 0
-        self._upload_times: List[float] = []
+        self._upload_times: list[float] = []
 
     def record_upload(self, bytes_uploaded: int, upload_time_ms: float) -> None:
         """Record an upload."""
@@ -360,7 +360,7 @@ class UploadMetrics:
         """Record HTTPS fallback usage."""
         self.https_fallback_count += 1
 
-    def get_summary(self) -> Dict[str, Any]:
+    def get_summary(self) -> dict[str, Any]:
         """Get metrics summary."""
         return {
             "total_uploads": self.total_uploads,

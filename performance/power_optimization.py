@@ -52,7 +52,7 @@ class PowerManager:
                 return False
 
             # Set governor to powersave
-            with open(scaling_path, 'w') as f:
+            with open(scaling_path, "w") as f:
                 f.write("powersave")
 
             logger.info("CPU frequency scaling enabled (powersave governor)")
@@ -78,10 +78,7 @@ class PowerManager:
         try:
             # Use rfkill to disable Bluetooth
             subprocess.run(
-                ["sudo", "rfkill", "block", "bluetooth"],
-                check=True,
-                capture_output=True,
-                timeout=5
+                ["sudo", "rfkill", "block", "bluetooth"], check=True, capture_output=True, timeout=5
             )
             logger.info("Bluetooth disabled")
             return True
@@ -100,12 +97,7 @@ class PowerManager:
         """
         try:
             # Use tvservice to power off HDMI
-            subprocess.run(
-                ["tvservice", "-o"],
-                check=True,
-                capture_output=True,
-                timeout=5
-            )
+            subprocess.run(["tvservice", "-o"], check=True, capture_output=True, timeout=5)
             logger.info("HDMI disabled")
             return True
         except Exception as e:
@@ -127,7 +119,7 @@ class PowerManager:
                 ["sudo", "iwconfig", "wlan0", "power", "off"],
                 check=True,
                 capture_output=True,
-                timeout=5
+                timeout=5,
             )
             logger.info("WiFi power saving disabled")
             return True
@@ -146,12 +138,14 @@ class PowerManager:
             True if successful
         """
         if mhz < self._min_freq_mhz or mhz > self._max_freq_mhz:
-            logger.warning(f"Frequency {mhz} MHz out of range [{self._min_freq_mhz}, {self._max_freq_mhz}]")
+            logger.warning(
+                f"Frequency {mhz} MHz out of range [{self._min_freq_mhz}, {self._max_freq_mhz}]"
+            )
             return False
 
         try:
             scaling_path = "/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq"
-            with open(scaling_path, 'w') as f:
+            with open(scaling_path, "w") as f:
                 f.write(str(mhz * 1000))  # Convert to kHz
 
             logger.debug(f"CPU frequency set to {mhz} MHz")
@@ -170,7 +164,7 @@ class PowerManager:
         cpu_percent: float,
         mem_mb: float,
         wifi_active: bool = False,
-        mqtt_connected: bool = False
+        mqtt_connected: bool = False,
     ) -> float:
         """
         Estimate current power draw in milliwatts.
@@ -224,7 +218,7 @@ class PollingIntervalOptimizer:
         self._low_activity_interval_s = 300  # Every 5 min during low activity
         self._high_activity_interval_s = 30  # Every 30s during high activity
         self._error_interval_s = 120  # Backoff on errors
-        
+
         self._last_activity_time = datetime.utcnow()
         self._activity_threshold_s = 600  # 10 min to trigger low activity
         self._error_count = 0
@@ -282,7 +276,7 @@ class DatabaseTransactionOptimizer:
         self.batch_size = batch_size
         self._pending_ops: list = []
 
-    def add_operation(self, op_type: str, data: Dict[str, Any]) -> None:
+    def add_operation(self, op_type: str, data: dict[str, Any]) -> None:
         """
         Add operation to batch.
 
@@ -290,7 +284,7 @@ class DatabaseTransactionOptimizer:
             op_type: Operation type ('insert', 'update', 'delete')
             data: Operation data
         """
-        self._pending_ops.append({'type': op_type, 'data': data})
+        self._pending_ops.append({"type": op_type, "data": data})
 
     def should_flush(self) -> bool:
         """Check if batch should be flushed."""
@@ -348,11 +342,7 @@ class PowerConsumptionMonitor:
         self._start_time = datetime.utcnow()
 
     def record(
-        self,
-        power_mw: float,
-        cpu_percent: float,
-        mem_mb: float,
-        uptime_seconds: int
+        self, power_mw: float, cpu_percent: float, mem_mb: float, uptime_seconds: int
     ) -> None:
         """
         Record power consumption sample.
@@ -364,11 +354,11 @@ class PowerConsumptionMonitor:
             uptime_seconds: System uptime
         """
         sample = {
-            'timestamp': datetime.utcnow().isoformat(),
-            'power_mw': power_mw,
-            'cpu_percent': cpu_percent,
-            'mem_mb': mem_mb,
-            'uptime_seconds': uptime_seconds,
+            "timestamp": datetime.utcnow().isoformat(),
+            "power_mw": power_mw,
+            "cpu_percent": cpu_percent,
+            "mem_mb": mem_mb,
+            "uptime_seconds": uptime_seconds,
         }
         self._samples.append(sample)
 
@@ -380,16 +370,16 @@ class PowerConsumptionMonitor:
         """Get average power draw in mW."""
         if not self._samples:
             return 0.0
-        power_values = [s['power_mw'] for s in self._samples]
+        power_values = [s["power_mw"] for s in self._samples]
         return sum(power_values) / len(power_values)
 
     def get_peak_power(self) -> float:
         """Get peak power draw in mW."""
         if not self._samples:
             return 0.0
-        return max(s['power_mw'] for s in self._samples)
+        return max(s["power_mw"] for s in self._samples)
 
-    def get_daily_estimate(self) -> Dict[str, Any]:
+    def get_daily_estimate(self) -> dict[str, Any]:
         """
         Estimate daily energy consumption.
 
@@ -400,13 +390,13 @@ class PowerConsumptionMonitor:
         daily_wh = (avg_power / 1000) * 24  # Convert mW to W, then to Wh
 
         return {
-            'average_power_mw': avg_power,
-            'peak_power_mw': self.get_peak_power(),
-            'estimated_daily_wh': daily_wh,
-            'estimated_monthly_wh': daily_wh * 30,
-            'sample_count': len(self._samples),
+            "average_power_mw": avg_power,
+            "peak_power_mw": self.get_peak_power(),
+            "estimated_daily_wh": daily_wh,
+            "estimated_monthly_wh": daily_wh * 30,
+            "sample_count": len(self._samples),
         }
 
-    def get_summary(self) -> Dict[str, Any]:
+    def get_summary(self) -> dict[str, Any]:
         """Get comprehensive summary."""
         return self.get_daily_estimate()

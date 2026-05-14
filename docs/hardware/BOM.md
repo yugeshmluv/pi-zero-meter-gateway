@@ -1,8 +1,8 @@
 # MeterHub Hardware BOM — India Sourced (Production-Hardened)
 
-**Document Version:** 2.0 (Production Review Locked)  
-**Target Board:** Raspberry Pi Zero 2 W (quad-core ARMv8 aarch64, 512 MB RAM)  
-**Typical Cost Estimate (Tier 1 Standard):** ₹10,500–12,500 per unit (excl. enclosure shipping)  
+**Document Version:** 2.0 (Production Review Locked)
+**Target Board:** Raspberry Pi Zero 2 W (quad-core ARMv8 aarch64, 512 MB RAM)
+**Typical Cost Estimate (Tier 1 Standard):** ₹10,500–12,500 per unit (excl. enclosure shipping)
 **Image Build:** Mender A/B partitions + pi-gen overlay (adds ~3 weeks integration, ~100 MB rootfs overhead)
 
 ---
@@ -87,40 +87,40 @@
 ## 8. Shipping & Logistics Notes (Updated for Pi Zero 2 W & Multi-Tier)
 
 **Lead Times (India)**
-- Raspberry Pi Zero 2 W: 14–21 days from Robu.in (pre-order if large batch)  
-- Waveshare TTL to RS485 (C) Converter: 7–10 days Robu.in, 14–21 days AliExpress (check local stock first)  
-- Industrial SD cards (power-loss protected): **4–6 weeks** from distributors for bulk; plan ahead  
-- RTC (DS3231): 7–10 days Robu.in; stocked at most electronics suppliers  
-- Wi-Fi antenna (U.FL pigtail): 7–10 days AliExpress  
+- Raspberry Pi Zero 2 W: 14–21 days from Robu.in (pre-order if large batch)
+- Waveshare TTL to RS485 (C) Converter: 7–10 days Robu.in, 14–21 days AliExpress (check local stock first)
+- Industrial SD cards (power-loss protected): **4–6 weeks** from distributors for bulk; plan ahead
+- RTC (DS3231): 7–10 days Robu.in; stocked at most electronics suppliers
+- Wi-Fi antenna (U.FL pigtail): 7–10 days AliExpress
 - Enclosures: 10–14 days from local DIN-rail suppliers
 
 **Cost Summary (Single Unit, Tier 1 Standard Kit)**
-- Core compute & storage: ₹6,200–7,200 (Pi Zero 2 W + industrial SD PLP)  
-- RTC (DS3231): ₹150–200  
-- Wi-Fi antenna (U.FL pigtail + 2 dBi): ₹120–180  
-- RS485 isolation & protection: ₹500–900 (Waveshare TTL to RS485 C, integrated TVS)  
-- Enclosure & thermal: ₹2,500–4,500  
-- Optional OLED status display: ₹120–180  
-- **Total material (Tier 1 Standard): ₹10,500–12,500 per unit**  
-- **Tier 2 (add USB Ethernet + powerline): +₹2,400–3,000 per device**  
-- **Tier 3 (add 4G dongle + IoT SIM): +₹500–800 hardware + ₹50–100/mo per device**  
+- Core compute & storage: ₹6,200–7,200 (Pi Zero 2 W + industrial SD PLP)
+- RTC (DS3231): ₹150–200
+- Wi-Fi antenna (U.FL pigtail + 2 dBi): ₹120–180
+- RS485 isolation & protection: ₹500–900 (Waveshare TTL to RS485 C, integrated TVS)
+- Enclosure & thermal: ₹2,500–4,500
+- Optional OLED status display: ₹120–180
+- **Total material (Tier 1 Standard): ₹10,500–12,500 per unit**
+- **Tier 2 (add USB Ethernet + powerline): +₹2,400–3,000 per device**
+- **Tier 3 (add 4G dongle + IoT SIM): +₹500–800 hardware + ₹50–100/mo per device**
 - Add 20% for contingency, test fixtures, spares for production run of 50+ units.
 
 **Bulk Procurement (100+ units for production)**
-- **Critical path:** Pre-order power-loss-protected SD cards 6–8 weeks in advance (SanDisk XI or Swissbit); verify PLP SKU explicitly.  
-- Negotiate 10–15% discount on Pi Zero 2 W with Robu.in, Element14 India.  
-- Request bulk allocation from official Raspberry Pi distributors (allow 2–3 weeks for approval).  
-- Order antenna components in bulk from AliExpress (250+ units = 20–25% discount).  
+- **Critical path:** Pre-order power-loss-protected SD cards 6–8 weeks in advance (SanDisk XI or Swissbit); verify PLP SKU explicitly.
+- Negotiate 10–15% discount on Pi Zero 2 W with Robu.in, Element14 India.
+- Request bulk allocation from official Raspberry Pi distributors (allow 2–3 weeks for approval).
+- Order antenna components in bulk from AliExpress (250+ units = 20–25% discount).
 - Stagger tier 2/3 orders based on site survey results (don't overbuy 4G/Ethernet kits if most sites have adequate Wi-Fi).
 
 ---
 
 ## 9. Compliance & Certifications (Updated)
 
-- **Electrical Safety:** BIS IS 1293 (power supply), IEC 61010-1 (measurement safety).  
-- **Electromagnetic Compatibility (EMC):** Device operates adjacent to 415 V three-phase switchgear. RS485: double-insulated cable + shielded runs (shield grounded at device end only). TVS diodes on A/B lines provide surge suppression for 415V transients. **Do not rely on isolated module alone; TVS is mandatory.**  
-- **CEA (Central Electricity Authority):** Devices tapped into society metering system technically fall under CEA rules. **Get legal opinion before deployment.** CT clamps must be downstream of utility meter, never integrated with utility meter itself.  
-- **Environmental:** IP54 enclosure meets ingress protection for typical electrical panel rooms (35–50 °C, dust/moisture).  
+- **Electrical Safety:** BIS IS 1293 (power supply), IEC 61010-1 (measurement safety).
+- **Electromagnetic Compatibility (EMC):** Device operates adjacent to 415 V three-phase switchgear. RS485: double-insulated cable + shielded runs (shield grounded at device end only). TVS diodes on A/B lines provide surge suppression for 415V transients. **Do not rely on isolated module alone; TVS is mandatory.**
+- **CEA (Central Electricity Authority):** Devices tapped into society metering system technically fall under CEA rules. **Get legal opinion before deployment.** CT clamps must be downstream of utility meter, never integrated with utility meter itself.
+- **Environmental:** IP54 enclosure meets ingress protection for typical electrical panel rooms (35–50 °C, dust/moisture).
 - **Data Protection:** DPDP Act — device stores meter readings + admin email (contact during provisioning). Consent notice required during install. Data retention period: specify (recommended 3–7 years for tax records). Data subject rights: export/deletion via cloud portal.
 
 ---
@@ -140,7 +140,7 @@
 
 ## 11. End-of-Life & Recycling
 
-- Pi Zero 2 W: Electronic waste (e-waste) recycling per BIS standards. Data on internal flash wiped before disposal.  
-- Industrial SD card: Can be securely wiped (meterhub-erase.sh tool provided) and reused in Tier 2/3 refresh or recycled. **For RMA units, extract SD for data recovery before recycling module.**  
-- Enclosure: Recyclable plastic/aluminum.  
+- Pi Zero 2 W: Electronic waste (e-waste) recycling per BIS standards. Data on internal flash wiped before disposal.
+- Industrial SD card: Can be securely wiped (meterhub-erase.sh tool provided) and reused in Tier 2/3 refresh or recycled. **For RMA units, extract SD for data recovery before recycling module.**
+- Enclosure: Recyclable plastic/aluminum.
 - RTC: Battery extraction required before e-waste disposal; CR2032 cells recyclable separately.

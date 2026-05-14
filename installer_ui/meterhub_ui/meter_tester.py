@@ -6,7 +6,7 @@ Used in installer UI for diagnostics and verification.
 """
 
 import logging
-from typing import Optional, Dict, Any, List
+from typing import Any
 from dataclasses import dataclass
 from datetime import datetime
 
@@ -23,15 +23,15 @@ class MeterTestResult:
     registers_failed: int
     test_duration_ms: float
     timestamp: datetime
-    error_message: Optional[str] = None
-    sample_readings: Optional[Dict[str, Any]] = None
+    error_message: str | None = None
+    sample_readings: dict[str, Any] | None = None
     modbus_timeout_ms: int = 5000
 
 
 class MeterTester:
     """Test meter connectivity using Modbus RTU."""
 
-    def __init__(self, modbus_client: Optional[Any] = None) -> None:
+    def __init__(self, modbus_client: Any | None = None) -> None:
         """
         Initialize meter tester.
 
@@ -169,7 +169,7 @@ class MeterTester:
                 error_message=str(e),
             )
 
-    async def test_available_devices(self) -> Dict[str, Dict[str, Any]]:
+    async def test_available_devices(self) -> dict[str, dict[str, Any]]:
         """
         Test all available serial devices.
 
@@ -200,8 +200,8 @@ class MeterTester:
         self,
         device: str,
         meter_profile_path: str,
-        baud_rates: Optional[List[int]] = None,
-    ) -> Dict[int, Dict[str, Any]]:
+        baud_rates: list[int] | None = None,
+    ) -> dict[int, dict[str, Any]]:
         """
         Test different baud rates to find correct configuration.
 
@@ -274,8 +274,8 @@ class MeterTester:
         self,
         device: str,
         meter_profile_path: str,
-        slave_ids: Optional[List[int]] = None,
-    ) -> Dict[int, Dict[str, Any]]:
+        slave_ids: list[int] | None = None,
+    ) -> dict[int, dict[str, Any]]:
         """
         Find correct Modbus slave ID by probing.
 

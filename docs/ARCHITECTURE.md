@@ -1,7 +1,7 @@
 # MeterHub System Architecture
 
-**Document Version:** 1.0  
-**Date:** April 2026  
+**Document Version:** 1.0
+**Date:** April 2026
 **Status:** Phase 1 Specification
 
 ---
@@ -387,17 +387,17 @@ Cold boot soak tests:
 ```
 MOUNT OPTIONS:
   noatime,nodiratime  (never update access times)
-  
+
 LOG MANAGEMENT:
   /var/log mounted ON tmpfs (40 MB max, hourly sync to SD)
-  
+
 BATCH WRITES:
   SQLite WAL + journal_size_limit prevents excessive small writes
-  
+
 DAILY MONITORING:
   Monitor /sys/block/mmcblk0/stat → bytes_written
   Report in heartbeat; cloud tracks trajectory
-  
+
 Expected:
   ~24 MB/day (min-level readings 1440/day × ~17 KB/batch)
   Industrial SD: lifespan estimate 10+ years at this rate
@@ -450,27 +450,27 @@ Threats & Mitigations:
 1. Meter Data Tampering
    → Device signs all payloads (Ed25519)
    → Cloud verifies signature with public key
-   
+
 2. Unauthorized Access to Installer UI
    → Default credentials + forced password change
    → Fail2ban-style 5-failed-login → 15 min IP lockout
    → HTTPS only (self-signed cert OK for engineering tool)
-   
+
 3. OTA Package Tampering
    → All OTA packages Ed25519-signed
    → Device verifies signature before installation
    → Signed public key baked into image at build time
-   
+
 4. Cloud Credential Compromise
    → Cloud bearer token + device Ed25519 keypair
    → Token refresh every 24 h
    → Device side-by-side verify on reconnect
-   
+
 5. Local Secrets Leakage
    → `/etc/metrehub/secrets/` owned by metrehub:metrehub, mode 0700
    → No logging of secret material
    → Audit log for all config changes (audit trail mandated)
-   
+
 6. Electrical Safety
    → Isolated RS485 (no ground loops)
    → TVS diodes on signal lines

@@ -1,7 +1,7 @@
 # MeterHub Installation & Commissioning Guide
 
-**Version:** 1.2.0  
-**Last Updated:** May 11, 2026  
+**Version:** 1.2.0
+**Last Updated:** May 11, 2026
 **Audience:** Installation Engineers, Field Technicians, Commissioning Teams
 
 ---
@@ -305,9 +305,9 @@ Send logs + provisioning details to support
 
 ### Contact Information
 
-- **Cloud Team:** Provisioning issues, credential generation  
-- **DevOps Team:** OTA updates, firmware releases  
-- **Hardware Support:** Pi / RS485 converter issues  
+- **Cloud Team:** Provisioning issues, credential generation
+- **DevOps Team:** OTA updates, firmware releases
+- **Hardware Support:** Pi / RS485 converter issues
 - **Integration Lab:** Custom meter profile development
 
 ---

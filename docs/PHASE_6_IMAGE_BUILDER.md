@@ -1,8 +1,8 @@
 # Phase 6: Image Builder & Hardening
 
-**Status:** ✅ Complete  
-**Commit:** (to be pushed)  
-**Date:** May 11, 2026  
+**Status:** ✅ Complete
+**Commit:** (to be pushed)
+**Date:** May 11, 2026
 
 ## Overview
 
@@ -99,7 +99,7 @@ Stage 2: MeterHub Services
   - bootdelay=0 (no interactive boot)
   - silent=1 (suppress output)
   - verify=1 (require signed images)
-  
+
 - `generate_kernel_cmdline()`: Kernel hardening parameters
   - ASLR (address space randomization)
   - kexec disabled (no kernel switching)
@@ -340,12 +340,12 @@ GitHub Release created
 
 ## Security Considerations
 
-✅ **Code Signing:** Ed25519 on all images  
-✅ **Transport Security:** TLS 1.2+ for all downloads  
-✅ **Integrity Monitoring:** AIDE prevents tampering  
-✅ **Access Control:** Apparmor profiles per service  
-✅ **Boot Security:** U-Boot verification  
-✅ **Network Isolation:** UFW firewall by default  
+✅ **Code Signing:** Ed25519 on all images
+✅ **Transport Security:** TLS 1.2+ for all downloads
+✅ **Integrity Monitoring:** AIDE prevents tampering
+✅ **Access Control:** Apparmor profiles per service
+✅ **Boot Security:** U-Boot verification
+✅ **Network Isolation:** UFW firewall by default
 
 ## Future Enhancements (Phase 7+)
 

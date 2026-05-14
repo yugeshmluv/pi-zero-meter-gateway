@@ -1,7 +1,7 @@
 # MeterHub Phase 1 Delivery — Complete Production Specification
 
-**Date Completed:** April 28, 2026  
-**Project:** Production-grade firmware stack for Raspberry Pi Zero W edge gateway  
+**Date Completed:** April 28, 2026
+**Project:** Production-grade firmware stack for Raspberry Pi Zero W edge gateway
 **Scope:** Fleet deployment across Indian housing societies, 3-phase CT meter monitoring via RS485/Modbus RTU
 
 ---
@@ -20,7 +20,7 @@
 
 ---
 
-### 2. **Hardware BOM with India Sourcing** 
+### 2. **Hardware BOM with India Sourcing**
 
 **Sections:**
 - Core compute: Pi Zero 2 W, industrial SD card, PSU
@@ -42,7 +42,7 @@
 
 ---
 
-### 3. **Cloud API Contract** 
+### 3. **Cloud API Contract**
 
 **This is the spec for the cloud team to build in parallel.**
 
@@ -53,25 +53,25 @@
   - Topic: `society/{society_id}/panel/{panel_id}/readings`
   - Payload: Batched 5-minute readings with all phase data + cumulative totalizer
   - Heartbeat every 5 min with device health (CPU, RAM, temp, SD wear, queue depth)
-  
+
 - **HTTPS Fallback Path:**
   - Triggered after 15 min MQTT failure
   - POST `/v1/readings`, `/v1/heartbeat`
   - Exponential backoff: 1 min → 5 min → 30 min → 1 h (cap)
   - SQLite-backed queue: survives 7-day outages without data loss
-  
+
 - **OTA Update Flow:**
   - Cloud publishes manifest to MQTT `ota/manifest`
   - Device downloads from S3, verifies Ed25519 signature
   - Health check: meter read + heartbeat within 5 min
   - Failure → automatic rollback to previous version
   - Canary protection: random 0–6 h delay for non-critical updates
-  
+
 - **Provisioning (QR-Based):**
   - QR encodes: device_id + public_key + setup_token
   - Installer scans QR → mobile app pre-registers device → device config pre-filled
   - Cloud API: `POST /v1/provisioning/register`, `POST /v1/provisioning/config`
-  
+
 - **Fallback Email (Device-Initiated, Failure-Mode Only):**
   - Trigger A: Cloud never configured, >24 h of data collected
   - Trigger B: Cloud was working, now offline >24 h
@@ -377,7 +377,7 @@ Fully specified 3-phase meter profile with:
 
 ---
 
-**Document:** MeterHub Phase 1 Completion Summary  
-**Date:** April 28, 2026  
-**Status:** ✅ APPROVED FOR PHASE 2 KICKOFF  
+**Document:** MeterHub Phase 1 Completion Summary
+**Date:** April 28, 2026
+**Status:** ✅ APPROVED FOR PHASE 2 KICKOFF
 **Next Milestone:** Acquisition service complete (Phase 2)

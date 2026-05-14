@@ -13,7 +13,8 @@ Production-grade MQTT client with:
 import asyncio
 import json
 import logging
-from typing import Any, Optional, Callable, Awaitable, Self, Dict, Type
+from typing import Any, Self
+from collections.abc import Callable, Awaitable
 from datetime import datetime
 import ssl
 
@@ -73,12 +74,12 @@ class AWSIoTMQTTClient:
 
         # State
         self.connected = False
-        self.last_error: Optional[str] = None
+        self.last_error: str | None = None
         self.connection_failed_count = 0
-        self.last_message_time: Optional[datetime] = None
+        self.last_message_time: datetime | None = None
 
         # Callbacks
-        self._on_message_callback: Optional[Callable[[str, bytes], Awaitable[None]]] = None
+        self._on_message_callback: Callable[[str, bytes], Awaitable[None]] | None = None
 
     def set_tls(self) -> None:
         """Configure TLS 1.2+ for AWS IoT Core."""
@@ -213,7 +214,7 @@ class AWSIoTMQTTClient:
     async def publish(
         self,
         topic: str,
-        payload: Dict[str, Any],
+        payload: dict[str, Any],
         qos: int = 1,
         retain: bool = False,
     ) -> bool:
@@ -303,7 +304,7 @@ class AWSIoTMQTTClient:
         """Set async callback for message reception."""
         self._on_message_callback = callback
 
-    async def get_shadow(self, thing_name: str) -> Optional[Dict[str, Any]]:
+    async def get_shadow(self, thing_name: str) -> dict[str, Any] | None:
         """
         Get AWS IoT Thing Shadow (device state).
 
@@ -350,9 +351,9 @@ class AWSIoTMQTTClient:
 
     async def __aexit__(
         self,
-        exc_type: Optional[Type[BaseException]],
-        exc_val: Optional[BaseException],
-        exc_tb: Optional[TracebackType],
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
     ) -> None:
         """Async context manager exit."""
         await self.disconnect()

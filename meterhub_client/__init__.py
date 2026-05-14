@@ -28,9 +28,9 @@ from .client import (
 )
 
 __all__ = [
-    'MeterHubClient',
-    'MeterHubClientSync',
-    'MeterReading',
-    'DeviceStatus',
-    'DailyConsumption',
+    "MeterHubClient",
+    "MeterHubClientSync",
+    "MeterReading",
+    "DeviceStatus",
+    "DailyConsumption",
 ]

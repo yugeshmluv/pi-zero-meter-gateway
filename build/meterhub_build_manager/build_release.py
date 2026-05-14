@@ -51,7 +51,7 @@ class ReleaseBuilder:
         self.dist_dir.mkdir(parents=True, exist_ok=True)
         self.logs_dir.mkdir(parents=True, exist_ok=True)
 
-        self.build_manifest: Dict = {
+        self.build_manifest: dict = {
             "version": version,
             "channel": channel,
             "timestamp": datetime.utcnow().isoformat(),
@@ -145,7 +145,7 @@ class ReleaseBuilder:
 
         return images if images else None
 
-    async def _sign_images(self, images: Dict) -> bool:
+    async def _sign_images(self, images: dict) -> bool:
         """Sign built images."""
         from common.meterhub_common.image_signer import ImageSigner
 
@@ -175,7 +175,7 @@ class ReleaseBuilder:
             print(f"  ❌ Signing error: {e}")
             return False
 
-    async def _generate_manifests(self, images: Dict) -> bool:
+    async def _generate_manifests(self, images: dict) -> bool:
         """Generate release manifests."""
         try:
             # OTA manifest
@@ -198,9 +198,7 @@ class ReleaseBuilder:
             for arch, image_info in images.items():
                 if "hashes" in image_info:
                     path = Path(image_info["path"])
-                    checksums.append(
-                        f"{image_info['hashes']['sha256']}  {path.name}"
-                    )
+                    checksums.append(f"{image_info['hashes']['sha256']}  {path.name}")
 
             checksum_file = self.dist_dir / "SHA256SUMS"
             checksum_file.write_text("\n".join(checksums))

@@ -27,7 +27,6 @@ import os
 import signal
 import logging
 from datetime import datetime
-from typing import Optional
 from types import FrameType
 
 from common.meterhub_common import (
@@ -74,10 +73,10 @@ class AcquisitionService:
 
         # State
         self.running = False
-        self.meter_profile: Optional[MeterProfile] = None
-        self.modbus_client: Optional[ModbusRTUClient] = None
-        self.telemetry_db: Optional[TelemetryDatabase] = None
-        self.state_db: Optional[StateDatabase] = None
+        self.meter_profile: MeterProfile | None = None
+        self.modbus_client: ModbusRTUClient | None = None
+        self.telemetry_db: TelemetryDatabase | None = None
+        self.state_db: StateDatabase | None = None
 
         self.read_count = 0
         self.error_count = 0
@@ -114,7 +113,7 @@ class AcquisitionService:
             logger.error(f"Failed to initialize databases: {e}")
             return False
 
-    async def _poll_meter(self) -> Optional[MeterReading]:
+    async def _poll_meter(self) -> MeterReading | None:
         """Poll meter and return MeterReading dataclass."""
         try:
             # Ensure connected
@@ -282,7 +281,7 @@ class AcquisitionService:
             f"(reads: {self.read_count}, errors: {self.error_count})"
         )
 
-    def handle_signal(self, signum: int, frame: Optional[FrameType]) -> None:
+    def handle_signal(self, signum: int, frame: FrameType | None) -> None:
         """Handle shutdown signals."""
         logger.info(f"Received signal {signum}, shutting down...")
         self.running = False

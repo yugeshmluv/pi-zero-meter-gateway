@@ -10,7 +10,7 @@ Provides easy access to MeterHub devices for:
 
 Usage:
     from meterhub_client import MeterHubClient
-    
+
     client = MeterHubClient(device_ip="192.168.1.100")
     readings = client.get_latest_readings()
     print(f"Current power: {readings.instant_kw} kW")
@@ -33,6 +33,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class MeterReading:
     """Single meter reading."""
+
     timestamp_utc: datetime
     totalizer_kwh: float
     instant_kw: float
@@ -47,27 +48,28 @@ class MeterReading:
     meter_online: bool = True
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'MeterReading':
+    def from_dict(cls, data: dict[str, Any]) -> "MeterReading":
         """Create from dictionary."""
         return cls(
-            timestamp_utc=datetime.fromisoformat(data['timestamp_utc']),
-            totalizer_kwh=data['totalizer_kwh'],
-            instant_kw=data['instant_kw'],
-            frequency_hz=data['frequency_hz'],
-            voltage_l1=data.get('voltage_l1', 0.0),
-            voltage_l2=data.get('voltage_l2', 0.0),
-            voltage_l3=data.get('voltage_l3', 0.0),
-            current_l1=data.get('current_l1', 0.0),
-            current_l2=data.get('current_l2', 0.0),
-            current_l3=data.get('current_l3', 0.0),
-            pf_total=data.get('pf_total', 0.98),
-            meter_online=data.get('meter_online', True),
+            timestamp_utc=datetime.fromisoformat(data["timestamp_utc"]),
+            totalizer_kwh=data["totalizer_kwh"],
+            instant_kw=data["instant_kw"],
+            frequency_hz=data["frequency_hz"],
+            voltage_l1=data.get("voltage_l1", 0.0),
+            voltage_l2=data.get("voltage_l2", 0.0),
+            voltage_l3=data.get("voltage_l3", 0.0),
+            current_l1=data.get("current_l1", 0.0),
+            current_l2=data.get("current_l2", 0.0),
+            current_l3=data.get("current_l3", 0.0),
+            pf_total=data.get("pf_total", 0.98),
+            meter_online=data.get("meter_online", True),
         )
 
 
 @dataclass
 class DeviceStatus:
     """Device health status."""
+
     device_id: str
     uptime_seconds: int
     memory_mb: float
@@ -76,33 +78,40 @@ class DeviceStatus:
     sd_free_mb: int
     wifi_signal_strength: int  # dBm (-30 to -90)
     mqtt_connected: bool
-    last_reading_timestamp: Optional[datetime]
+    last_reading_timestamp: datetime | None
     queue_depth: int  # Pending uploads
-    last_cloud_sync: Optional[datetime]
+    last_cloud_sync: datetime | None
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'DeviceStatus':
+    def from_dict(cls, data: dict[str, Any]) -> "DeviceStatus":
         """Create from dictionary."""
         return cls(
-            device_id=data['device_id'],
-            uptime_seconds=data['uptime_seconds'],
-            memory_mb=data['memory_mb'],
-            cpu_percent=data['cpu_percent'],
-            temperature_c=data.get('temperature_c', 0.0),
-            sd_free_mb=data['sd_free_mb'],
-            wifi_signal_strength=data.get('wifi_signal_strength', -50),
-            mqtt_connected=data['mqtt_connected'],
-            last_reading_timestamp=datetime.fromisoformat(data['last_reading_timestamp'])
-            if data.get('last_reading_timestamp') else None,
-            queue_depth=data['queue_depth'],
-            last_cloud_sync=datetime.fromisoformat(data['last_cloud_sync'])
-            if data.get('last_cloud_sync') else None,
+            device_id=data["device_id"],
+            uptime_seconds=data["uptime_seconds"],
+            memory_mb=data["memory_mb"],
+            cpu_percent=data["cpu_percent"],
+            temperature_c=data.get("temperature_c", 0.0),
+            sd_free_mb=data["sd_free_mb"],
+            wifi_signal_strength=data.get("wifi_signal_strength", -50),
+            mqtt_connected=data["mqtt_connected"],
+            last_reading_timestamp=(
+                datetime.fromisoformat(data["last_reading_timestamp"])
+                if data.get("last_reading_timestamp")
+                else None
+            ),
+            queue_depth=data["queue_depth"],
+            last_cloud_sync=(
+                datetime.fromisoformat(data["last_cloud_sync"])
+                if data.get("last_cloud_sync")
+                else None
+            ),
         )
 
 
 @dataclass
 class DailyConsumption:
     """Daily consumption summary."""
+
     date: str  # YYYY-MM-DD
     energy_kwh: float
     peak_power_kw: float
@@ -123,10 +132,10 @@ class MeterHubClient:
 
     def __init__(
         self,
-        device_ip: Optional[str] = None,
-        cloud_api_url: Optional[str] = None,
-        device_id: Optional[str] = None,
-        api_key: Optional[str] = None,
+        device_ip: str | None = None,
+        cloud_api_url: str | None = None,
+        device_id: str | None = None,
+        api_key: str | None = None,
         timeout_s: float = 10.0,
         verify_ssl: bool = True,
     ):
@@ -140,7 +149,7 @@ class MeterHubClient:
             api_key: API key for authentication
             timeout_s: Request timeout in seconds
             verify_ssl: Verify SSL certificates
-            
+
         Raises:
             ValueError: If neither device_ip nor cloud_api_url is provided
             TypeError: If device_ip is not a string
@@ -151,20 +160,20 @@ class MeterHubClient:
                 "Either 'device_ip' (for direct access) or 'cloud_api_url' "
                 "(for cloud access) must be configured"
             )
-        
+
         # Type validation
         if device_ip and not isinstance(device_ip, str):
             raise TypeError(f"device_ip must be string, got {type(device_ip)}")
         if cloud_api_url and not isinstance(cloud_api_url, str):
             raise TypeError(f"cloud_api_url must be string, got {type(cloud_api_url)}")
-            
+
         self.device_ip = device_ip
         self.cloud_api_url = cloud_api_url or "https://api.meterhub.io/v1"
         self.device_id = device_id
         self.api_key = api_key
         self.timeout = aiohttp.ClientTimeout(total=timeout_s)
         self.verify_ssl = verify_ssl
-        self._session: Optional[aiohttp.ClientSession] = None
+        self._session: aiohttp.ClientSession | None = None
 
     async def __aenter__(self):
         """Async context manager entry."""
@@ -179,9 +188,9 @@ class MeterHubClient:
         if self._session is None or self._session.closed:
             connector_kwargs = {}
             if not self.verify_ssl:
-                connector_kwargs['ssl'] = ssl.create_default_context()
-                connector_kwargs['ssl'].check_hostname = False
-                connector_kwargs['ssl'].verify_mode = ssl.CERT_NONE
+                connector_kwargs["ssl"] = ssl.create_default_context()
+                connector_kwargs["ssl"].check_hostname = False
+                connector_kwargs["ssl"].verify_mode = ssl.CERT_NONE
 
             self._session = aiohttp.ClientSession(
                 timeout=self.timeout,
@@ -218,12 +227,15 @@ class MeterHubClient:
         """
         session = await self._ensure_session()
 
-        url = await self._get_cloud_url("/status") if use_cloud else \
-              await self._get_device_url("/api/status")
+        url = (
+            await self._get_cloud_url("/status")
+            if use_cloud
+            else await self._get_device_url("/api/status")
+        )
 
         headers = {}
         if self.api_key and use_cloud:
-            headers['Authorization'] = f'Bearer {self.api_key}'
+            headers["Authorization"] = f"Bearer {self.api_key}"
 
         async with session.get(url, headers=headers) as resp:
             if resp.status != 200:
@@ -231,7 +243,7 @@ class MeterHubClient:
             data = await resp.json()
             return DeviceStatus.from_dict(data)
 
-    async def get_latest_reading(self, use_cloud: bool = False) -> Optional[MeterReading]:
+    async def get_latest_reading(self, use_cloud: bool = False) -> MeterReading | None:
         """
         Get the latest meter reading.
 
@@ -243,12 +255,15 @@ class MeterHubClient:
         """
         session = await self._ensure_session()
 
-        url = await self._get_cloud_url("/readings/latest") if use_cloud else \
-              await self._get_device_url("/api/readings/latest")
+        url = (
+            await self._get_cloud_url("/readings/latest")
+            if use_cloud
+            else await self._get_device_url("/api/readings/latest")
+        )
 
         headers = {}
         if self.api_key and use_cloud:
-            headers['Authorization'] = f'Bearer {self.api_key}'
+            headers["Authorization"] = f"Bearer {self.api_key}"
 
         async with session.get(url, headers=headers) as resp:
             if resp.status == 404:
@@ -264,7 +279,7 @@ class MeterHubClient:
         end_time: datetime,
         limit: int = 1000,
         use_cloud: bool = False,
-    ) -> List[MeterReading]:
+    ) -> list[MeterReading]:
         """
         Get readings within a time range.
 
@@ -280,29 +295,32 @@ class MeterHubClient:
         session = await self._ensure_session()
 
         params = {
-            'start': start_time.isoformat(),
-            'end': end_time.isoformat(),
-            'limit': limit,
+            "start": start_time.isoformat(),
+            "end": end_time.isoformat(),
+            "limit": limit,
         }
 
-        url = await self._get_cloud_url("/readings") if use_cloud else \
-              await self._get_device_url("/api/readings")
+        url = (
+            await self._get_cloud_url("/readings")
+            if use_cloud
+            else await self._get_device_url("/api/readings")
+        )
 
         headers = {}
         if self.api_key and use_cloud:
-            headers['Authorization'] = f'Bearer {self.api_key}'
+            headers["Authorization"] = f"Bearer {self.api_key}"
 
         async with session.get(url, params=params, headers=headers) as resp:
             if resp.status != 200:
                 raise RuntimeError(f"Failed to get readings: {resp.status}")
             data = await resp.json()
-            return [MeterReading.from_dict(r) for r in data.get('readings', [])]
+            return [MeterReading.from_dict(r) for r in data.get("readings", [])]
 
     async def get_hourly_summary(
         self,
         date: str,  # YYYY-MM-DD
         use_cloud: bool = False,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Get hourly consumption summary for a day.
 
@@ -315,24 +333,27 @@ class MeterHubClient:
         """
         session = await self._ensure_session()
 
-        url = await self._get_cloud_url(f"/summary/hourly/{date}") if use_cloud else \
-              await self._get_device_url(f"/api/summary/hourly?date={date}")
+        url = (
+            await self._get_cloud_url(f"/summary/hourly/{date}")
+            if use_cloud
+            else await self._get_device_url(f"/api/summary/hourly?date={date}")
+        )
 
         headers = {}
         if self.api_key and use_cloud:
-            headers['Authorization'] = f'Bearer {self.api_key}'
+            headers["Authorization"] = f"Bearer {self.api_key}"
 
         async with session.get(url, headers=headers) as resp:
             if resp.status != 200:
                 raise RuntimeError(f"Failed to get summary: {resp.status}")
             data = await resp.json()
-            return data.get('hourly', [])
+            return data.get("hourly", [])
 
     async def get_daily_consumption(
         self,
         date: str,  # YYYY-MM-DD
         use_cloud: bool = False,
-    ) -> Optional[DailyConsumption]:
+    ) -> DailyConsumption | None:
         """
         Get daily consumption summary.
 
@@ -345,12 +366,15 @@ class MeterHubClient:
         """
         session = await self._ensure_session()
 
-        url = await self._get_cloud_url(f"/summary/daily/{date}") if use_cloud else \
-              await self._get_device_url(f"/api/summary/daily?date={date}")
+        url = (
+            await self._get_cloud_url(f"/summary/daily/{date}")
+            if use_cloud
+            else await self._get_device_url(f"/api/summary/daily?date={date}")
+        )
 
         headers = {}
         if self.api_key and use_cloud:
-            headers['Authorization'] = f'Bearer {self.api_key}'
+            headers["Authorization"] = f"Bearer {self.api_key}"
 
         async with session.get(url, headers=headers) as resp:
             if resp.status == 404:
@@ -360,7 +384,7 @@ class MeterHubClient:
             data = await resp.json()
             return DailyConsumption(**data)
 
-    async def check_ota_update(self, use_cloud: bool = False) -> Dict[str, Any]:
+    async def check_ota_update(self, use_cloud: bool = False) -> dict[str, Any]:
         """
         Check for available OTA updates.
 
@@ -372,12 +396,15 @@ class MeterHubClient:
         """
         session = await self._ensure_session()
 
-        url = await self._get_cloud_url("/ota/check") if use_cloud else \
-              await self._get_device_url("/api/ota/check")
+        url = (
+            await self._get_cloud_url("/ota/check")
+            if use_cloud
+            else await self._get_device_url("/api/ota/check")
+        )
 
         headers = {}
         if self.api_key and use_cloud:
-            headers['Authorization'] = f'Bearer {self.api_key}'
+            headers["Authorization"] = f"Bearer {self.api_key}"
 
         async with session.get(url, headers=headers) as resp:
             if resp.status == 204:  # No update available
@@ -391,7 +418,7 @@ class MeterHubClient:
         self,
         version: str,
         use_cloud: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Trigger OTA update to specific version.
 
@@ -404,14 +431,17 @@ class MeterHubClient:
         """
         session = await self._ensure_session()
 
-        payload = {'version': version}
+        payload = {"version": version}
 
-        url = await self._get_cloud_url("/ota/update") if use_cloud else \
-              await self._get_device_url("/api/ota/update")
+        url = (
+            await self._get_cloud_url("/ota/update")
+            if use_cloud
+            else await self._get_device_url("/api/ota/update")
+        )
 
         headers = {}
         if self.api_key and use_cloud:
-            headers['Authorization'] = f'Bearer {self.api_key}'
+            headers["Authorization"] = f"Bearer {self.api_key}"
 
         async with session.post(url, json=payload, headers=headers) as resp:
             if resp.status not in [200, 202]:
@@ -422,9 +452,9 @@ class MeterHubClient:
     async def get_system_logs(
         self,
         lines: int = 100,
-        service: Optional[str] = None,
+        service: str | None = None,
         use_cloud: bool = False,
-    ) -> List[str]:
+    ) -> list[str]:
         """
         Get system logs.
 
@@ -438,22 +468,25 @@ class MeterHubClient:
         """
         session = await self._ensure_session()
 
-        params = {'lines': lines}
+        params = {"lines": lines}
         if service:
-            params['service'] = service
+            params["service"] = service
 
-        url = await self._get_cloud_url("/logs") if use_cloud else \
-              await self._get_device_url("/api/logs")
+        url = (
+            await self._get_cloud_url("/logs")
+            if use_cloud
+            else await self._get_device_url("/api/logs")
+        )
 
         headers = {}
         if self.api_key and use_cloud:
-            headers['Authorization'] = f'Bearer {self.api_key}'
+            headers["Authorization"] = f"Bearer {self.api_key}"
 
         async with session.get(url, params=params, headers=headers) as resp:
             if resp.status != 200:
                 raise RuntimeError(f"Failed to get logs: {resp.status}")
             data = await resp.json()
-            return data.get('logs', [])
+            return data.get("logs", [])
 
     async def export_readings_csv(
         self,
@@ -472,26 +505,32 @@ class MeterHubClient:
             use_cloud: Use cloud API or direct access
         """
         readings = await self.get_readings_range(
-            start_time,
-            end_time,
-            limit=10000,
-            use_cloud=use_cloud
+            start_time, end_time, limit=10000, use_cloud=use_cloud
         )
 
         import csv
-        with open(output_path, 'w', newline='') as f:
+
+        with open(output_path, "w", newline="") as f:
             writer = csv.DictWriter(
                 f,
                 fieldnames=[
-                    'timestamp_utc', 'totalizer_kwh', 'instant_kw',
-                    'frequency_hz', 'voltage_l1', 'voltage_l2', 'voltage_l3',
-                    'current_l1', 'current_l2', 'current_l3', 'pf_total'
-                ]
+                    "timestamp_utc",
+                    "totalizer_kwh",
+                    "instant_kw",
+                    "frequency_hz",
+                    "voltage_l1",
+                    "voltage_l2",
+                    "voltage_l3",
+                    "current_l1",
+                    "current_l2",
+                    "current_l3",
+                    "pf_total",
+                ],
             )
             writer.writeheader()
             for reading in readings:
                 row = asdict(reading)
-                row['timestamp_utc'] = reading.timestamp_utc.isoformat()
+                row["timestamp_utc"] = reading.timestamp_utc.isoformat()
                 writer.writerow(row)
 
         logger.info(f"Exported {len(readings)} readings to {output_path}")
@@ -504,7 +543,7 @@ class MeterHubClientSync:
     def __init__(self, *args, **kwargs):
         """Initialize sync client."""
         self._client = MeterHubClient(*args, **kwargs)
-        self._loop: Optional[asyncio.AbstractEventLoop] = None
+        self._loop: asyncio.AbstractEventLoop | None = None
 
     def _get_loop(self) -> asyncio.AbstractEventLoop:
         """Get or create event loop."""
@@ -519,16 +558,12 @@ class MeterHubClientSync:
     def get_device_status(self, use_cloud: bool = False) -> DeviceStatus:
         """Get device status (synchronous)."""
         loop = self._get_loop()
-        return loop.run_until_complete(
-            self._client.get_device_status(use_cloud=use_cloud)
-        )
+        return loop.run_until_complete(self._client.get_device_status(use_cloud=use_cloud))
 
-    def get_latest_reading(self, use_cloud: bool = False) -> Optional[MeterReading]:
+    def get_latest_reading(self, use_cloud: bool = False) -> MeterReading | None:
         """Get latest reading (synchronous)."""
         loop = self._get_loop()
-        return loop.run_until_complete(
-            self._client.get_latest_reading(use_cloud=use_cloud)
-        )
+        return loop.run_until_complete(self._client.get_latest_reading(use_cloud=use_cloud))
 
     def get_readings_range(
         self,
@@ -536,16 +571,11 @@ class MeterHubClientSync:
         end_time: datetime,
         limit: int = 1000,
         use_cloud: bool = False,
-    ) -> List[MeterReading]:
+    ) -> list[MeterReading]:
         """Get readings in range (synchronous)."""
         loop = self._get_loop()
         return loop.run_until_complete(
-            self._client.get_readings_range(
-                start_time,
-                end_time,
-                limit=limit,
-                use_cloud=use_cloud
-            )
+            self._client.get_readings_range(start_time, end_time, limit=limit, use_cloud=use_cloud)
         )
 
     def close(self) -> None:
@@ -572,13 +602,11 @@ if __name__ == "__main__":
         async with MeterHubClient(
             cloud_api_url="https://api.meterhub.io/v1",
             device_id="meter-001",
-            api_key="your-api-key"
+            api_key="your-api-key",
         ) as client:
             yesterday = datetime.utcnow() - timedelta(days=1)
             readings = await client.get_readings_range(
-                start_time=yesterday,
-                end_time=datetime.utcnow(),
-                use_cloud=True
+                start_time=yesterday, end_time=datetime.utcnow(), use_cloud=True
             )
             print(f"Got {len(readings)} readings from cloud")
 

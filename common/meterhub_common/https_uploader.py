@@ -12,7 +12,7 @@ Fallback cloud upload when MQTT is unavailable:
 import asyncio
 import json
 import logging
-from typing import Type, Dict, Any, Optional, Tuple
+from typing import Any
 from datetime import datetime
 import ssl
 
@@ -37,7 +37,7 @@ class HTTPSFallbackUploader:
         endpoint: str,  # HTTPS URL (e.g., https://api.meterhub.example.com/v1)
         device_id: str,
         oauth2_token: str,  # Bearer token
-        ca_path: Optional[str] = None,  # CA certificate for verification
+        ca_path: str | None = None,  # CA certificate for verification
         timeout_s: int = 10,
     ) -> None:
         """
@@ -57,8 +57,8 @@ class HTTPSFallbackUploader:
         self.timeout = aiohttp.ClientTimeout(total=timeout_s)
 
         # Session
-        self.session: Optional[aiohttp.ClientSession] = None
-        self.last_error: Optional[str] = None
+        self.session: aiohttp.ClientSession | None = None
+        self.last_error: str | None = None
         self.connection_failed_count = 0
 
     async def connect(self) -> bool:
@@ -103,9 +103,9 @@ class HTTPSFallbackUploader:
 
     async def upload(
         self,
-        payload: Dict[str, Any],
+        payload: dict[str, Any],
         endpoint_path: str = "/readings",
-    ) -> Tuple[bool, Optional[str]]:
+    ) -> tuple[bool, str | None]:
         """
         Upload meter readings via HTTPS.
 
@@ -167,7 +167,7 @@ class HTTPSFallbackUploader:
                         # Server error or rate limit
                         raise RuntimeError(f"HTTP {response.status}: {await response.text()}")
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 logger.warning(f"Upload timeout (attempt {attempt + 1}/{max_retries})")
                 self.last_error = "Request timeout"
 
@@ -216,9 +216,9 @@ class HTTPSFallbackUploader:
 
     async def __aexit__(
         self,
-        exc_type: Optional[Type[BaseException]],
-        exc_val: Optional[BaseException],
-        exc_tb: Optional[TracebackType],
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
     ) -> None:
         """Async context manager exit."""
         await self.disconnect()

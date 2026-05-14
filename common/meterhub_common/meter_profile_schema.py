@@ -6,7 +6,7 @@ Supports Schneider EM6400, ABB, Siemens, and other 3-phase energy meter profiles
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, Any
+from typing import Any
 from enum import Enum
 import yaml
 
@@ -36,7 +36,7 @@ class ModbusRegister:
     writable: bool = False  # Is this register writable?
     read_only: bool = True  # Is this register read-only?
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
             "name": self.name,
@@ -73,7 +73,7 @@ class MeterProfile:
     @classmethod
     def from_yaml(cls, yaml_path: str) -> "MeterProfile":
         """Load profile from YAML file."""
-        with open(yaml_path, "r") as f:
+        with open(yaml_path) as f:
             data = yaml.safe_load(f)
 
         if not data:
@@ -142,7 +142,7 @@ class MeterProfile:
 
 
 # Helper function to load all profiles from a directory
-def load_profiles_from_directory(directory: str) -> Dict[str, MeterProfile]:
+def load_profiles_from_directory(directory: str) -> dict[str, MeterProfile]:
     """Load all .yaml profiles from a directory."""
     from pathlib import Path
 

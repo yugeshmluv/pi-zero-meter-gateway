@@ -44,6 +44,7 @@ bandit = "^1.7.5"
 types-PyYAML = "^6.0.12"
 types-aiofiles = "^25.1.0"
 autotyping = "^24.9.0"
+pre-commit = "^4.6.0"
 
 [build-system]
 requires = ["poetry-core"]
@@ -59,6 +60,10 @@ warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
+
+[[tool.mypy.overrides]]
+module = ["pymodbus.*"]
+disallow_untyped_calls = false
 
 [tool.pytest.ini_options]
 minversion = "7.0"

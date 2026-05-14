@@ -82,10 +82,10 @@ class TemplateCache:
             cache_size: Maximum templates to cache
         """
         self.cache_size = cache_size
-        self._cache: Dict[str, str] = {}
-        self._access_times: Dict[str, datetime] = {}
+        self._cache: dict[str, str] = {}
+        self._access_times: dict[str, datetime] = {}
 
-    def get(self, template_name: str) -> Optional[str]:
+    def get(self, template_name: str) -> str | None:
         """
         Get cached template.
 
@@ -110,8 +110,7 @@ class TemplateCache:
         """
         if len(self._cache) >= self.cache_size:
             # LRU eviction
-            lru_name = min(self._access_times.keys(),
-                          key=lambda k: self._access_times[k])
+            lru_name = min(self._access_times.keys(), key=lambda k: self._access_times[k])
             del self._cache[lru_name]
             del self._access_times[lru_name]
             logger.debug(f"Evicted template from cache: {lru_name}")
@@ -142,8 +141,8 @@ class QRCodeGeneratorOptimized:
             cache_size: Number of QR codes to cache
         """
         self.cache_size = cache_size
-        self._cache: Dict[str, bytes] = {}  # data -> PNG bytes
-        self._access_times: Dict[str, datetime] = {}
+        self._cache: dict[str, bytes] = {}  # data -> PNG bytes
+        self._access_times: dict[str, datetime] = {}
 
     def generate(self, data: str, version: int = 1, box_size: int = 5) -> bytes:
         """
@@ -185,8 +184,7 @@ class QRCodeGeneratorOptimized:
 
             # Cache it
             if len(self._cache) >= self.cache_size:
-                lru_key = min(self._access_times.keys(),
-                             key=lambda k: self._access_times[k])
+                lru_key = min(self._access_times.keys(), key=lambda k: self._access_times[k])
                 del self._cache[lru_key]
                 del self._access_times[lru_key]
 
@@ -222,8 +220,8 @@ class NetworkScanCache:
             cache_ttl_s: Cache TTL in seconds
         """
         self.cache_ttl = cache_ttl_s
-        self._cached_networks: Optional[List[Dict[str, Any]]] = None
-        self._cached_time: Optional[datetime] = None
+        self._cached_networks: list[dict[str, Any]] | None = None
+        self._cached_time: datetime | None = None
 
     def is_valid(self) -> bool:
         """Check if cache is still valid."""
@@ -233,14 +231,14 @@ class NetworkScanCache:
         age = (datetime.utcnow() - self._cached_time).total_seconds()
         return age < self.cache_ttl
 
-    def get(self) -> Optional[List[Dict[str, Any]]]:
+    def get(self) -> list[dict[str, Any]] | None:
         """Get cached networks if valid."""
         if self.is_valid():
             logger.debug("Network scan cache hit")
             return self._cached_networks
         return None
 
-    def put(self, networks: List[Dict[str, Any]]) -> None:
+    def put(self, networks: list[dict[str, Any]]) -> None:
         """Cache network scan results."""
         self._cached_networks = networks
         self._cached_time = datetime.utcnow()
@@ -259,11 +257,11 @@ class ModuleImportOptimizer:
     to defer their loading until actually needed.
     """
 
-    _lazy_modules: Dict[str, Optional[Any]] = {
-        'qrcode': None,
-        'aiofiles': None,
-        'cryptography': None,
-        'yaml': None,
+    _lazy_modules: dict[str, Any | None] = {
+        "qrcode": None,
+        "aiofiles": None,
+        "cryptography": None,
+        "yaml": None,
     }
 
     @classmethod
@@ -300,17 +298,17 @@ class MemoryEfficientProvisioning:
 
     def __init__(self):
         """Initialize provisioning state."""
-        self._state_dict: Dict[str, Any] = {
-            'status': 'not_started',
-            'step': 0,
-            'device_id': None,
-            'society_id': None,
-            'panel_id': None,
-            'wi_fi_ssid': None,
-            'updated_at': datetime.utcnow().isoformat(),
+        self._state_dict: dict[str, Any] = {
+            "status": "not_started",
+            "step": 0,
+            "device_id": None,
+            "society_id": None,
+            "panel_id": None,
+            "wi_fi_ssid": None,
+            "updated_at": datetime.utcnow().isoformat(),
         }
 
-    def get_state(self) -> Dict[str, Any]:
+    def get_state(self) -> dict[str, Any]:
         """Get current state as dict."""
         return self._state_dict.copy()
 
@@ -319,7 +317,7 @@ class MemoryEfficientProvisioning:
         for key, value in updates.items():
             if key in self._state_dict:
                 self._state_dict[key] = value
-        self._state_dict['updated_at'] = datetime.utcnow().isoformat()
+        self._state_dict["updated_at"] = datetime.utcnow().isoformat()
 
     def get_memory_usage(self) -> int:
         """Estimate memory usage in bytes."""
@@ -343,22 +341,23 @@ class UIResourceMonitor:
             threshold_mb: Memory warning threshold in MB
         """
         self.threshold_mb = threshold_mb
-        self._snapshots: List[Dict[str, Any]] = []
+        self._snapshots: list[dict[str, Any]] = []
         self._max_memory = 0
 
     def snapshot(self) -> None:
         """Take a resource snapshot."""
         try:
             import psutil
+
             process = psutil.Process()
             mem_info = process.memory_info()
             memory_mb = mem_info.rss / (1024 * 1024)
 
             snap = {
-                'timestamp': datetime.utcnow().isoformat(),
-                'memory_mb': memory_mb,
-                'cpu_percent': process.cpu_percent(interval=0.1),
-                'open_files': process.num_fds() if hasattr(process, 'num_fds') else 0,
+                "timestamp": datetime.utcnow().isoformat(),
+                "memory_mb": memory_mb,
+                "cpu_percent": process.cpu_percent(interval=0.1),
+                "open_files": process.num_fds() if hasattr(process, "num_fds") else 0,
             }
 
             self._snapshots.append(snap)
@@ -376,6 +375,6 @@ class UIResourceMonitor:
         """Get peak memory usage in MB."""
         return self._max_memory
 
-    def get_recent_snapshots(self, count: int = 10) -> List[Dict[str, Any]]:
+    def get_recent_snapshots(self, count: int = 10) -> list[dict[str, Any]]:
         """Get recent snapshots."""
         return self._snapshots[-count:]

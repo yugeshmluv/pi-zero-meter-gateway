@@ -1,6 +1,6 @@
 # Development Setup Guide
 
-**Last Updated:** May 10, 2026  
+**Last Updated:** May 10, 2026
 **For:** Developers contributing to MeterHub Phase 2–6
 
 ---
@@ -127,7 +127,7 @@ Unit Tests:
   - Fast (<100ms each)
   - Mock external dependencies (Modbus, MQTT, DB)
   - Run on every commit
-  
+
 Integration Tests:
   - Slower (1–5s each)
   - Use real SQLite (temp DB)

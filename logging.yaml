@@ -14,7 +14,7 @@ handlers:
     level: DEBUG
     formatter: standard
     stream: ext://sys.stdout
-  
+
   console_json:
     class: logging.StreamHandler
     level: DEBUG
@@ -30,12 +30,12 @@ loggers:
     level: DEBUG
     handlers: [console]
     propagate: false
-  
+
   meterhub_uploader:
     level: DEBUG
     handlers: [console]
     propagate: false
-  
+
   meterhub_ui:
     level: DEBUG
     handlers: [console]

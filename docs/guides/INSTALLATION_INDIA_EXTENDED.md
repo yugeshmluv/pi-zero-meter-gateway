@@ -1,7 +1,7 @@
 # MeterHub Installation Guide: India (EXTENDED)
 
-**Version:** 1.0  
-**Date:** May 2026  
+**Version:** 1.0
+**Date:** May 2026
 **Target Regions:** Pan-India (South, North, East, West, Northeast)
 
 ---
@@ -73,12 +73,12 @@ wifi:
   country_code: "IN"
   frequency: "2.4G"  # Only 2.4 GHz supported on Pi Zero W
   tx_power: 20       # dBm (max allowed in India: +20 dBm)
-  
+
 network:
   static_ip: false
   dhcp_timeout_s: 30  # South India can be slow to assign IP
   ntp_server: "0.in.pool.ntp.org"  # India NTP pool
-  
+
 power:
   polling_interval_s: 60
   low_power_mode: true  # Recommended for industrial areas
@@ -112,19 +112,19 @@ wifi:
   country_code: "IN"
   frequency: "2.4G"
   tx_power: 20
-  
+
 network:
   static_ip: true
   ip_address: "192.168.1.100"
   gateway: "192.168.1.1"
   dns: ["8.8.8.8", "8.8.4.4"]  # Google DNS (reliable in north)
   ntp_server: "0.in.pool.ntp.org"
-  
+
 power:
   polling_interval_s: 60
   low_power_mode: true  # Important for variable power supplies
   watchdog_enabled: true  # Recover from freezes
-  
+
 acquisition:
   modbus_timeout_s: 5  # Longer timeout for EMI-prone areas
   retry_count: 3
@@ -166,15 +166,15 @@ wifi:
   country_code: "IN"
   frequency: "2.4G"
   tx_power: 20
-  
+
 network:
   dns: ["1.1.1.1", "1.0.0.1"]  # Cloudflare (lower latency than Google in east)
-  
+
 storage:
   # Extra conservative log rotation
   log_rotation_days: 3  # More frequent rotation
   temp_files_cleanup_hours: 6
-  
+
 hardware:
   humidity_threshold: 75  # Alert if enclosure humidity >75%
   temp_threshold: 40  # Alert at 40°C (lower margin for coastal areas)
@@ -213,17 +213,17 @@ wifi:
   country_code: "IN"
   frequency: "2.4G"
   tx_power: 20
-  
+
 power:
   polling_interval_s: 60
   low_power_mode: true  # Essential in summer
   cpu_frequency_scale: true  # Reduce clock at 40°C+
-  
+
 hardware:
   # Thermal throttling thresholds
   temp_warning: 45
   temp_critical: 50
-  
+
 acquisition:
   # May see voltage fluctuations from AC compressor loads
   voltage_range: [190, 250]  # Wider acceptable range
@@ -326,7 +326,7 @@ sqlite3 /var/cache/meterhub/telemetry.db \
 - **Contact:** support-north@meterhub.io
 - **Common Issues:** Power surges, EMI interference, temperature extremes
 
-### East India  
+### East India
 - **Contact:** support-east@meterhub.io
 - **Common Issues:** Corrosion, humidity, monsoon water ingress
 

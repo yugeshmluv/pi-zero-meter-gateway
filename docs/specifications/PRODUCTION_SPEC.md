@@ -1,8 +1,8 @@
 # MeterHub Production Specification v2.0
 ## Production-Hardened Edge Gateway for 3-Phase CT Meters
 
-**Date:** April 29, 2026  
-**Status:** LOCKED (Ready for Phase 1 Implementation)  
+**Date:** April 29, 2026
+**Status:** LOCKED (Ready for Phase 1 Implementation)
 **Timeline:** 12-week Sprint to Phase 1 completion (QR + BLE provisioning in-scope)
 
 ---
@@ -45,7 +45,7 @@ This is the revised, production-hardened specification for the MeterHub firmware
 | **Cost** | ₹2,900–3,500 per unit (₹400–600 more than original Zero W) |
 | **Lead Time** | 14–21 days (pre-order for >50 units) |
 
-**Justification:** 
+**Justification:**
 - ARMv6 (original Zero W) is EOL for Python ecosystem; many wheels no longer pre-built (pymodbus, cryptography, paho-mqtt compile for 40+ min on device)
 - ARMv8 gives aarch64 first-class support
 - Quad-core allows for future feature creep (TLS, signature verification, on-edge anomaly detection)
@@ -60,7 +60,7 @@ This is the revised, production-hardened specification for the MeterHub firmware
 | **Image Build Overhead** | Mender A/B partitions + pi-gen overlay | ~100 MB rootfs overhead | Reduces usable SD to ~15 GB; acceptable (telemetry = 30 GB per 5 years) |
 | **Backward Compatibility** | None required; fresh image at deployment | — | Every device ships with clean OS; no upgrade path from original Zero W (cost ~₹500 per refresh) |
 
-**Storage Write Budget:** 
+**Storage Write Budget:**
 - Target: <30 MB/day on SD
 - Breakdown: acquisition polls 1 meter every 60s (16 bytes/poll = ~1.4 MB/day); uploader 5 min batches (~2 MB/day); logs (~5 MB/day on syslog + app logs); overhead (~2 MB/day) → **10–12 MB/day typical**
 - Headroom: 3× buffer, safe at <30 MB/day
@@ -164,7 +164,7 @@ The Waveshare TTL to RS485 (C) converter includes **on-board TVS diode arrays an
 
 ### 3.1 Two-Process Model (Merged from Original Three)
 
-**Original:** acquisition, uploader, installer-ui (3 processes)  
+**Original:** acquisition, uploader, installer-ui (3 processes)
 **Revised:** meterhub-core, installer-ui (2 processes)
 
 | Process | Purpose | RAM Footprint | Justification |
@@ -268,7 +268,7 @@ raspi-config nonint do_boot_rom 1
 
 ### 3.4 Logging Strategy (Structured JSON)
 
-**Replace:** Free-text logs  
+**Replace:** Free-text logs
 **With:** Structured JSON logs via structlog
 
 ```python
@@ -392,7 +392,7 @@ Characteristic: Provisioning (write: SSID + PSK + cloud_url + setup_token, encry
 Characteristic: Status (read: device_id + firmware_version + status)
 ```
 
-**Implementation:** 
+**Implementation:**
 - Firmware: BlueZ + GObject (D-Bus interface) or bluepy library
 - ~300 lines Python for GATT service setup + encryption (ECDH + AES-256-GCM)
 - Must **pair** BLE provisioning with QR scanning (happens in parallel, same user session)
@@ -474,24 +474,24 @@ class MeterReading:
 # In cloud-side ingestion (after device uploads readings)
 def process_reading(device_id, new_reading):
     prev_reading = db.query(f"SELECT * FROM readings WHERE device_id = ? ORDER BY timestamp DESC LIMIT 1", device_id)
-    
+
     if new_reading.totalizer < prev_reading.totalizer:
         # Option 1: Simple rollover (wrap at 999,999)
         if new_reading.totalizer < 100 and prev_reading.totalizer > 999000:
             delta = (999999 - prev_reading.totalizer) + new_reading.totalizer
             log_event(f"Meter wrap: old={prev_reading.totalizer}, new={new_reading.totalizer}, delta={delta}")
-        
+
         # Option 2: Meter replacement (jump to 0)
         elif new_reading.totalizer < 100 and prev_reading.totalizer > 1000:
             log_event(f"Meter replaced: old={prev_reading.totalizer}, new={new_reading.totalizer}")
             # Wait for installer to confirm via UI: "Mark as meter replacement"
             # Store event: meter_change{device_id, timestamp, old_totalizer_baseline, new_totalizer_baseline}
             # Future readings use new_totalizer_baseline
-        
+
         # Option 3: Data corruption (reject)
         else:
             raise ValueError(f"Unexpect totalizer decrease; likely corruption. old={prev_reading.totalizer}, new={new_reading.totalizer}")
-    
+
     else:
         delta = new_reading.totalizer - prev_reading.totalizer
         record_consumption(device_id, delta)
@@ -534,16 +534,16 @@ def monitor_fleet_health():
     for device_id in all_devices:
         last_heartbeat = db.query(f"SELECT * FROM heartbeats WHERE device_id = ? ORDER BY timestamp DESC LIMIT 1", device_id)
         age_minutes = (now - last_heartbeat.timestamp).total_seconds() / 60
-        
+
         if age_minutes > 30:  # No heartbeat in 30 min
             send_alert(f"Device {device_id} offline >30 min")
-        
+
         if age_minutes > 24 * 60:  # No heartbeat in 24 hours
             send_escalation_email(admin_email, f"Device {device_id} CRITICAL: offline >24h. Last: {last_heartbeat.timestamp}")
-        
+
         if last_heartbeat.queue_depth > 500:
             send_alert(f"Device {device_id} upload queue bloated: {last_heartbeat.queue_depth} items")
-        
+
         if last_heartbeat.sd_wear_percent > 80:
             send_alert(f"Device {device_id} SD wear >80%; proactive replacement advised")
 ```
@@ -559,8 +559,8 @@ def monitor_fleet_health():
 **Image Build Pipeline:**
 
 ```
-pi-gen (Raspberry Pi OS build) 
-  + meta-mender layer (or manual A/B partitioning if pi-gen fork) 
+pi-gen (Raspberry Pi OS build)
+  + meta-mender layer (or manual A/B partitioning if pi-gen fork)
   + meterhub overlay (Python packages)
   → Output: mender-{version}.img (A/B partitions built-in, signed)
 ```
@@ -587,13 +587,13 @@ pi-gen (Raspberry Pi OS build)
 ```
 Phase 1: Canary (1% of fleet)
   → Deploy to 1 device; wait 1 hour for health check
-  
+
 Phase 2: Early adopters (10% of fleet)
   → Monitor for errors; if error rate >1%, STOP and investigate
-  
+
 Phase 3: Standard (50% of fleet)
   → Monitor CPU spike, SD wear, upload failures
-  
+
 Phase 4: Complete (100% of fleet)
   → No restrictions; can deploy to all
 ```
