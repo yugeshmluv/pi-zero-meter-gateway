@@ -69,7 +69,7 @@ class CloudPayload:
 
     device_id: str
     timestamp_utc: datetime
-    readings: list  # List[MeterReading]
+    readings: list[MeterReading]  # List
     heartbeat: Optional["Heartbeat"] = None
     signature: Optional[str] = None  # Ed25519
 

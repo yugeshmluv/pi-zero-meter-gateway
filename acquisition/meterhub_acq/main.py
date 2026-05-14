@@ -117,15 +117,14 @@ class AcquisitionService:
         """Poll meter and return MeterReading dataclass."""
         try:
             # Ensure connected
+            assert self.modbus_client is not None, "Modbus client not initialized"
             if not self.modbus_client.connected:
                 await self.modbus_client.connect()
                 if not self.modbus_client.connected:
                     raise RuntimeError("Cannot connect to Modbus device")
 
             # Read all registers
-            registers = await self.modbus_client.read_all_registers(
-                force_refresh=True
-            )
+            registers = await self.modbus_client.read_all_registers(force_refresh=True)
 
             # Extract readings (filter out failures)
             reading_dict = {}
@@ -188,9 +187,7 @@ class AcquisitionService:
             self.telemetry_db.insert_reading(reading_dict)
 
             # Update billing state (crash-safe, reuse connection)
-            self.state_db.update_billing_state(
-                reading.totalizer_kwh, reading.timestamp_utc
-            )
+            self.state_db.update_billing_state(reading.totalizer_kwh, reading.timestamp_utc)
 
             self.read_count += 1
             # Log every 60 reads (hourly) instead of every read

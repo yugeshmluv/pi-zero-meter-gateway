@@ -31,7 +31,7 @@ class SQLiteWALDatabase:
         """
         self.db_path = db_path
         self.synchronous = synchronous  # NORMAL or FULL
-        self.connection: Optional[sqlite3.Connection] = None
+        self.connection: Optional[sqlite3.Connection] | None = None
 
     def connect(self) -> None:
         """Open connection and configure WAL mode."""
@@ -66,7 +66,7 @@ class SQLiteWALDatabase:
             self.connection = None
             logger.info(f"SQLite disconnected: {self.db_path}")
 
-    def execute(self, sql: str, params: tuple = None) -> sqlite3.Cursor:
+    def execute(self, sql: str, params: tuple[Any, ...] | None = None) -> sqlite3.Cursor:
         """Execute SQL statement."""
         if not self.connection:
             raise RuntimeError("Database not connected")
@@ -74,7 +74,7 @@ class SQLiteWALDatabase:
             return self.connection.execute(sql, params)
         return self.connection.execute(sql)
 
-    def executemany(self, sql: str, params: List[tuple]) -> sqlite3.Cursor:
+    def executemany(self, sql: str, params: list[tuple[Any, ...]]) -> sqlite3.Cursor:
         """Execute multiple SQL statements."""
         if not self.connection:
             raise RuntimeError("Database not connected")
@@ -90,7 +90,7 @@ class SQLiteWALDatabase:
         if self.connection:
             self.connection.rollback()
 
-    def __enter__(self):
+    def __enter__(self) -> "Database":
         """Context manager entry."""
         self.connect()
         return self
@@ -319,7 +319,7 @@ class StateDatabase:
 def initialize_databases(
     telemetry_path: str = "/var/cache/meterhub/telemetry.db",
     state_path: str = "/var/lib/meterhub/state.db",
-) -> tuple:
+) -> tuple[Any, ...]:
     """Initialize both databases."""
     # Create directories
     Path(telemetry_path).parent.mkdir(parents=True, exist_ok=True)
