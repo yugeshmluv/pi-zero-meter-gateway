@@ -129,7 +129,8 @@ class TelemetryDatabase:
         self.db.connect()
 
         # Meter readings table (1-minute snapshots)
-        self.db.execute("""
+        self.db.execute(
+            """
             CREATE TABLE IF NOT EXISTS meter_readings (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 timestamp_utc DATETIME NOT NULL,
@@ -147,10 +148,12 @@ class TelemetryDatabase:
                 meter_online BOOLEAN DEFAULT 1,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
-            """)
+            """
+        )
 
         # Heartbeats table (5-minute system health)
-        self.db.execute("""
+        self.db.execute(
+            """
             CREATE TABLE IF NOT EXISTS heartbeats (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 device_id TEXT NOT NULL,
@@ -169,7 +172,8 @@ class TelemetryDatabase:
                 sd_writes_mb_today REAL,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
-            """)
+            """
+        )
 
         # Create indices for fast queries
         idx1 = "CREATE INDEX IF NOT EXISTS idx_readings_ts"
@@ -245,7 +249,8 @@ class StateDatabase:
         self.db.connect()
 
         # Billing state (single row, immutable updates)
-        self.db.execute("""
+        self.db.execute(
+            """
             CREATE TABLE IF NOT EXISTS billing_state (
                 id INTEGER PRIMARY KEY CHECK (id = 1),
                 last_totalizer_kwh REAL NOT NULL,
@@ -254,10 +259,12 @@ class StateDatabase:
                 device_id TEXT,
                 checksum TEXT DEFAULT NULL
             )
-            """)
+            """
+        )
 
         # Device config state
-        self.db.execute("""
+        self.db.execute(
+            """
             CREATE TABLE IF NOT EXISTS device_config (
                 device_id TEXT PRIMARY KEY,
                 society_id TEXT,
@@ -266,10 +273,12 @@ class StateDatabase:
                 cloud_endpoint TEXT,
                 last_update_utc DATETIME DEFAULT CURRENT_TIMESTAMP
             )
-            """)
+            """
+        )
 
         # OTA state
-        self.db.execute("""
+        self.db.execute(
+            """
             CREATE TABLE IF NOT EXISTS ota_state (
                 id INTEGER PRIMARY KEY CHECK (id = 1),
                 current_version TEXT,
@@ -277,7 +286,8 @@ class StateDatabase:
                 ota_status TEXT DEFAULT 'idle',
                 last_update_utc DATETIME DEFAULT CURRENT_TIMESTAMP
             )
-            """)
+            """
+        )
 
         self.db.commit()
         logger.info("State schema initialized")
