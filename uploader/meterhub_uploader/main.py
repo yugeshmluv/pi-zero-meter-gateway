@@ -101,7 +101,7 @@ class UploaderService:
     def _get_system_uptime_seconds(self) -> int:
         """Get system uptime from /proc/uptime. Falls back to service uptime."""
         try:
-            with open('/proc/uptime', 'r') as f:
+            with open("/proc/uptime", "r") as f:
                 return int(float(f.read().split()[0]))
         except (FileNotFoundError, ValueError, OSError) as e:
             logger.debug(f"Failed to read /proc/uptime: {e}")
@@ -223,7 +223,8 @@ class UploaderService:
             logger.error(f"Failed to fetch readings: {e}")
             return []
 
-    async def _create_payload(self, readings: List[Tuple[int, MeterReading]]
+    async def _create_payload(
+        self, readings: List[Tuple[int, MeterReading]]
     ) -> Optional[CloudPayload]:
         """Create CloudPayload from readings.
 
@@ -283,9 +284,7 @@ class UploaderService:
             if not self.telemetry_db:
                 return 0
 
-            cursor = self.telemetry_db.db.execute(
-                "SELECT COUNT(*) FROM meter_readings"
-            )
+            cursor = self.telemetry_db.db.execute("SELECT COUNT(*) FROM meter_readings")
             count = cursor.fetchone()[0]
             return count
 
@@ -317,10 +316,14 @@ class UploaderService:
                     }
                     for r in payload.readings
                 ],
-                "heartbeat": {
-                    "mqtt_connected": payload.heartbeat.mqtt_connected,
-                    "queue_depth": payload.heartbeat.queue_depth,
-                } if payload.heartbeat else None,
+                "heartbeat": (
+                    {
+                        "mqtt_connected": payload.heartbeat.mqtt_connected,
+                        "queue_depth": payload.heartbeat.queue_depth,
+                    }
+                    if payload.heartbeat
+                    else None
+                ),
             }
 
             # Add signature
@@ -498,8 +501,7 @@ class UploaderService:
             # Wait for cancellation with timeout
             try:
                 await asyncio.wait_for(
-                    asyncio.gather(*self.running_tasks, return_exceptions=True),
-                    timeout=5.0
+                    asyncio.gather(*self.running_tasks, return_exceptions=True), timeout=5.0
                 )
             except asyncio.TimeoutError:
                 logger.warning("Task cancellation timeout")
