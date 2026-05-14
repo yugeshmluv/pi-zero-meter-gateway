@@ -10,10 +10,9 @@ Handles:
 
 import logging
 import hashlib
-import json
 from typing import Optional, Dict, Tuple
 from pathlib import Path
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
 

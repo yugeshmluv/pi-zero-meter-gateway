@@ -14,7 +14,7 @@ import asyncio
 import json
 import logging
 from typing import Dict, Any, Optional, Callable, Awaitable
-from datetime import datetime, timedelta
+from datetime import datetime
 import ssl
 
 import paho.mqtt.client as mqtt
@@ -26,7 +26,8 @@ class AWSIoTMQTTClient:
     """
     Async MQTT client for AWS IoT Core.
 
-    Connection parameters from CloudPayload.cloud_endpoint (e.g., abc123.iot.us-east-1.amazonaws.com)
+    Connection parameters from CloudPayload.cloud_endpoint
+    (e.g., abc123.iot.us-east-1.amazonaws.com)
     """
 
     # Exponential backoff (milliseconds)
@@ -126,9 +127,8 @@ class AWSIoTMQTTClient:
             logger.debug(f"Message published: mid={mid}")
 
         def on_message(client, userdata, msg):
-            logger.debug(
-                f"Message received on {msg.topic}: {msg.payload[:100].decode('utf-8', errors='ignore')}"
-            )
+            payload_preview = msg.payload[:100].decode('utf-8', errors='ignore')
+            logger.debug(f"Message received on {msg.topic}: {payload_preview}")
 
         self.client.on_connect = on_connect
         self.client.on_disconnect = on_disconnect
@@ -178,13 +178,13 @@ class AWSIoTMQTTClient:
         try:
             # Stop loop first (might block)
             self.client.loop_stop()
-            
+
             # Small delay to ensure loop stopped
             await asyncio.sleep(0.1)
-            
+
             # Now disconnect
             self.client.disconnect()
-            
+
             # Ensure state is clean
             self.connected = False
             logger.info(f"MQTT disconnected from {self.endpoint}")

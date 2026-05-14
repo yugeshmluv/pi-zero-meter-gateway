@@ -11,7 +11,7 @@ Handles:
 
 import logging
 import subprocess
-from typing import Optional, Dict, Any, Literal
+from typing import Optional, Dict, Any
 from pathlib import Path
 from dataclasses import dataclass
 from enum import Enum
@@ -247,9 +247,8 @@ class MenderBootManager:
                 return False
 
             # Revert to active partition
-            logger.warning(f"Rolling back from {state.staged_partition} to {state.active_partition}")
-
-            # Clear staged partition
+            msg = f"Rolling back from {state.staged_partition} to {state.active_partition}"
+            logger.warning(msg)
             result = subprocess.run(
                 ["fw_setenv", self.boot_env_staged, ""],
                 capture_output=True,

@@ -14,17 +14,14 @@ Features:
 - HTTPS with self-signed certificate (auto-shutdown after 30 min)
 """
 
-import os
 import logging
 import json
-import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Optional, List, Dict, Any
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Query, Body, status
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse, HTMLResponse
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 import aiofiles
 
@@ -205,14 +202,19 @@ async def dashboard() -> str:
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <style>
-            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
-            .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+            body { font-family: Arial, sans-serif; margin: 0; padding: 20px;
+                   background: #f5f5f5; }
+            .container { max-width: 800px; margin: 0 auto; background: white;
+                         padding: 20px; border-radius: 8px; }
             h1 { color: #333; }
-            .step { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 4px; }
+            .step { margin: 20px 0; padding: 15px; border: 1px solid #ddd;
+                    border-radius: 4px; }
             .status { font-weight: bold; }
-            button { padding: 10px 20px; margin: 5px; background: #0066cc; color: white; border: none; border-radius: 4px; cursor: pointer; }
+            button { padding: 10px 20px; margin: 5px; background: #0066cc;
+                     color: white; border: none; border-radius: 4px; cursor: pointer; }
             button:hover { background: #0052a3; }
-            .info { background: #e3f2fd; padding: 10px; border-radius: 4px; margin: 10px 0; }
+            .info { background: #e3f2fd; padding: 10px; border-radius: 4px;
+                    margin: 10px 0; }
             .qr-code { text-align: center; margin: 20px 0; }
             .qr-code img { max-width: 300px; border: 2px solid #ddd; padding: 10px; }
         </style>
@@ -230,36 +232,44 @@ async def dashboard() -> str:
         </div>
         <script>
             async function loadStatus() {
-                const resp = await fetch('/api/provisioning/status');
-                const data = await resp.json();
-                document.getElementById('status').innerText = data.status;
-                document.getElementById('step').innerText = data.step + '/5';
-                renderStep(data.step);
+                const r = await fetch('/api/provisioning/status');
+                const d = await r.json();
+                document.getElementById('status').innerText = d.status;
+                document.getElementById('step').innerText = d.step + '/5';
+                renderStep(d.step);
             }
-            
+
             async function nextStep() {
-                const resp = await fetch('/api/provisioning/step/next', { method: 'POST' });
+                const opts = { method: 'POST' };
+                await fetch('/api/provisioning/step/next', opts);
                 await loadStatus();
             }
-            
+
             async function resetProvisioning() {
-                const resp = await fetch('/api/provisioning/reset', { method: 'POST' });
+                const opts = { method: 'POST' };
+                await fetch('/api/provisioning/reset', opts);
                 await loadStatus();
             }
-            
+
             function renderStep(step) {
-                const wizard = document.getElementById('wizard');
-                const steps = [
-                    '<div class="step"><h2>Step 1: Device Identity</h2><p>Enter device identifiers...</p></div>',
-                    '<div class="step"><h2>Step 2: Wi-Fi Setup</h2><p>Configure network...</p></div>',
-                    '<div class="step"><h2>Step 3: Cloud Endpoints</h2><p>Cloud connectivity...</p></div>',
-                    '<div class="step"><h2>Step 4: Meter Profile</h2><p>Select meter type...</p></div>',
-                    '<div class="step"><h2>Step 5: Test & Verify</h2><p>Run diagnostics...</p></div>',
-                    '<div class="step"><h2>Complete!</h2><p>Device provisioned ✓</p></div>'
+                const w = document.getElementById('wizard');
+                const s = [
+                    '<div class="step"><h2>Step 1: Device ' +
+                    'Identity</h2><p>Enter identifiers...</p></div>',
+                    '<div class="step"><h2>Step 2: Wi-Fi ' +
+                    'Setup</h2><p>Configure network...</p></div>',
+                    '<div class="step"><h2>Step 3: Cloud ' +
+                    'Endpoints</h2><p>Cloud connectivity...</p></div>',
+                    '<div class="step"><h2>Step 4: Meter ' +
+                    'Profile</h2><p>Select type...</p></div>',
+                    '<div class="step"><h2>Step 5: Test & ' +
+                    'Verify</h2><p>Run diagnostics...</p></div>',
+                    '<div class="step"><h2>Complete!</h2><p>' +
+                    'Device provisioned ✓</p></div>'
                 ];
-                wizard.innerHTML = steps[step] || steps[5];
+                w.innerHTML = s[step] || s[5];
             }
-            
+
             loadStatus();
         </script>
     </body>

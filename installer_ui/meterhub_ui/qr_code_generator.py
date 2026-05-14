@@ -9,7 +9,7 @@ Generates QR codes for:
 
 import json
 import logging
-from typing import Optional, Dict, Any
+from typing import Dict, Any
 
 logger = logging.getLogger(__name__)
 
@@ -223,7 +223,7 @@ class QRCodeGenerator:
         """
         Escape special characters for WiFi QR string.
 
-        WiFi QR format requires escaping: ; : \ , " '
+        WiFi QR format requires escaping: ; : \\ , " '
         """
         if not s:
             return ""

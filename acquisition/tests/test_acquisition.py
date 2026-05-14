@@ -14,7 +14,6 @@ import pytest
 import tempfile
 from pathlib import Path
 from datetime import datetime
-import sqlite3
 
 from common.meterhub_common import (
     MeterProfile,
@@ -178,4 +177,3 @@ def test_acquisition_profile_load():
     assert service._load_profile()
     assert service.meter_profile is not None
     assert service.meter_profile.meter_type == "Schneider EM6400"
-

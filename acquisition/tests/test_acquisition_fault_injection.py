@@ -12,8 +12,6 @@ Run with: pytest acquisition/tests/test_acquisition_fault_injection.py -v --tb=s
 
 import pytest
 import tempfile
-import sqlite3
-import os
 from pathlib import Path
 from datetime import datetime
 

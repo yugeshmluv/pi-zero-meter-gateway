@@ -6,7 +6,7 @@ Supports Schneider EM6400, ABB, Siemens, and other 3-phase energy meter profiles
 """
 
 from dataclasses import dataclass
-from typing import Dict, List, Any, Optional
+from typing import Dict, Any
 from enum import Enum
 import yaml
 

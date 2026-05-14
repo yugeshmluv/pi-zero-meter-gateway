@@ -9,7 +9,6 @@ Both use WAL (Write-Ahead Logging) for atomicity and recovery.
 """
 
 import sqlite3
-import os
 from pathlib import Path
 from datetime import datetime, timedelta
 from typing import List, Dict, Any, Optional
@@ -173,8 +172,12 @@ class TelemetryDatabase:
         )
 
         # Create indices for fast queries
-        self.db.execute("CREATE INDEX IF NOT EXISTS idx_readings_ts ON meter_readings(timestamp_utc DESC)")
-        self.db.execute("CREATE INDEX IF NOT EXISTS idx_heartbeats_ts ON heartbeats(timestamp_utc DESC)")
+        idx1 = "CREATE INDEX IF NOT EXISTS idx_readings_ts"
+        idx1 += " ON meter_readings(timestamp_utc DESC)"
+        idx2 = "CREATE INDEX IF NOT EXISTS idx_heartbeats_ts"
+        idx2 += " ON heartbeats(timestamp_utc DESC)"
+        self.db.execute(idx1)
+        self.db.execute(idx2)
 
         self.db.commit()
         logger.info("Telemetry schema initialized")
@@ -286,7 +289,8 @@ class StateDatabase:
 
     def get_last_billing_state(self) -> Optional[Dict[str, Any]]:
         """Get last recorded billing totalizer."""
-        cursor = self.db.execute("SELECT last_totalizer_kwh, last_totalizer_timestamp FROM billing_state WHERE id = 1")
+        query = "SELECT last_totalizer_kwh, last_totalizer_timestamp FROM billing_state WHERE id = 1"
+        cursor = self.db.execute(query)
         row = cursor.fetchone()
         if row:
             return {
@@ -307,10 +311,9 @@ class StateDatabase:
         device_id = row[0] if row else "unknown"
 
         self.db.execute(
-            """
-            INSERT OR REPLACE INTO billing_state (id, last_totalizer_kwh, last_totalizer_timestamp, device_id)
-            VALUES (1, ?, ?, ?)
-            """,
+            """INSERT OR REPLACE INTO billing_state
+            (id, last_totalizer_kwh, last_totalizer_timestamp, device_id)
+            VALUES (1, ?, ?, ?)""",
             (totalizer_kwh, timestamp.isoformat(), device_id),
         )
         self.db.commit()

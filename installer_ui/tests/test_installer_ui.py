@@ -11,12 +11,6 @@ Tests:
 """
 
 import pytest
-import asyncio
-import json
-import tempfile
-from pathlib import Path
-from datetime import datetime
-from unittest.mock import Mock, patch, AsyncMock
 
 from fastapi.testclient import TestClient
 

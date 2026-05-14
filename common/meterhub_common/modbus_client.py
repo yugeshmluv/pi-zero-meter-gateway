@@ -11,12 +11,12 @@ Implements Modbus RTU protocol with:
 
 import asyncio
 import struct
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime
 import logging
 
-from pymodbus.client import AsyncModbusTcpClient, AsyncModbusSerialClient
+from pymodbus.client import AsyncModbusSerialClient
 from pymodbus.exceptions import ModbusException, ConnectionException
 
 from common.meterhub_common.meter_profile_schema import MeterProfile, DataType

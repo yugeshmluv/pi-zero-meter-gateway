@@ -7,7 +7,7 @@ Acquires meter readings every 60 seconds via Modbus RTU protocol
 from Schneider EM6400 (configurable via YAML profile).
 
 Data flows:
-1. Load meter profile (YAML)  
+1. Load meter profile (YAML)
 2. Connect to Modbus device (/dev/ttyUSB0)
 3. Poll registers with 3-retry exponential backoff
 4. Store in telemetry.db (7-day queue, NORMAL sync)
@@ -28,8 +28,6 @@ import signal
 import logging
 from datetime import datetime
 from typing import Optional
-
-import yaml
 
 from common.meterhub_common import (
     MeterProfile,

@@ -26,7 +26,7 @@ import asyncio
 import os
 import signal
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Optional, List, Set, Tuple
 import json
 import hashlib
@@ -164,10 +164,10 @@ class UploaderService:
 
     async def _fetch_readings(self, limit: int = 100) -> List[Tuple[int, MeterReading]]:
         """Fetch un-uploaded readings from database with validation.
-        
+
         Args:
             limit: Maximum readings to fetch
-            
+
         Returns:
             List of (id, MeterReading) tuples
         """
@@ -193,7 +193,7 @@ class UploaderService:
                 if len(row) < 14:  # Validate expected column count
                     logger.error(f"Unexpected row format: {len(row)} columns, expected 14")
                     continue
-                
+
                 try:
                     reading = MeterReading(
                         timestamp_utc=datetime.fromisoformat(row[1]),
@@ -212,7 +212,8 @@ class UploaderService:
                     )
                     readings.append((int(row[0]), reading))
                 except (ValueError, TypeError) as e:
-                    logger.error(f"Failed to parse reading row {row[0] if len(row) > 0 else 'unknown'}: {e}")
+                    error_msg = f"Failed to parse reading row {row[0] if len(row) > 0 else 'unknown'}: {e}"
+                    logger.error(error_msg)
                     continue
 
             return readings
