@@ -128,7 +128,7 @@ class AWSIoTMQTTClient:
             logger.debug(f"Message published: mid={mid}")
 
         def on_message(client, userdata, msg) -> None:
-            payload_preview = msg.payload[:100].decode('utf-8', errors='ignore')
+            payload_preview = msg.payload[:100].decode("utf-8", errors="ignore")
             logger.debug(f"Message received on {msg.topic}: {payload_preview}")
 
         self.client.on_connect = on_connect
@@ -283,9 +283,7 @@ class AWSIoTMQTTClient:
             logger.error(f"Subscribe error: {e}")
             return False
 
-    def set_on_message_callback(
-        self, callback: Callable[[str, bytes], Awaitable[None]]
-    ) -> None:
+    def set_on_message_callback(self, callback: Callable[[str, bytes], Awaitable[None]]) -> None:
         """Set async callback for message reception."""
         self._on_message_callback = callback
 
@@ -334,6 +332,11 @@ class AWSIoTMQTTClient:
         await self.connect()
         return self
 
-    async def __aexit__(self, exc_type: Optional[Type[BaseException]], exc_val: Optional[BaseException], exc_tb: Optional[TracebackType]) -> None:
+    async def __aexit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
+    ) -> None:
         """Async context manager exit."""
         await self.disconnect()

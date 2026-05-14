@@ -105,9 +105,7 @@ class ModbusRTUClient:
             self.connected = await self.client.connect()
             if self.connected:
                 self.connection_failed_count = 0
-                logger.info(
-                    f"Modbus connected: {self.device} (slave {self.slave_id})"
-                )
+                logger.info(f"Modbus connected: {self.device} (slave {self.slave_id})")
             else:
                 self.connection_failed_count += 1
                 self.last_error = "Failed to connect to Modbus device"
@@ -183,9 +181,7 @@ class ModbusRTUClient:
             results[reg_name] = result
         return results
 
-    async def _read_with_retry(
-        self, register_def
-    ) -> ModbusRegisterValue:
+    async def _read_with_retry(self, register_def) -> ModbusRegisterValue:
         """Read register with exponential backoff retry."""
         max_retries = len(self.BACKOFF_MS)
         last_error = None
@@ -216,9 +212,7 @@ class ModbusRTUClient:
 
             except Exception as e:
                 last_error = str(e)
-                logger.warning(
-                    f"Retry {attempt + 1}/{max_retries} for {register_def.name}: {e}"
-                )
+                logger.warning(f"Retry {attempt + 1}/{max_retries} for {register_def.name}: {e}")
 
                 # Exponential backoff
                 if attempt < max_retries - 1:
@@ -325,6 +319,11 @@ class ModbusRTUClient:
         await self.connect()
         return self
 
-    async def __aexit__(self, exc_type: Optional[Type[BaseException]], exc_val: Optional[BaseException], exc_tb: Optional[TracebackType]) -> None:
+    async def __aexit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
+    ) -> None:
         """Async context manager exit."""
         await self.disconnect()

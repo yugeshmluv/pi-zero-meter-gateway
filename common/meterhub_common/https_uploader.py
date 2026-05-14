@@ -147,8 +147,7 @@ class HTTPSFallbackUploader:
                         # Success
                         response_data = await response.json()
                         logger.debug(
-                            f"Upload successful: {response.status} "
-                            f"({len(payload_bytes)} bytes)"
+                            f"Upload successful: {response.status} " f"({len(payload_bytes)} bytes)"
                         )
                         return True, response_data.get("message")
 
@@ -166,9 +165,7 @@ class HTTPSFallbackUploader:
 
                     else:
                         # Server error or rate limit
-                        raise RuntimeError(
-                            f"HTTP {response.status}: {await response.text()}"
-                        )
+                        raise RuntimeError(f"HTTP {response.status}: {await response.text()}")
 
             except asyncio.TimeoutError:
                 logger.warning(f"Upload timeout (attempt {attempt + 1}/{max_retries})")
@@ -217,6 +214,11 @@ class HTTPSFallbackUploader:
         await self.connect()
         return self
 
-    async def __aexit__(self, exc_type: Optional[Type[BaseException]], exc_val: Optional[BaseException], exc_tb: Optional[TracebackType]) -> None:
+    async def __aexit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
+    ) -> None:
         """Async context manager exit."""
         await self.disconnect()
