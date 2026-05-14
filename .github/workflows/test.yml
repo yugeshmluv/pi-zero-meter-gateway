@@ -10,61 +10,58 @@ jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: ["3.11", "3.12"]
 
     steps:
-    - uses: actions/checkout@v4
-    
+    - uses: actions/checkout@v5
+
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
-        cache: 'pip'
-    
+
+    - name: Install Poetry
+      run: pipx install poetry
+
     - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip poetry
-        poetry install --with dev
-    
+      run: poetry install --with dev
+
     - name: Lint with flake8
-      run: |
-        poetry run flake8 acquisition uploader installer_ui common --max-line-length=100 --count --statistics
-    
+      run: poetry run flake8 acquisition uploader installer_ui common --max-line-length=100 --count --statistics
+
     - name: Type check with mypy
-      run: |
-        poetry run mypy acquisition uploader installer_ui common --strict --ignore-missing-imports
-    
+      run: poetry run mypy acquisition uploader installer_ui common --strict --ignore-missing-imports
+
     - name: Security check with bandit
-      run: |
-        poetry run bandit -r acquisition uploader installer_ui common -f json -o bandit-report.json || true
-    
+      run: poetry run bandit -r acquisition uploader installer_ui common -f json -o bandit-report.json || true
+
     - name: Run tests
-      run: |
-        poetry run pytest tests/ acquisition/tests/ uploader/tests/ -v --cov=. --cov-report=xml --cov-report=html
-    
+      run: poetry run pytest tests/ acquisition/tests/ uploader/tests/ -v --cov=. --cov-report=xml --cov-report=html
+
     - name: Upload coverage
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
       with:
         file: ./coverage.xml
         fail_ci_if_error: false
 
   format:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v4
-    
+    - uses: actions/checkout@v5
+
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: "3.11"
-        cache: 'pip'
-    
+
+    - name: Install Poetry
+      run: pipx install poetry
+
     - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip black
-    
+      run: poetry install --with dev
+
     - name: Check code formatting with black
-      run: |
-        black acquisition uploader installer_ui common tests --check --diff
+      run: poetry run black acquisition uploader installer_ui common tests --check --diff
