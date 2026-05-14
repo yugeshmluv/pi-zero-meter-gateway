@@ -11,7 +11,7 @@ Both use WAL (Write-Ahead Logging) for atomicity and recovery.
 import sqlite3
 from pathlib import Path
 from datetime import datetime, timedelta
-from typing import Type, List, Dict, Any, Optional
+from typing import Any
 import logging
 from types import TracebackType
 
@@ -31,7 +31,7 @@ class SQLiteWALDatabase:
         """
         self.db_path = db_path
         self.synchronous = synchronous  # NORMAL or FULL
-        self.connection: Optional[sqlite3.Connection] | None = None
+        self.connection: sqlite3.Connection | None
 
     def connect(self) -> None:
         """Open connection and configure WAL mode."""
@@ -90,16 +90,16 @@ class SQLiteWALDatabase:
         if self.connection:
             self.connection.rollback()
 
-    def __enter__(self) -> "Database":
+    def __enter__(self) -> "SQLiteWALDatabase":
         """Context manager entry."""
         self.connect()
         return self
 
     def __exit__(
         self,
-        exc_type: Optional[Type[BaseException]],
-        exc_val: Optional[BaseException],
-        exc_tb: Optional[TracebackType],
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
     ) -> None:
         """Context manager exit."""
         if exc_type:
@@ -182,7 +182,7 @@ class TelemetryDatabase:
         self.db.commit()
         logger.info("Telemetry schema initialized")
 
-    def insert_reading(self, reading: Dict[str, Any]) -> None:
+    def insert_reading(self, reading: dict[str, Any]) -> None:
         """Insert meter reading."""
         self.db.execute(
             """
@@ -281,7 +281,7 @@ class StateDatabase:
         self.db.commit()
         logger.info("State schema initialized")
 
-    def get_last_billing_state(self) -> Optional[Dict[str, Any]]:
+    def get_last_billing_state(self) -> dict[str, Any] | None:
         """Get last recorded billing totalizer."""
         query = "SELECT last_totalizer_kwh, last_totalizer_timestamp"
         query += " FROM billing_state WHERE id = 1"
