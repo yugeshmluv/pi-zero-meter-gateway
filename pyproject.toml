@@ -30,16 +30,20 @@ aiohttp = "^3.9.0"
 aiofiles = "^23.2.0"
 qrcode = "^7.4.2"
 
-[tool.poetry.dev-dependencies]
-pytest = "^7.4.0"
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0"
+autoflake = "^2.3"
 pytest-cov = "^4.1.0"
-pytest-asyncio = "^0.21.0"
+pytest-asyncio = "^0.23"
 pytest-mock = "^3.11.1"
 httpx = "^0.24.0"
-black = "^23.0.0"
-flake8 = "^6.1.0"
-mypy = "^1.6.0"
+black = "^24.0"
+flake8 = "^7.0"
+mypy = "^1.13"
 bandit = "^1.7.5"
+types-PyYAML = "^6.0.12"
+types-aiofiles = "^25.1.0"
+autotyping = "^24.9.0"
 
 [build-system]
 requires = ["poetry-core"]
@@ -66,7 +70,5 @@ asyncio_mode = "auto"
 
 [dependency-groups]
 dev = [
-    "types-pyyaml (>=6.0.12.20260510,<7.0.0.0)",
-    "types-aiofiles (>=25.1.0.20260508,<26.0.0.0)",
-    "autotyping (>=24.9.0,<25.0.0)"
+  
 ]
