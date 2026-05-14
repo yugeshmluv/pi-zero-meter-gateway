@@ -17,7 +17,7 @@ from fastapi.testclient import TestClient
 # Import app and modules
 from installer_ui.meterhub_ui.app import app, InstallerService, StatusEnum
 from installer_ui.meterhub_ui.qr_code_generator import QRCodeGenerator
-from installer_ui.meterhub_ui.network_manager import NetworkManager, WiFiNetwork
+from installer_ui.meterhub_ui.network_manager import NetworkManager
 
 
 @pytest.fixture

@@ -95,7 +95,7 @@ def test_billing_counter_crash_safety():
         # Recovery: open and verify
         state_recovered = StateDatabase(str(state_path))
         state_recovered.db.connect()
-        
+
         recovered_state = state_recovered.get_last_billing_state()
         assert recovered_state is not None
         assert recovered_state["totalizer_kwh"] == initial_kwh, "Billing counter corrupted!"

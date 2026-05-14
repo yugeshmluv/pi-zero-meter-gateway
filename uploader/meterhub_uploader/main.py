@@ -190,8 +190,9 @@ class UploaderService:
 
             readings: List[Tuple[int, MeterReading]] = []
             for row in cursor.fetchall():
-                if len(row) < 14:  # Validate expected column count
-                    logger.error(f"Unexpected row format: {len(row)} columns, expected 14")
+                if len(row) < 14:
+                    msg = f"Row format {len(row)} columns, expected 14"
+                    logger.error(msg)
                     continue
 
                 try:
@@ -212,8 +213,8 @@ class UploaderService:
                     )
                     readings.append((int(row[0]), reading))
                 except (ValueError, TypeError) as e:
-                    error_msg = f"Failed to parse reading row {row[0] if len(row) > 0 else 'unknown'}: {e}"
-                    logger.error(error_msg)
+                    msg = f"Failed parsing row {row[0] if len(row) > 0 else 'unknown'}: {e}"
+                    logger.error(msg)
                     continue
 
             return readings
@@ -222,12 +223,13 @@ class UploaderService:
             logger.error(f"Failed to fetch readings: {e}")
             return []
 
-    async def _create_payload(self, readings: List[Tuple[int, MeterReading]]) -> Optional[CloudPayload]:
+    async def _create_payload(self, readings: List[Tuple[int, MeterReading]]
+                            ) -> Optional[CloudPayload]:
         """Create CloudPayload from readings.
-        
+
         Args:
             readings: List of (id, MeterReading) tuples
-            
+
         Returns:
             CloudPayload or None if readings empty
         """
@@ -273,7 +275,7 @@ class UploaderService:
 
     async def _get_queue_depth(self) -> int:
         """Get current queue depth (readings waiting to upload).
-        
+
         Returns:
             Number of readings in queue
         """
@@ -458,7 +460,7 @@ class UploaderService:
 
     async def _upload_batch(self, readings: List[Tuple[int, MeterReading]]) -> None:
         """Upload a batch of readings (wrapper for task tracking).
-        
+
         Args:
             readings: List of (id, MeterReading) tuples
         """
@@ -492,7 +494,7 @@ class UploaderService:
             for task in self.running_tasks:
                 if not task.done():
                     task.cancel()
-            
+
             # Wait for cancellation with timeout
             try:
                 await asyncio.wait_for(

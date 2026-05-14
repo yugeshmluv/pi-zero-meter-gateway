@@ -148,7 +148,6 @@ class MeterProfile:
 # Helper function to load all profiles from a directory
 def load_profiles_from_directory(directory: str) -> Dict[str, MeterProfile]:
     """Load all .yaml profiles from a directory."""
-    import os
     from pathlib import Path
 
     profiles = {}

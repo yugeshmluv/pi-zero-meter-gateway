@@ -289,7 +289,8 @@ class StateDatabase:
 
     def get_last_billing_state(self) -> Optional[Dict[str, Any]]:
         """Get last recorded billing totalizer."""
-        query = "SELECT last_totalizer_kwh, last_totalizer_timestamp FROM billing_state WHERE id = 1"
+        query = "SELECT last_totalizer_kwh, last_totalizer_timestamp"
+        query += " FROM billing_state WHERE id = 1"
         cursor = self.db.execute(query)
         row = cursor.fetchone()
         if row:
