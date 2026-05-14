@@ -12,11 +12,12 @@ Fallback cloud upload when MQTT is unavailable:
 import asyncio
 import json
 import logging
-from typing import Dict, Any, Optional, Tuple
+from typing import Type, Dict, Any, Optional, Tuple
 from datetime import datetime
 import ssl
 
 import aiohttp
+from types import TracebackType
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +39,7 @@ class HTTPSFallbackUploader:
         oauth2_token: str,  # Bearer token
         ca_path: Optional[str] = None,  # CA certificate for verification
         timeout_s: int = 10,
-    ):
+    ) -> None:
         """
         Initialize HTTPS uploader.
 
@@ -216,6 +217,6 @@ class HTTPSFallbackUploader:
         await self.connect()
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type: Optional[Type[BaseException]], exc_val: Optional[BaseException], exc_tb: Optional[TracebackType]) -> None:
         """Async context manager exit."""
         await self.disconnect()

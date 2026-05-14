@@ -30,7 +30,7 @@ class MeterTestResult:
 class MeterTester:
     """Test meter connectivity using Modbus RTU."""
 
-    def __init__(self, modbus_client: Optional[Any] = None):
+    def __init__(self, modbus_client: Optional[Any] = None) -> None:
         """
         Initialize meter tester.
 

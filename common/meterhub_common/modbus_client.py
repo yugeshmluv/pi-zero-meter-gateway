@@ -11,7 +11,7 @@ Implements Modbus RTU protocol with:
 
 import asyncio
 import struct
-from typing import Dict, Any, Optional
+from typing import Type, Dict, Any, Optional
 from dataclasses import dataclass
 from datetime import datetime
 import logging
@@ -20,6 +20,7 @@ from pymodbus.client import AsyncModbusSerialClient
 from pymodbus.exceptions import ModbusException, ConnectionException
 
 from common.meterhub_common.meter_profile_schema import MeterProfile, DataType
+from types import TracebackType
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +60,7 @@ class ModbusRTUClient:
         slave_id: int = 1,
         enable_cache: bool = False,
         cache_ttl_seconds: int = 30,
-    ):
+    ) -> None:
         """
         Initialize Modbus RTU client.
 
@@ -324,6 +325,6 @@ class ModbusRTUClient:
         await self.connect()
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type: Optional[Type[BaseException]], exc_val: Optional[BaseException], exc_tb: Optional[TracebackType]) -> None:
         """Async context manager exit."""
         await self.disconnect()

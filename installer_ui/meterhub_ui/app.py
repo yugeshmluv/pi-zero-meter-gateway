@@ -61,7 +61,7 @@ class ProvisioningState(BaseModel):
     created_at: datetime = None
     updated_at: datetime = None
 
-    def __init__(self, **data):
+    def __init__(self, **data) -> None:
         super().__init__(**data)
         if self.created_at is None:
             self.created_at = datetime.utcnow()
@@ -84,7 +84,7 @@ class DeviceConfig(BaseModel):
     meter_parity: str = "N"
     created_at: datetime = None
 
-    def __init__(self, **data):
+    def __init__(self, **data) -> None:
         super().__init__(**data)
         if self.created_at is None:
             self.created_at = datetime.utcnow()
@@ -94,7 +94,7 @@ class DeviceConfig(BaseModel):
 class InstallerService:
     """Installer service state manager."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.provisioning_state = ProvisioningState()
         self.device_config: Optional[DeviceConfig] = None
         self.start_time = datetime.utcnow()

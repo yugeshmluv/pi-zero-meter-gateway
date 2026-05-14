@@ -19,7 +19,7 @@ from common.meterhub_common.sqlite_db import TelemetryDatabase, StateDatabase
 
 
 @pytest.mark.fault_injection
-def test_power_loss_telemetry_recovery():
+def test_power_loss_telemetry_recovery() -> None:
     """Test WAL mode recovery after abrupt shutdown."""
     with tempfile.TemporaryDirectory() as tmpdir:
         db_path = Path(tmpdir) / "telemetry.db"
@@ -71,7 +71,7 @@ def test_power_loss_telemetry_recovery():
 
 
 @pytest.mark.fault_injection
-def test_billing_counter_crash_safety():
+def test_billing_counter_crash_safety() -> None:
     """Test billing counter never loses atomicity on crash."""
     with tempfile.TemporaryDirectory() as tmpdir:
         state_path = Path(tmpdir) / "state.db"
@@ -102,7 +102,7 @@ def test_billing_counter_crash_safety():
 
 
 @pytest.mark.fault_injection
-def test_wal_mode_enabled():
+def test_wal_mode_enabled() -> None:
     """Verify WAL mode is actually enabled."""
     with tempfile.TemporaryDirectory() as tmpdir:
         db_path = Path(tmpdir) / "test.db"
@@ -119,7 +119,7 @@ def test_wal_mode_enabled():
 
 
 @pytest.mark.fault_injection
-def test_synchronous_levels():
+def test_synchronous_levels() -> None:
     """Verify correct synchronous levels per database."""
     with tempfile.TemporaryDirectory() as tmpdir:
         # Telemetry: NORMAL (faster)
@@ -146,7 +146,7 @@ def test_synchronous_levels():
 
 
 @pytest.mark.fault_injection
-def test_partial_write_recovery():
+def test_partial_write_recovery() -> None:
     """Test recovery from partial write mid-transaction."""
     with tempfile.TemporaryDirectory() as tmpdir:
         db_path = Path(tmpdir) / "telemetry.db"
@@ -187,7 +187,7 @@ def test_partial_write_recovery():
 
 
 @pytest.mark.fault_injection
-def test_double_commit_protection():
+def test_double_commit_protection() -> None:
     """Test that duplicate updates don't occur."""
     with tempfile.TemporaryDirectory() as tmpdir:
         state_path = Path(tmpdir) / "state.db"
@@ -214,7 +214,7 @@ def test_double_commit_protection():
 
 
 @pytest.mark.fault_injection
-def test_concurrent_access_safety():
+def test_concurrent_access_safety() -> None:
     """Test database handles multiple connections safely."""
     with tempfile.TemporaryDirectory() as tmpdir:
         db_path = Path(tmpdir) / "telemetry.db"
@@ -256,7 +256,7 @@ def test_concurrent_access_safety():
 
 @pytest.mark.soak
 @pytest.mark.slow
-def test_24hour_soak_simulation():
+def test_24hour_soak_simulation() -> None:
     """Simulate 24 hours of reading/write (1440 readings at 1-minute interval)."""
     with tempfile.TemporaryDirectory() as tmpdir:
         telem_path = Path(tmpdir) / "telemetry.db"

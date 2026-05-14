@@ -44,7 +44,7 @@ class OTAManifest:
 class ImageSigner:
     """Sign and verify OTA images using Ed25519."""
 
-    def __init__(self, key_dir: Path = Path("/etc/meterhub/keys")):
+    def __init__(self, key_dir: Path = Path("/etc/meterhub/keys")) -> None:
         """
         Initialize image signer.
 

@@ -11,8 +11,9 @@ Both use WAL (Write-Ahead Logging) for atomicity and recovery.
 import sqlite3
 from pathlib import Path
 from datetime import datetime, timedelta
-from typing import List, Dict, Any, Optional
+from typing import Type, List, Dict, Any, Optional
 import logging
+from types import TracebackType
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +21,7 @@ logger = logging.getLogger(__name__)
 class SQLiteWALDatabase:
     """SQLite database with WAL mode and crash safety."""
 
-    def __init__(self, db_path: str, synchronous: str = "NORMAL"):
+    def __init__(self, db_path: str, synchronous: str = "NORMAL") -> None:
         """
         Initialize SQLite database with WAL mode.
 
@@ -96,7 +97,7 @@ class SQLiteWALDatabase:
         self.connect()
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: Optional[Type[BaseException]], exc_val: Optional[BaseException], exc_tb: Optional[TracebackType]) -> None:
         """Context manager exit."""
         if exc_type:
             self.rollback()
@@ -115,7 +116,7 @@ class TelemetryDatabase:
     - 7-day rolling queue (auto-delete old records)
     """
 
-    def __init__(self, db_path: str = "/var/cache/meterhub/telemetry.db"):
+    def __init__(self, db_path: str = "/var/cache/meterhub/telemetry.db") -> None:
         """Initialize telemetry database."""
         self.db = SQLiteWALDatabase(db_path, synchronous="NORMAL")
         self.retention_days = 7
@@ -235,7 +236,7 @@ class StateDatabase:
     - Crash-resistant with FULL synchronous mode
     """
 
-    def __init__(self, db_path: str = "/var/lib/meterhub/state.db"):
+    def __init__(self, db_path: str = "/var/lib/meterhub/state.db") -> None:
         """Initialize state database."""
         self.db = SQLiteWALDatabase(db_path, synchronous="FULL")
 

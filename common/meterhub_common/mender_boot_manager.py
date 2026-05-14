@@ -42,7 +42,7 @@ class BootState:
 class MenderBootManager:
     """Manage Mender A/B boot partitions."""
 
-    def __init__(self, fw_env_config: Path = Path("/etc/fw_env.config")):
+    def __init__(self, fw_env_config: Path = Path("/etc/fw_env.config")) -> None:
         """
         Initialize Mender boot manager.
 

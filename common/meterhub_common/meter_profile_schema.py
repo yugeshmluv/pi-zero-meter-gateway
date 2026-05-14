@@ -83,9 +83,7 @@ class MeterProfile:
         required = ["meter_type", "manufacturer", "protocol_version"]
         for field in required:
             if field not in data:
-                raise ValueError(
-                    f"Missing required field '{field}' in {yaml_path}"
-                )
+                raise ValueError(f"Missing required field '{field}' in {yaml_path}")
 
         # Parse registers
         registers = {}
@@ -99,9 +97,7 @@ class MeterProfile:
                 try:
                     data_type = DataType(data_type_str)
                 except ValueError:
-                    raise ValueError(
-                        f"Unknown data_type '{data_type_str}' for register '{name}'"
-                    )
+                    raise ValueError(f"Unknown data_type '{data_type_str}' for register '{name}'")
 
                 reg = ModbusRegister(
                     name=name,

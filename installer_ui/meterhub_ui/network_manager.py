@@ -41,7 +41,7 @@ class NetworkConfig:
     dns_servers: List[str] = None
     ntp_servers: List[str] = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.dns_servers is None:
             self.dns_servers = ["8.8.8.8", "8.8.4.4"]
         if self.ntp_servers is None:
@@ -51,7 +51,7 @@ class NetworkConfig:
 class NetworkManager:
     """Manage network configuration for MeterHub device."""
 
-    def __init__(self, use_nmcli: bool = True):
+    def __init__(self, use_nmcli: bool = True) -> None:
         """
         Initialize network manager.
 

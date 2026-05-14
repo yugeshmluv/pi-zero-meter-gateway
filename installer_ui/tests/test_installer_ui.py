@@ -36,7 +36,7 @@ def installer_service():
 class TestHealth:
     """Health check tests."""
 
-    def test_health_check(self, client):
+    def test_health_check(self, client) -> None:
         """Test health endpoint."""
         response = client.get("/health")
         assert response.status_code == 200
@@ -44,7 +44,7 @@ class TestHealth:
         assert "timestamp" in response.json()
         assert "uptime_seconds" in response.json()
 
-    def test_device_info(self, client):
+    def test_device_info(self, client) -> None:
         """Test device info endpoint."""
         response = client.get("/info")
         assert response.status_code == 200
@@ -57,7 +57,7 @@ class TestHealth:
 class TestProvisioning:
     """Provisioning workflow tests."""
 
-    def test_get_provisioning_status(self, client):
+    def test_get_provisioning_status(self, client) -> None:
         """Test get provisioning status."""
         response = client.get("/api/provisioning/status")
         assert response.status_code == 200
@@ -65,7 +65,7 @@ class TestProvisioning:
         assert data["status"] == StatusEnum.NOT_STARTED
         assert data["step"] == 0
 
-    def test_next_provisioning_step(self, client):
+    def test_next_provisioning_step(self, client) -> None:
         """Test advancing provisioning step."""
         # Step 0 -> 1
         response = client.post("/api/provisioning/step/next")
@@ -79,7 +79,7 @@ class TestProvisioning:
         data = response.json()
         assert data["step"] == 2
 
-    def test_provisioning_completion(self, client):
+    def test_provisioning_completion(self, client) -> None:
         """Test provisioning reaches completion."""
         # Advance through all steps
         for i in range(5):
@@ -92,7 +92,7 @@ class TestProvisioning:
         assert data["step"] == 5
         assert data["status"] == StatusEnum.COMPLETED
 
-    def test_reset_provisioning(self, client):
+    def test_reset_provisioning(self, client) -> None:
         """Test reset provisioning."""
         # Advance some steps
         client.post("/api/provisioning/step/next")
@@ -113,7 +113,7 @@ class TestConfiguration:
     """Device configuration tests."""
 
     @pytest.mark.asyncio
-    async def test_set_device_config(self, client):
+    async def test_set_device_config(self, client) -> None:
         """Test setting device configuration."""
         config = {
             "device_id": "meter-001",
@@ -132,7 +132,7 @@ class TestConfiguration:
         assert response.status_code == 200
         assert "Device configured" in response.json()["message"]
 
-    def test_get_device_config(self, client):
+    def test_get_device_config(self, client) -> None:
         """Test retrieving device configuration."""
         response = client.get("/api/config/get")
         # May be None if not configured
@@ -142,7 +142,7 @@ class TestConfiguration:
 class TestServices:
     """Service status tests."""
 
-    def test_get_services_status(self, client):
+    def test_get_services_status(self, client) -> None:
         """Test get services status."""
         response = client.get("/api/services/status")
         assert response.status_code == 200
@@ -162,7 +162,7 @@ class TestServices:
 class TestNetwork:
     """Network endpoint tests."""
 
-    def test_scan_networks(self, client):
+    def test_scan_networks(self, client) -> None:
         """Test Wi-Fi network scanning."""
         response = client.get("/api/network/scan")
         assert response.status_code == 200
@@ -171,7 +171,7 @@ class TestNetwork:
         # Placeholder data should have at least one network
         assert len(data["networks"]) >= 1
 
-    def test_network_status(self, client):
+    def test_network_status(self, client) -> None:
         """Test get network status."""
         response = client.get("/api/network/status")
         assert response.status_code == 200
@@ -192,7 +192,7 @@ class TestMeter:
     """Meter endpoint tests."""
 
     @pytest.mark.asyncio
-    async def test_meter_test(self, client):
+    async def test_meter_test(self, client) -> None:
         """Test meter connectivity test."""
         response = client.post("/api/meter/test?device=/dev/ttyUSB0")
         assert response.status_code == 200
@@ -202,7 +202,7 @@ class TestMeter:
         assert "connected" in data
         assert "registers_read" in data or "error" in data
 
-    def test_list_meter_profiles(self, client):
+    def test_list_meter_profiles(self, client) -> None:
         """Test list available meter profiles."""
         response = client.get("/api/meter/profiles")
         assert response.status_code == 200
@@ -219,17 +219,17 @@ class TestMeter:
 class TestQRCode:
     """QR Code generation tests."""
 
-    def test_device_qr_code(self, client):
+    def test_device_qr_code(self, client) -> None:
         """Test device QR code generation."""
         response = client.get("/api/qrcode/device")
         assert response.status_code == 404  # Device not configured yet
 
-    def test_wifi_qr_code(self, client):
+    def test_wifi_qr_code(self, client) -> None:
         """Test Wi-Fi QR code generation."""
         response = client.get("/api/qrcode/wifi")
         assert response.status_code == 404  # No device config
 
-    def test_qrcode_generator_device(self):
+    def test_qrcode_generator_device(self) -> None:
         """Test QRCodeGenerator device QR."""
         gen = QRCodeGenerator()
         result = gen.generate_device_qr(
@@ -243,7 +243,7 @@ class TestQRCode:
         assert "data" in result
         assert "meter-001" in result["data"]
 
-    def test_qrcode_generator_wifi(self):
+    def test_qrcode_generator_wifi(self) -> None:
         """Test QRCodeGenerator Wi-Fi QR."""
         gen = QRCodeGenerator()
         result = gen.generate_wifi_qr(
@@ -256,7 +256,7 @@ class TestQRCode:
         assert "wifi_string" in result
         assert "TestSSID" in result["wifi_string"]
 
-    def test_qrcode_wifi_string_escaping(self):
+    def test_qrcode_wifi_string_escaping(self) -> None:
         """Test Wi-Fi string special character escaping."""
         gen = QRCodeGenerator()
 
@@ -270,7 +270,7 @@ class TestQRCode:
         # Semicolons should be escaped
         assert "\\;" in wifi_string
 
-    def test_qrcode_generator_provisioning(self):
+    def test_qrcode_generator_provisioning(self) -> None:
         """Test provisioning QR code."""
         gen = QRCodeGenerator()
         result = gen.generate_provisioning_qr(
@@ -288,12 +288,12 @@ class TestNetworkManager:
     """NetworkManager tests."""
 
     @pytest.mark.asyncio
-    async def test_network_manager_init(self):
+    async def test_network_manager_init(self) -> None:
         """Test NetworkManager initialization."""
         nm = NetworkManager(use_nmcli=False)
         assert nm is not None
 
-    def test_freq_to_channel_2_4ghz(self):
+    def test_freq_to_channel_2_4ghz(self) -> None:
         """Test frequency to channel conversion (2.4 GHz)."""
         # 2.4 GHz channel 1 = 2412 MHz
         assert NetworkManager._freq_to_channel(2412) == 1
@@ -302,14 +302,14 @@ class TestNetworkManager:
         # Channel 11 = 2462 MHz
         assert NetworkManager._freq_to_channel(2462) == 11
 
-    def test_freq_to_channel_5ghz(self):
+    def test_freq_to_channel_5ghz(self) -> None:
         """Test frequency to channel conversion (5 GHz)."""
         # 5 GHz channel 36 = 5180 MHz
         assert NetworkManager._freq_to_channel(5180) == 36
         # Channel 149 = 5745 MHz
         assert NetworkManager._freq_to_channel(5745) == 149
 
-    def test_wifi_string_escaping(self):
+    def test_wifi_string_escaping(self) -> None:
         """Test Wi-Fi string escaping."""
         # Test escaping
         escaped = QRCodeGenerator._escape_wifi_string('Test;SSID:With"Quotes')
@@ -322,7 +322,7 @@ class TestInstallerService:
     """InstallerService state management tests."""
 
     @pytest.mark.asyncio
-    async def test_update_provisioning(self):
+    async def test_update_provisioning(self) -> None:
         """Test updating provisioning state."""
         service = InstallerService()
 
@@ -337,7 +337,7 @@ class TestInstallerService:
         assert service.provisioning_state.status == StatusEnum.IN_PROGRESS
 
     @pytest.mark.asyncio
-    async def test_reset_provisioning(self):
+    async def test_reset_provisioning(self) -> None:
         """Test reset provisioning."""
         service = InstallerService()
 
@@ -358,7 +358,7 @@ class TestInstallerService:
 class TestProvisioningIntegration:
     """End-to-end provisioning flow tests."""
 
-    def test_full_provisioning_flow(self, client):
+    def test_full_provisioning_flow(self, client) -> None:
         """Test complete provisioning workflow."""
         # Step 1: Start provisioning
         response = client.get("/api/provisioning/status")

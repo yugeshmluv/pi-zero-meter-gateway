@@ -63,3 +63,10 @@ python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 asyncio_mode = "auto"
+
+[dependency-groups]
+dev = [
+    "types-pyyaml (>=6.0.12.20260510,<7.0.0.0)",
+    "types-aiofiles (>=25.1.0.20260508,<26.0.0.0)",
+    "autotyping (>=24.9.0,<25.0.0)"
+]

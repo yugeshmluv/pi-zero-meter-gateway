@@ -27,7 +27,7 @@ except ImportError:
 class QRCodeGenerator:
     """Generate QR codes for provisioning flows."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize QR code generator."""
         self.version = 1
         self.error_correction = qrcode.constants.ERROR_CORRECT_M if HAS_QRCODE else None

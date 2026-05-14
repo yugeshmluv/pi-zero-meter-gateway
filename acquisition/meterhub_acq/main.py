@@ -54,7 +54,7 @@ class AcquisitionService:
         polling_interval_s: int = 60,
         telemetry_db_path: str = "/var/cache/meterhub/telemetry.db",
         state_db_path: str = "/var/lib/meterhub/state.db",
-    ):
+    ) -> None:
         """
         Initialize acquisition service.
 
@@ -278,13 +278,13 @@ class AcquisitionService:
             f"(reads: {self.read_count}, errors: {self.error_count})"
         )
 
-    def handle_signal(self, signum, frame):
+    def handle_signal(self, signum, frame) -> None:
         """Handle shutdown signals."""
         logger.info(f"Received signal {signum}, shutting down...")
         self.running = False
 
 
-async def main():
+async def main() -> None:
     """Entry point."""
     logger.info("MeterHub Acquisition Service v1.0.0")
 

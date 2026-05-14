@@ -13,11 +13,12 @@ Production-grade MQTT client with:
 import asyncio
 import json
 import logging
-from typing import Dict, Any, Optional, Callable, Awaitable
+from typing import Type, Dict, Any, Optional, Callable, Awaitable
 from datetime import datetime
 import ssl
 
 import paho.mqtt.client as mqtt
+from types import TracebackType
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +43,7 @@ class AWSIoTMQTTClient:
         ca_path: str,  # Path to CA certificate (AmazonRootCA1.pem)
         port: int = 8883,  # MQTT over TLS default
         keepalive_s: int = 60,
-    ):
+    ) -> None:
         """
         Initialize AWS IoT MQTT client.
 
@@ -107,7 +108,7 @@ class AWSIoTMQTTClient:
     def _set_callbacks(self) -> None:
         """Set paho-mqtt callbacks."""
 
-        def on_connect(client, userdata, flags, rc, properties=None):
+        def on_connect(client, userdata, flags, rc, properties=None) -> None:
             if rc == 0:
                 self.connected = True
                 self.connection_failed_count = 0
@@ -118,15 +119,15 @@ class AWSIoTMQTTClient:
                 self.last_error = f"Connection failed: rc={rc}"
                 logger.error(self.last_error)
 
-        def on_disconnect(client, userdata, rc, properties=None):
+        def on_disconnect(client, userdata, rc, properties=None) -> None:
             self.connected = False
             if rc != 0:
                 logger.warning(f"Unexpected MQTT disconnection: rc={rc}")
 
-        def on_publish(client, userdata, mid, properties=None):
+        def on_publish(client, userdata, mid, properties=None) -> None:
             logger.debug(f"Message published: mid={mid}")
 
-        def on_message(client, userdata, msg):
+        def on_message(client, userdata, msg) -> None:
             payload_preview = msg.payload[:100].decode('utf-8', errors='ignore')
             logger.debug(f"Message received on {msg.topic}: {payload_preview}")
 
@@ -333,6 +334,6 @@ class AWSIoTMQTTClient:
         await self.connect()
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type: Optional[Type[BaseException]], exc_val: Optional[BaseException], exc_tb: Optional[TracebackType]) -> None:
         """Async context manager exit."""
         await self.disconnect()

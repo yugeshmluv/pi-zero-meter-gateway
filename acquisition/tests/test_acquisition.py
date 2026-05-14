@@ -25,7 +25,7 @@ from acquisition.meterhub_acq.main import AcquisitionService
 
 
 @pytest.mark.unit
-def test_meter_profile_load():
+def test_meter_profile_load() -> None:
     """Test loading Schneider EM6400 profile."""
     profile = MeterProfile.from_yaml(
         "profiles/schneider-em6400.yaml"
@@ -38,7 +38,7 @@ def test_meter_profile_load():
 
 
 @pytest.mark.unit
-def test_meter_profile_registers():
+def test_meter_profile_registers() -> None:
     """Test registers are properly defined."""
     profile = MeterProfile.from_yaml(
         "profiles/schneider-em6400.yaml"
@@ -58,7 +58,7 @@ def test_meter_profile_registers():
 
 
 @pytest.mark.unit
-def test_meter_reading_creation():
+def test_meter_reading_creation() -> None:
     """Test MeterReading dataclass creation."""
     reading = MeterReading(
         timestamp_utc=datetime(2026, 5, 10, 14, 55, 0),
@@ -81,7 +81,7 @@ def test_meter_reading_creation():
 
 
 @pytest.mark.unit
-def test_telemetry_database_init():
+def test_telemetry_database_init() -> None:
     """Test telemetry database initialization."""
     with tempfile.TemporaryDirectory() as tmpdir:
         db_path = Path(tmpdir) / "test.db"
@@ -99,7 +99,7 @@ def test_telemetry_database_init():
 
 
 @pytest.mark.unit
-def test_telemetry_database_insert():
+def test_telemetry_database_insert() -> None:
     """Test inserting meter readings into database."""
     with tempfile.TemporaryDirectory() as tmpdir:
         db_path = Path(tmpdir) / "test.db"
@@ -134,7 +134,7 @@ def test_telemetry_database_insert():
 
 
 @pytest.mark.unit
-def test_state_database_billing():
+def test_state_database_billing() -> None:
     """Test billing state persistence."""
     with tempfile.TemporaryDirectory() as tmpdir:
         db_path = Path(tmpdir) / "state.db"
@@ -153,7 +153,7 @@ def test_state_database_billing():
 
 
 @pytest.mark.unit
-def test_acquisition_service_init():
+def test_acquisition_service_init() -> None:
     """Test service initialization."""
     service = AcquisitionService(
         meter_profile_path="profiles/schneider-em6400.yaml",
@@ -168,7 +168,7 @@ def test_acquisition_service_init():
 
 
 @pytest.mark.unit
-def test_acquisition_profile_load():
+def test_acquisition_profile_load() -> None:
     """Test acquisition service profile loading."""
     service = AcquisitionService(
         meter_profile_path="profiles/schneider-em6400.yaml"

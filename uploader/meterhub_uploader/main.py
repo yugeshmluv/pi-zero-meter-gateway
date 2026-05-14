@@ -68,7 +68,7 @@ class UploaderService:
         state_db_path: str = "/var/lib/meterhub/state.db",
         batch_size: int = 5,  # 5-minute readings per batch
         heartbeat_interval_s: int = 300,  # 5 minutes
-    ):
+    ) -> None:
         """Initialize uploader service."""
         self.device_id = device_id
         self.society_id = society_id
@@ -535,13 +535,13 @@ class UploaderService:
             f"Uploader shutdown complete (uploads: {self.upload_count}, errors: {self.error_count})"
         )
 
-    def handle_signal(self, signum, frame):
+    def handle_signal(self, signum, frame) -> None:
         """Handle shutdown signals."""
         logger.info(f"Received signal {signum}, shutting down...")
         self.running = False
 
 
-async def main():
+async def main() -> None:
     """Entry point."""
     logger.info("MeterHub Uploader Service v1.0.0")
 
