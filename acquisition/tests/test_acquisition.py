@@ -86,6 +86,7 @@ def test_telemetry_database_init() -> None:
         telem.initialize_schema()
 
         # Check tables exist
+        assert telem.db.connection is not None
         cursor = telem.db.connection.execute("SELECT name FROM sqlite_master WHERE type='table'")
         tables = {row[0] for row in cursor.fetchall()}
         assert "meter_readings" in tables
@@ -120,6 +121,7 @@ def test_telemetry_database_insert() -> None:
         telem.insert_reading(reading_dict)
 
         # Verify inserted
+        assert telem.db.connection is not None
         cursor = telem.db.connection.execute("SELECT COUNT(*) FROM meter_readings")
         count = cursor.fetchone()[0]
         assert count == 1

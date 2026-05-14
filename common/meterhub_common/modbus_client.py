@@ -11,7 +11,7 @@ Implements Modbus RTU protocol with:
 
 import asyncio
 import struct
-from typing import Type, Dict, Any, Optional
+from typing import Type, Dict, Any, Optional, Tuple
 from dataclasses import dataclass
 from datetime import datetime
 import logging
@@ -76,7 +76,7 @@ class ModbusRTUClient:
         self.slave_id = slave_id
         self.enable_cache = enable_cache
         self.cache_ttl_seconds = cache_ttl_seconds
-        self.cache: Dict[str, tuple] = {}  # {register_name: (value, timestamp)}
+        self.cache: Dict[str, Tuple[ModbusRegisterValue, datetime]] = {}
 
         # Serial client connection
         self.client = AsyncModbusSerialClient(
@@ -181,10 +181,10 @@ class ModbusRTUClient:
             results[reg_name] = result
         return results
 
-    async def _read_with_retry(self, register_def) -> ModbusRegisterValue:
+    async def _read_with_retry(self, register_def: Any) -> ModbusRegisterValue:
         """Read register with exponential backoff retry."""
         max_retries = len(self.BACKOFF_MS)
-        last_error = None
+        last_error: Optional[str] = None
 
         for attempt in range(max_retries):
             try:
@@ -192,7 +192,9 @@ class ModbusRTUClient:
                 if not self.connected:
                     await self.connect()
                     if not self.connected:
-                        raise ConnectionException("Cannot connect to Modbus device")
+                        raise ConnectionException(  # type: ignore[no-untyped-call]
+                            "Cannot connect to Modbus device"
+                        )
 
                 # Read from device
                 raw_value = await self._read_raw_register(register_def)
@@ -232,32 +234,44 @@ class ModbusRTUClient:
             error_message=last_error,
         )
 
-    async def _read_raw_register(self, register_def) -> Any:
+    async def _read_raw_register(self, register_def: Any) -> Any:
         """Read raw register value (handle multi-register types)."""
         address = register_def.address
         data_type = register_def.data_type
 
         if data_type == DataType.UINT16 or data_type == DataType.INT16:
             # Single 16-bit register
-            result = await self.client.read_holding_registers(address, 1, self.slave_id)
+            result = await self.client.read_holding_registers(
+                address, count=1, device_id=self.slave_id
+            )
             if result.isError():
-                raise ModbusException(f"Failed to read register {address}")
+                raise ModbusException(  # type: ignore[no-untyped-call]
+                    f"Failed to read register {address}"
+                )
             return result.registers[0]
 
         elif data_type == DataType.UINT32 or data_type == DataType.INT32:
             # Two 16-bit registers (big-endian)
-            result = await self.client.read_holding_registers(address, 2, self.slave_id)
+            result = await self.client.read_holding_registers(
+                address, count=2, device_id=self.slave_id
+            )
             if result.isError():
-                raise ModbusException(f"Failed to read registers {address}-{address + 1}")
+                raise ModbusException(  # type: ignore[no-untyped-call]
+                    f"Failed to read registers {address}-{address + 1}"
+                )
             high = result.registers[0]
             low = result.registers[1]
             return (high << 16) | low
 
         elif data_type == DataType.FLOAT32:
             # Two 16-bit registers as IEEE 754 float
-            result = await self.client.read_holding_registers(address, 2, self.slave_id)
+            result = await self.client.read_holding_registers(
+                address, count=2, device_id=self.slave_id
+            )
             if result.isError():
-                raise ModbusException(f"Failed to read float32 at {address}")
+                raise ModbusException(  # type: ignore[no-untyped-call]
+                    f"Failed to read float32 at {address}"
+                )
             high = result.registers[0]
             low = result.registers[1]
             # Combine and interpret as float
@@ -266,9 +280,13 @@ class ModbusRTUClient:
 
         elif data_type == DataType.FLOAT64:
             # Four 16-bit registers as IEEE 754 double
-            result = await self.client.read_holding_registers(address, 4, self.slave_id)
+            result = await self.client.read_holding_registers(
+                address, count=4, device_id=self.slave_id
+            )
             if result.isError():
-                raise ModbusException(f"Failed to read float64 at {address}")
+                raise ModbusException(  # type: ignore[no-untyped-call]
+                    f"Failed to read float64 at {address}"
+                )
             combined = struct.pack(
                 ">HHHH",
                 result.registers[0],
@@ -282,7 +300,7 @@ class ModbusRTUClient:
             raise ValueError(f"Unsupported data type: {data_type}")
 
     @staticmethod
-    def _apply_scaling(raw_value: Any, register_def) -> float:
+    def _apply_scaling(raw_value: Any, register_def: Any) -> float:
         """Apply scale and offset to raw value."""
         if raw_value is None:
             return 0.0
@@ -314,7 +332,7 @@ class ModbusRTUClient:
             del self.cache[register_name]
             return None
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> "ModbusRTUClient":
         """Async context manager entry."""
         await self.connect()
         return self

@@ -48,6 +48,7 @@ def test_power_loss_telemetry_recovery() -> None:
             telem.insert_reading(reading_dict)
 
         # Simulate power loss by killing connection without clean shutdown
+        assert telem.db.connection is not None
         telem.db.connection.close()
         del telem
 
@@ -84,9 +85,11 @@ def test_billing_counter_crash_safety() -> None:
 
         # Verify initial state
         state_data = state.get_last_billing_state()
+        assert state_data is not None
         assert state_data["totalizer_kwh"] == initial_kwh
 
         # Simulate crash: forcefully kill connection
+        assert state.db.connection is not None
         state.db.connection.close()
         del state
 
@@ -172,6 +175,7 @@ def test_partial_write_recovery() -> None:
             state.insert_reading(reading_dict)
 
         # Simulate crash mid-transaction
+        assert state.db.connection is not None
         state.db.connection.close()
         del state
 
@@ -208,6 +212,7 @@ def test_double_commit_protection() -> None:
 
         # Verify value is correct
         recovered_state = state.get_last_billing_state()
+        assert recovered_state is not None
         assert recovered_state["totalizer_kwh"] == kwh
 
 

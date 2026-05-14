@@ -62,7 +62,7 @@ class ProvisioningState(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
-    def __init__(self, **data) -> None:
+    def __init__(self, **data: Any) -> None:
         super().__init__(**data)
         if self.created_at is None:
             self.created_at = datetime.utcnow()
@@ -86,7 +86,7 @@ class DeviceConfig(BaseModel):
     meter_parity: str = "N"
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
-    def __init__(self, **data) -> None:
+    def __init__(self, **data: Any) -> None:
         super().__init__(**data)
         if self.created_at is None:
             self.created_at = datetime.utcnow()

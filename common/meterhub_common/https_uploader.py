@@ -209,7 +209,7 @@ class HTTPSFallbackUploader:
         success, msg = await self.upload(heartbeat_payload, "/heartbeat")
         return success
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> "HTTPSFallbackUploader":
         """Async context manager entry."""
         await self.connect()
         return self

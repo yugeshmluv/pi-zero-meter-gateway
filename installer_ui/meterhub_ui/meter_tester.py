@@ -70,7 +70,7 @@ class MeterTester:
 
             # Create client
             client = ModbusRTUClient(
-                device_path=device,
+                device=device,
                 meter_profile=profile,
                 slave_id=slave_id,
             )
@@ -230,7 +230,7 @@ class MeterTester:
 
                 # Create temporary client with test baud rate
                 client = ModbusRTUClient(
-                    device_path=device,
+                    device=device,
                     meter_profile=profile,
                     slave_id=1,
                 )

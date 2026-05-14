@@ -27,7 +27,8 @@ import os
 import signal
 import logging
 from datetime import datetime
-from typing import Optional, List, Set, Tuple
+from types import FrameType
+from typing import Optional, List, Set, Tuple, Any
 import json
 import hashlib
 import hmac
@@ -92,7 +93,7 @@ class UploaderService:
         self.telemetry_db: Optional[TelemetryDatabase] = None
         self.state_db: Optional[StateDatabase] = None
         self.start_time = datetime.utcnow()
-        self.running_tasks: Set[asyncio.Task] = set()  # Task tracking for graceful shutdown
+        self.running_tasks: Set[asyncio.Task[Any]] = set()
 
         self.upload_count = 0
         self.error_count = 0
@@ -285,8 +286,9 @@ class UploaderService:
                 return 0
 
             cursor = self.telemetry_db.db.execute("SELECT COUNT(*) FROM meter_readings")
-            count = cursor.fetchone()[0]
-            return count
+            result = cursor.fetchone()
+            count = result[0] if result else 0
+            return int(count)
 
         except Exception:
             return 0
@@ -431,6 +433,7 @@ class UploaderService:
             return
 
         # Connect MQTT
+        assert self.mqtt_client is not None  # set by _initialize_clients above
         await self.mqtt_client.connect()
 
         logger.info("Uploader service starting...")
@@ -535,7 +538,7 @@ class UploaderService:
             f"Uploader shutdown complete (uploads: {self.upload_count}, errors: {self.error_count})"
         )
 
-    def handle_signal(self, signum, frame) -> None:
+    def handle_signal(self, signum: int, frame: Optional[FrameType]) -> None:
         """Handle shutdown signals."""
         logger.info(f"Received signal {signum}, shutting down...")
         self.running = False

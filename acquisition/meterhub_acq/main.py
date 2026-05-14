@@ -28,6 +28,7 @@ import signal
 import logging
 from datetime import datetime
 from typing import Optional
+from types import FrameType
 
 from common.meterhub_common import (
     MeterProfile,
@@ -167,6 +168,11 @@ class AcquisitionService:
 
     async def _store_reading(self, reading: MeterReading) -> None:
         """Store reading in databases (reuse persistent connections)."""
+        if self.telemetry_db is None or self.state_db is None:
+            logger.error("Databases not initialized, cannot store reading")
+            self.error_count += 1
+            return
+
         try:
             # Store in telemetry (performance-optimized, reuse connection)
             reading_dict = {
@@ -226,6 +232,7 @@ class AcquisitionService:
             return
 
         # Create Modbus client
+        assert self.meter_profile is not None, "Profile must be loaded before this point"
         self.modbus_client = ModbusRTUClient(
             device=self.ttydevice,
             meter_profile=self.meter_profile,
@@ -275,7 +282,7 @@ class AcquisitionService:
             f"(reads: {self.read_count}, errors: {self.error_count})"
         )
 
-    def handle_signal(self, signum, frame) -> None:
+    def handle_signal(self, signum: int, frame: Optional[FrameType]) -> None:
         """Handle shutdown signals."""
         logger.info(f"Received signal {signum}, shutting down...")
         self.running = False
