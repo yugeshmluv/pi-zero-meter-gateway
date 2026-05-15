@@ -351,630 +351,874 @@ async def dashboard() -> str:
     """Main dashboard page (single-page app)."""
     return """
     <!DOCTYPE html>
-    <html>
-    <head>
-        <title>MeterHub Installer</title>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <style>
-            :root {
-                --bg: #eef1f6;
-                --surface: #ffffff;
-                --surface-alt: #f8fafc;
-                --border: #e2e8f0;
-                --border-strong: #c8d4e3;
-                --text: #0f172a;
-                --text-muted: #64748b;
-                --text-faint: #94a3b8;
-                --accent: #2563eb;
-                --accent-hover: #1d4ed8;
-                --accent-soft: #eff6ff;
-                --accent-ring: rgba(37,99,235,0.15);
-                --secondary: #475569;
-                --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
-                --mono: ui-monospace, "SF Mono", Menlo, monospace;
-                --radius: 10px;
-                --radius-sm: 6px;
-            }
-            *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-            html, body { height: 100%; }
-            body {
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-                background: var(--bg);
-                color: var(--text);
-                font-size: 13px;
-                line-height: 1.5;
-                padding: 10px;
+            <html lang="en">
+            <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>MeterHub Provisioning Console</title>
+
+            <style>
+            :root{
+                --bg:#edf2f7;
+                --panel:#ffffff;
+                --panel-2:#f8fafc;
+                --border:#dbe4ee;
+                --text:#0f172a;
+                --muted:#64748b;
+                --soft:#94a3b8;
+
+                --primary:#2563eb;
+                --primary-2:#1d4ed8;
+                --primary-soft:#dbeafe;
+
+                --success:#16a34a;
+                --danger:#dc2626;
+                --warning:#d97706;
+
+                --shadow:
+                    0 1px 2px rgba(0,0,0,.03),
+                    0 8px 24px rgba(15,23,42,.06);
+
+                --radius:18px;
+                --radius-sm:12px;
+
+                --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
             }
 
-            /* ── App shell ─────────────────────────────────────────── */
-            .app {
-                display: grid;
-                grid-template-rows: auto 1fr;
-                grid-template-columns: 320px 1fr;
-                grid-template-areas: "hdr hdr" "left right";
-                gap: 8px;
-                height: calc(100vh - 20px);
-                min-height: 560px;
+            *{box-sizing:border-box;margin:0;padding:0}
+
+            body{
+                font-family:
+                    Inter,
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    "Segoe UI",
+                    sans-serif;
+
+                background:
+                    radial-gradient(circle at top left,#dbeafe 0%,transparent 28%),
+                    radial-gradient(circle at bottom right,#e9d5ff 0%,transparent 22%),
+                    var(--bg);
+
+                color:var(--text);
+                height:100vh;
+                overflow:hidden;
+                padding:14px;
             }
 
-            /* ── Header ────────────────────────────────────────────── */
-            .app-header {
-                grid-area: hdr;
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                padding: 9px 16px;
-                background: var(--surface);
-                border-radius: var(--radius);
-                box-shadow: var(--shadow);
+            /* ───────────────────────── APP ───────────────────────── */
+
+            .app{
+                display:grid;
+                grid-template-columns:280px 1fr;
+                gap:14px;
+                height:100%;
             }
-            .app-header h1 {
-                font-size: 0.95rem;
-                font-weight: 700;
-                letter-spacing: -0.01em;
-                display: flex;
-                align-items: center;
-                gap: 8px;
+
+            /* ───────────────────── SIDEBAR ───────────────────────── */
+
+            .sidebar{
+                background:rgba(255,255,255,.78);
+                backdrop-filter:blur(18px);
+                border:1px solid rgba(255,255,255,.7);
+                border-radius:28px;
+                padding:18px;
+                box-shadow:var(--shadow);
+
+                display:flex;
+                flex-direction:column;
+                gap:18px;
             }
-            .app-header h1::before {
-                content: '';
-                width: 8px; height: 8px;
-                background: var(--accent);
-                border-radius: 50%;
-                flex-shrink: 0;
+
+            .brand{
+                display:flex;
+                align-items:center;
+                gap:12px;
             }
-            .pill-group { display: flex; gap: 6px; }
-            .pill {
-                padding: 3px 10px;
-                border-radius: 999px;
-                font-size: 0.7rem;
-                font-weight: 600;
-                letter-spacing: 0.03em;
+
+            .logo{
+                width:44px;
+                height:44px;
+                border-radius:14px;
+
+                background:
+                    linear-gradient(135deg,#2563eb,#7c3aed);
+
+                box-shadow:
+                    inset 0 1px 0 rgba(255,255,255,.35),
+                    0 6px 20px rgba(37,99,235,.28);
+
+                position:relative;
             }
-            .pill-status {
-                background: var(--accent-soft);
-                color: var(--accent);
-                border: 1px solid #bfdbfe;
+
+            .logo::after{
+                content:'';
+                position:absolute;
+                inset:11px;
+                border-radius:10px;
+                background:white;
+                opacity:.92;
+            }
+
+            .brand h1{
+                font-size:1rem;
+                line-height:1.1;
+                letter-spacing:-.02em;
+            }
+
+            .brand small{
+                color:var(--muted);
+                font-size:.74rem;
+            }
+
+            .nav{
+                display:flex;
+                flex-direction:column;
+                gap:8px;
+            }
+
+            .nav-btn{
+                border:none;
+                background:transparent;
+                padding:14px 16px;
+                border-radius:16px;
+                text-align:left;
+                cursor:pointer;
+
+                display:flex;
+                align-items:center;
+                gap:12px;
+
+                transition:.18s ease;
+            }
+
+            .nav-btn:hover{
+                background:rgba(255,255,255,.65);
+            }
+
+            .nav-btn.active{
+                background:white;
+                box-shadow:var(--shadow);
+            }
+
+            .nav-icon{
+                width:38px;
+                height:38px;
+                border-radius:12px;
+
+                display:flex;
+                align-items:center;
+                justify-content:center;
+
+                font-size:1rem;
+                background:var(--primary-soft);
+                color:var(--primary);
+                flex-shrink:0;
+            }
+
+            .nav-meta{
+                display:flex;
+                flex-direction:column;
+            }
+
+            .nav-title{
+                font-weight:700;
+                font-size:.88rem;
+            }
+
+            .nav-sub{
+                font-size:.72rem;
+                color:var(--muted);
+            }
+
+            /* ───────────────────── STATUS ───────────────────────── */
+
+            .status-card{
+                margin-top:auto;
+
+                background:
+                    linear-gradient(135deg,#0f172a,#1e293b);
+
+                color:white;
+                border-radius:22px;
+                padding:18px;
+            }
+
+            .status-row{
+                display:flex;
+                justify-content:space-between;
+                margin-bottom:12px;
+            }
+
+            .status-label{
+                color:rgba(255,255,255,.7);
+                font-size:.74rem;
+            }
+
+            .progress{
+                height:10px;
+                border-radius:999px;
+                background:rgba(255,255,255,.08);
+                overflow:hidden;
+            }
+
+            .progress > div{
+                height:100%;
+                width:20%;
+                background:
+                    linear-gradient(90deg,#60a5fa,#818cf8);
+            }
+
+            /* ───────────────────── MAIN ───────────────────────── */
+
+            .main{
+                display:flex;
+                flex-direction:column;
+                gap:14px;
+                overflow:hidden;
+            }
+
+            .hero{
+                background:rgba(255,255,255,.82);
+                backdrop-filter:blur(20px);
+
+                border-radius:28px;
+                padding:22px 26px;
+
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+
+                box-shadow:var(--shadow);
+            }
+
+            .hero h2{
+                font-size:1.45rem;
+                letter-spacing:-.03em;
+            }
+
+            .hero p{
+                color:var(--muted);
+                margin-top:4px;
+                font-size:.9rem;
+            }
+
+            .hero-actions{
+                display:flex;
+                gap:10px;
+            }
+
+            button{
+                border:none;
+                border-radius:14px;
+                padding:11px 18px;
+                font-size:.82rem;
+                font-weight:600;
+                cursor:pointer;
+                transition:.18s ease;
+            }
+
+            .primary{
+                background:linear-gradient(135deg,#2563eb,#4f46e5);
+                color:white;
+                box-shadow:0 8px 20px rgba(37,99,235,.22);
+            }
+
+            .primary:hover{
+                transform:translateY(-1px);
+            }
+
+            .ghost{
+                background:white;
+                color:var(--text);
+                border:1px solid var(--border);
+            }
+
+            .ghost:hover{
+                background:#f8fafc;
+            }
+
+            /* ───────────────────── CONTENT ───────────────────────── */
+
+            .content{
+                flex:1;
+                min-height:0;
+                display:grid;
+                grid-template-columns:1.1fr .9fr;
+                gap:14px;
+            }
+
+            .panel{
+                background:rgba(255,255,255,.82);
+                backdrop-filter:blur(18px);
+
+                border-radius:28px;
+                box-shadow:var(--shadow);
+
+                overflow:hidden;
+
+                display:flex;
+                flex-direction:column;
+            }
+
+            .panel-head{
+                padding:18px 22px;
+                border-bottom:1px solid rgba(226,232,240,.9);
+
+                display:flex;
+                align-items:center;
+                justify-content:space-between;
+            }
+
+            .panel-title{
+                font-weight:800;
+                letter-spacing:-.02em;
+            }
+
+            .panel-sub{
+                color:var(--muted);
+                font-size:.78rem;
+                margin-top:2px;
+            }
+
+            /* ───────────────────── INSTALLER ───────────────────────── */
+
+            .steps{
+                padding:22px;
+                display:grid;
+                grid-template-columns:repeat(5,1fr);
+                gap:12px;
+            }
+
+            .step{
+                padding:16px;
+                border-radius:20px;
+                background:var(--panel-2);
+                border:1px solid var(--border);
+
+                position:relative;
+                overflow:hidden;
+            }
+
+            .step.active{
+                background:linear-gradient(135deg,#2563eb,#4f46e5);
+                color:white;
+                border:none;
+            }
+
+            .step-num{
+                width:30px;
+                height:30px;
+                border-radius:10px;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                background:rgba(255,255,255,.14);
+                font-size:.78rem;
+                font-weight:700;
+                margin-bottom:12px;
+            }
+
+            .step h4{
+                font-size:.86rem;
+                margin-bottom:4px;
+            }
+
+            .step p{
+                font-size:.72rem;
+                opacity:.85;
+                line-height:1.45;
+            }
+
+            /* ───────────────────── FORM ───────────────────────── */
+
+            .form-wrap{
+                padding:22px;
+                overflow:auto;
+            }
+
+            .form-grid{
+                display:grid;
+                grid-template-columns:repeat(2,1fr);
+                gap:14px;
+            }
+
+            .field{
+                display:flex;
+                flex-direction:column;
+                gap:6px;
+            }
+
+            .field.full{
+                grid-column:1/-1;
+            }
+
+            label{
+                font-size:.72rem;
+                font-weight:700;
+                color:var(--muted);
+            }
+
+            input,select{
+                width:100%;
+                border:1px solid var(--border);
+                background:white;
+                border-radius:14px;
+                padding:12px 14px;
+                font-size:.86rem;
+                transition:.18s ease;
+            }
+
+            input:focus,select:focus{
+                outline:none;
+                border-color:#93c5fd;
+                box-shadow:0 0 0 5px rgba(37,99,235,.08);
+            }
+
+            .form-actions{
+                margin-top:20px;
+                display:flex;
+                gap:10px;
+            }
+
+            /* ───────────────────── DIAGNOSTICS ───────────────────────── */
+
+            .diag-grid{
+                padding:22px;
+                display:grid;
+                grid-template-columns:repeat(3,1fr);
+                gap:12px;
+            }
+
+            .diag-btn{
+                background:white;
+                border:1px solid var(--border);
+                border-radius:20px;
+                padding:18px;
+
+                display:flex;
+                flex-direction:column;
+                gap:8px;
+
+                cursor:pointer;
+                transition:.18s ease;
+            }
+
+            .diag-btn:hover{
+                transform:translateY(-2px);
+                box-shadow:var(--shadow);
+            }
+
+            .diag-icon{
+                width:44px;
+                height:44px;
+                border-radius:14px;
+
+                display:flex;
+                align-items:center;
+                justify-content:center;
+
+                background:var(--primary-soft);
+                color:var(--primary);
+                font-size:1rem;
+            }
+
+            .diag-btn h4{
+                font-size:.84rem;
+            }
+
+            .diag-btn p{
+                font-size:.72rem;
+                color:var(--muted);
+                line-height:1.45;
+            }
+
+            /* ───────────────────── OUTPUT ───────────────────────── */
+
+            .output{
+                padding:22px;
+                overflow:auto;
+                font-family:var(--mono);
+                font-size:.8rem;
+                line-height:1.65;
+            }
+
+            .output pre{
+                white-space:pre-wrap;
+                word-break:break-word;
+            }
+
+            .hidden{
+                display:none !important;
+            }
+
+            /* ───────────────────── MOBILE ───────────────────────── */
+
+            @media(max-width:1200px){
+                .content{
+                    grid-template-columns:1fr;
                 }
-            .pill-step   {
-                background: #f1f5f9;
-                color: var(--secondary);
-                border: 1px solid var(--border);
             }
 
-            /* ── Panels ────────────────────────────────────────────── */
-            .left-panel {
-                grid-area: left;
-                display: flex;
-                flex-direction: column;
-                gap: 8px;
-                overflow: hidden;
-                min-height: 0;
-            }
-            .right-panel {
-                grid-area: right;
-                display: flex;
-                flex-direction: column;
-                min-height: 0;
-            }
+            @media(max-width:900px){
 
-            /* ── Cards ─────────────────────────────────────────────── */
-            .card {
-                background: var(--surface);
-                border-radius: var(--radius);
-                box-shadow: var(--shadow);
-                padding: 12px 14px;
-                display: flex;
-                flex-direction: column;
-                gap: 9px;
-            }
-            .card-title {
-                font-size: 0.63rem;
-                font-weight: 700;
-                text-transform: uppercase;
-                letter-spacing: 0.09em;
-                color: var(--text-faint);
-            }
-            .card-fill { flex: 1; min-height: 0; }
-
-            /* ── Form ──────────────────────────────────────────────── */
-            .form-grid {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 6px;
-            }
-            .field { display: flex; flex-direction: column; gap: 3px; }
-            label { font-size: 0.66rem; font-weight: 600; color: var(--text-muted); }
-            input, select {
-                padding: 5px 8px;
-                border: 1px solid var(--border-strong);
-                border-radius: var(--radius-sm);
-                background: var(--surface);
-                color: var(--text);
-                font-size: 0.8rem;
-                font-family: inherit;
-                width: 100%;
-                transition: border-color 0.15s, box-shadow 0.15s;
-            }
-            input:focus, select:focus {
-                outline: none;
-                border-color: var(--accent);
-                box-shadow: 0 0 0 3px var(--accent-ring);
-            }
-
-            /* ── Buttons ───────────────────────────────────────────── */
-            .btn-row  { display: flex; gap: 6px; flex-wrap: wrap; }
-            .btn-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
-            button {
-                appearance: none;
-                padding: 6px 10px;
-                border: 1px solid var(--accent);
-                background: var(--accent);
-                color: white;
-                border-radius: var(--radius-sm);
-                font-size: 0.76rem;
-                font-weight: 500;
-                cursor: pointer;
-                font-family: inherit;
-                white-space: nowrap;
-                transition: background 0.12s, box-shadow 0.12s, transform 0.06s, opacity 0.12s;
-            }
-            button:hover  {
-                background: var(--accent-hover);
-                box-shadow: 0 2px 6px rgba(37,99,235,0.28);
-            }
-            button:active { transform: translateY(1px); box-shadow: none; }
-            button:disabled {
-                opacity: 0.4;
-                cursor: not-allowed;
-                transform: none;
-                box-shadow: none;
-            }
-            button.ghost {
-                background: var(--surface);
-                color: var(--secondary);
-                border-color: var(--border-strong);
-                box-shadow: var(--shadow);
-            }
-            button.ghost:hover { background: var(--surface-alt); color: var(--text); }
-            button.ghost:disabled { background: var(--surface); }
-
-            /* ── Response pane ─────────────────────────────────────── */
-            .tabs {
-                display: flex;
-                border-bottom: 1px solid var(--border);
-                margin-bottom: 10px;
-            }
-            .tab {
-                padding: 5px 14px;
-                background: none;
-                border: none;
-                border-bottom: 2px solid transparent;
-                color: var(--text-muted);
-                font-size: 0.77rem;
-                font-weight: 500;
-                cursor: pointer;
-                margin-bottom: -1px;
-                border-radius: 0;
-                box-shadow: none;
-            }
-            .tab:hover { background: var(--surface-alt); color: var(--text); box-shadow: none; }
-            .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-            .tab:disabled { opacity: 0.4; }
-
-            .pane-wrap {
-                position: relative;
-                flex: 1;
-                display: flex;
-                flex-direction: column;
-                min-height: 0;
-            }
-            .output-area {
-                flex: 1;
-                background: var(--surface-alt);
-                border: 1px solid var(--border);
-                border-radius: var(--radius-sm);
-                overflow-y: auto;
-                padding: 12px 14px;
-                font-family: var(--mono);
-                font-size: 0.76rem;
-                min-height: 0;
-            }
-            .qr-area {
-                flex: 1;
-                background: var(--surface-alt);
-                border: 1px solid var(--border);
-                border-radius: var(--radius-sm);
-                display: none;
-                align-items: center;
-                justify-content: center;
-                padding: 12px;
-            }
-            .qr-area svg { max-width: 100%; max-height: 100%; width: auto; height: auto; }
-
-            /* ── Spinner overlay ───────────────────────────────────── */
-            .spinner-overlay {
-                position: absolute;
-                inset: 0;
-                background: rgba(248,250,252,0.9);
-                backdrop-filter: blur(3px);
-                border-radius: var(--radius-sm);
-                display: none;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                gap: 10px;
-                z-index: 10;
-            }
-            .spinner-ring {
-                width: 32px; height: 32px;
-                border: 3px solid var(--border-strong);
-                border-top-color: var(--accent);
-                border-radius: 50%;
-                animation: spin 0.65s linear infinite;
-            }
-            .spinner-label { font-size: 0.75rem; font-weight: 500; color: var(--text-muted); }
-            @keyframes spin { to { transform: rotate(360deg); } }
-
-            /* ── Response renderer ─────────────────────────────────── */
-            .placeholder {
-                color: var(--text-faint);
-                font-size: 0.8rem;
-                text-align: center;
-                padding: 24px 0;
-            }
-            .res-table { width: 100%; border-collapse: collapse; }
-            .res-row { border-bottom: 1px solid var(--border); }
-            .res-row:last-child { border-bottom: none; }
-            .res-key {
-                padding: 4px 12px 4px 0;
-                font-weight: 600;
-                color: var(--accent);
-                vertical-align: top;
-                white-space: nowrap;
-                width: 1%;
-                min-width: 90px;
-                max-width: 160px;
-            }
-            .res-val {
-                padding: 4px 0;
-                color: var(--text);
-                word-break: break-word;
-                vertical-align: top;
-            }
-            .res-array { padding-left: 2px; }
-            .res-item  { padding-left: 8px; margin: 2px 0; border-left: 2px solid var(--border); }
-
-            hr.sep { border: none; border-top: 1px solid var(--border); }
-
-            @media (max-width: 860px) {
-                .app {
-                    grid-template-columns: 1fr;
-                    grid-template-areas: "hdr" "left" "right";
-                    height: auto;
+                body{
+                    overflow:auto;
+                    height:auto;
                 }
-                .btn-grid { grid-template-columns: repeat(4, 1fr); }
-                .right-panel .card { min-height: 400px; }
+
+                .app{
+                    grid-template-columns:1fr;
+                    height:auto;
+                }
+
+                .steps{
+                    grid-template-columns:1fr 1fr;
+                }
+
+                .diag-grid{
+                    grid-template-columns:1fr 1fr;
+                }
+
+                .form-grid{
+                    grid-template-columns:1fr;
+                }
             }
-        </style>
-    </head>
-    <body>
-        <div class="app">
-            <header class="app-header">
-                <h1>MeterHub Installer</h1>
-                <div class="pill-group">
-                    <span class="pill pill-status" id="status_pill">Loading…</span>
-                    <span class="pill pill-step"   id="step_pill">Step 0 / 5</span>
-                </div>
-            </header>
 
-            <!-- Left panel -->
-            <div class="left-panel">
-                <div class="card">
-                    <div class="card-title">Device Configuration</div>
-                    <div class="form-grid">
-                        <div class="field">
-                            <label for="device_id">Device ID</label>
-                            <input id="device_id" value="meter-001">
-                        </div>
-                        <div class="field">
-                            <label for="society_id">Society ID</label>
-                            <input id="society_id" value="test-society">
-                        </div>
-                        <div class="field">
-                            <label for="panel_id">Panel ID</label>
-                            <input id="panel_id" value="main-panel">
-                        </div>
-                        <div class="field">
-                            <label for="wi_fi_ssid">Wi-Fi SSID</label>
-                            <input id="wi_fi_ssid" value="test-wifi">
-                        </div>
-                        <div class="field">
-                            <label for="wi_fi_password">Wi-Fi Password</label>
-                            <input id="wi_fi_password" type="password">
-                        </div>
-                        <div class="field">
-                            <label for="mqtt_endpoint">MQTT Endpoint</label>
-                            <input id="mqtt_endpoint" value="test.mosquitto.org">
-                        </div>
-                        <div class="field">
-                            <label for="https_endpoint">HTTPS Endpoint</label>
-                            <input id="https_endpoint" value="https://api.example.com/v1">
-                        </div>
-                        <div class="field">
-                            <label for="oauth2_token">OAuth2 Token</label>
-                            <input id="oauth2_token" value="test-token">
-                        </div>
-                        <div class="field">
-                            <label for="device_secret">Device Secret</label>
-                            <input id="device_secret" value="test-secret">
-                        </div>
-                        <div class="field">
-                            <label for="meter_type">Meter Profile</label>
-                            <select id="meter_type">
-                                <option value="schneider-em6400">schneider-em6400</option>
-                            </select>
-                        </div>
-                        <div class="field" style="grid-column:1/-1">
-                            <label for="meter_device">Serial Device</label>
-                            <input id="meter_device" value="/dev/ttyUSB0">
-                        </div>
-                    </div>
-                    <div class="btn-row">
-                        <button onclick="saveConfig()">Save Config</button>
-                        <button class="ghost" onclick="loadConfig()">Load Config</button>
-                    </div>
-                </div>
+            </style>
+            </head>
 
-                <div class="card card-fill">
-                    <div class="card-title">Diagnostics</div>
-                    <div class="btn-grid">
-                        <button class="ghost" onclick="callApi('/health')">
-                            Health
-                        </button>
-                        <button class="ghost" onclick="callApi('/info')">
-                            Info
-                        </button>
-                        <button class="ghost" onclick="callApi('/api/system/status')">
-                            System
-                        </button>
-                        <button class="ghost" onclick="callApi('/api/system/logs?lines=80')">
-                            Logs
-                        </button>
-                        <button class="ghost" onclick="callApi('/api/network/scan')">
-                            Wi-Fi Scan
-                        </button>
-                        <button class="ghost" onclick="callApi('/api/network/status')">
-                            Network
-                        </button>
-                        <button class="ghost" onclick="callApi('/api/meter/devices')">
-                            Devices
-                        </button>
-                        <button class="ghost" onclick="callApi('/api/meter/profiles')">
-                            Profiles
-                        </button>
-                        <button class="ghost"onclick="callApi('/api/services/status')">
-                            Services
-                        </button>
-                        <button onclick="testMeter()">Meter Test</button>
-                        <button onclick="callApi('/api/qrcode/device')">Device QR</button>
-                        <button onclick="callApi('/api/qrcode/wifi')">Wi-Fi QR</button>
-                    </div>
-                    <hr class="sep">
-                    <div class="btn-row">
-                        <button onclick="registerDevice()">Register Device</button>
-                    </div>
-                </div>
-            </div>
+            <body>
 
-            <!-- Right panel (response) -->
-            <div class="right-panel">
-                <div class="card card-fill">
-                    <div class="tabs">
-                        <button class="tab active" data-tab="response"
-                            onclick="switchTab('response')">Response</button>
-                        <button class="tab" data-tab="qr"
-                            onclick="switchTab('qr')">QR Preview</button>
+            <div class="app">
+
+                <!-- SIDEBAR -->
+                <aside class="sidebar">
+
+                    <div class="brand">
+                        <div class="logo"></div>
+                        <div>
+                            <h1>MeterHub Console</h1>
+                            <small>Provisioning Studio</small>
+                        </div>
                     </div>
-                    <div class="pane-wrap">
-                        <div class="output-area" id="response_pane">
-                            <div class="placeholder">
-                                Click any diagnostic button to see results.
+
+                    <div class="nav">
+
+                        <button class="nav-btn active" onclick="showTab('installer', this)">
+                            <div class="nav-icon">⚡</div>
+                            <div class="nav-meta">
+                                <div class="nav-title">Installer Flow</div>
+                                <div class="nav-sub">Provisioning lifecycle</div>
+                            </div>
+                        </button>
+
+                        <button class="nav-btn" onclick="showTab('config', this)">
+                            <div class="nav-icon">🛠</div>
+                            <div class="nav-meta">
+                                <div class="nav-title">Configuration</div>
+                                <div class="nav-sub">Save & edit forms</div>
+                            </div>
+                        </button>
+
+                        <button class="nav-btn" onclick="showTab('diagnostics', this)">
+                            <div class="nav-icon">📡</div>
+                            <div class="nav-meta">
+                                <div class="nav-title">Diagnostics</div>
+                                <div class="nav-sub">Network & meter tools</div>
+                            </div>
+                        </button>
+
+                    </div>
+
+                    <div class="status-card">
+
+                        <div class="status-row">
+                            <div>
+                                <div class="status-label">Device Status</div>
+                                <div id="status_pill">Ready</div>
+                            </div>
+
+                            <div style="text-align:right">
+                                <div class="status-label">Progress</div>
+                                <div id="step_pill">1 / 5</div>
                             </div>
                         </div>
-                        <div class="qr-area" id="qr_pane">
-                            <div class="placeholder">
-                                Click "Device QR" or "Wi-Fi QR" to render.
-                            </div>
+
+                        <div class="progress">
+                            <div id="progress_bar"></div>
                         </div>
-                        <div class="spinner-overlay" id="spinner">
-                            <div class="spinner-ring"></div>
-                            <span class="spinner-label" id="spinner_label">Fetching…</span>
-                        </div>
+
                     </div>
-                </div>
+
+                </aside>
+
+                <!-- MAIN -->
+                <main class="main">
+
+                    <section class="hero">
+                        <div>
+                            <h2>Provision & Monitor Devices</h2>
+                            <p>
+                                Modern installer workspace for MeterHub gateways,
+                                diagnostics, Wi-Fi onboarding and QR provisioning.
+                            </p>
+                        </div>
+
+                        <div class="hero-actions">
+                            <button class="ghost">Export Config</button>
+                            <button class="primary">Deploy Gateway</button>
+                        </div>
+                    </section>
+
+                    <section class="content">
+
+                        <!-- LEFT -->
+                        <div class="panel">
+
+                            <!-- INSTALLER TAB -->
+                            <div id="installer" class="tab-view">
+
+                                <div class="panel-head">
+                                    <div>
+                                        <div class="panel-title">Installer Workflow</div>
+                                        <div class="panel-sub">
+                                            Guided provisioning lifecycle
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="steps">
+
+                                    <div class="step active">
+                                        <div class="step-num">01</div>
+                                        <h4>Initialize</h4>
+                                        <p>Load provisioning state and validate hardware.</p>
+                                    </div>
+
+                                    <div class="step">
+                                        <div class="step-num">02</div>
+                                        <h4>Configure</h4>
+                                        <p>Apply network, meter and cloud parameters.</p>
+                                    </div>
+
+                                    <div class="step">
+                                        <div class="step-num">03</div>
+                                        <h4>Register</h4>
+                                        <p>Link gateway with cloud provisioning service.</p>
+                                    </div>
+
+                                    <div class="step">
+                                        <div class="step-num">04</div>
+                                        <h4>Validate</h4>
+                                        <p>Test meter communication and MQTT handshake.</p>
+                                    </div>
+
+                                    <div class="step">
+                                        <div class="step-num">05</div>
+                                        <h4>Deploy</h4>
+                                        <p>Finalize onboarding and activate telemetry.</p>
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <!-- CONFIG TAB -->
+                            <div id="config" class="tab-view hidden">
+
+                                <div class="panel-head">
+                                    <div>
+                                        <div class="panel-title">Gateway Configuration</div>
+                                        <div class="panel-sub">
+                                            Secure device provisioning form
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-wrap">
+
+                                    <div class="form-grid">
+
+                                        <div class="field">
+                                            <label>Device ID</label>
+                                            <input value="meter-001">
+                                        </div>
+
+                                        <div class="field">
+                                            <label>Society ID</label>
+                                            <input value="test-society">
+                                        </div>
+
+                                        <div class="field">
+                                            <label>Panel ID</label>
+                                            <input value="main-panel">
+                                        </div>
+
+                                        <div class="field">
+                                            <label>Wi-Fi SSID</label>
+                                            <input value="test-wifi">
+                                        </div>
+
+                                        <div class="field">
+                                            <label>Wi-Fi Password</label>
+                                            <input type="password">
+                                        </div>
+
+                                        <div class="field">
+                                            <label>MQTT Endpoint</label>
+                                            <input value="test.mosquitto.org">
+                                        </div>
+
+                                        <div class="field full">
+                                            <label>HTTPS Endpoint</label>
+                                            <input value="https://api.example.com/v1">
+                                        </div>
+
+                                        <div class="field">
+                                            <label>OAuth2 Token</label>
+                                            <input value="test-token">
+                                        </div>
+
+                                        <div class="field">
+                                            <label>Device Secret</label>
+                                            <input value="test-secret">
+                                        </div>
+
+                                        <div class="field">
+                                            <label>Meter Profile</label>
+                                            <select>
+                                                <option>schneider-em6400</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="field">
+                                            <label>Serial Device</label>
+                                            <input value="/dev/ttyUSB0">
+                                        </div>
+
+                                    </div>
+
+                                    <div class="form-actions">
+                                        <button class="primary">
+                                            Save Configuration
+                                        </button>
+
+                                        <button class="ghost">
+                                            Load Saved Config
+                                        </button>
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <!-- DIAGNOSTICS TAB -->
+                            <div id="diagnostics" class="tab-view hidden">
+
+                                <div class="panel-head">
+                                    <div>
+                                        <div class="panel-title">Diagnostics & Utilities</div>
+                                        <div class="panel-sub">
+                                            Real-time gateway tooling
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="diag-grid">
+
+                                    <div class="diag-btn">
+                                        <div class="diag-icon">💚</div>
+                                        <h4>Health Check</h4>
+                                        <p>Verify API and runtime health.</p>
+                                    </div>
+
+                                    <div class="diag-btn">
+                                        <div class="diag-icon">📶</div>
+                                        <h4>Wi-Fi Scan</h4>
+                                        <p>Discover nearby networks.</p>
+                                    </div>
+
+                                    <div class="diag-btn">
+                                        <div class="diag-icon">⚙️</div>
+                                        <h4>System Status</h4>
+                                        <p>CPU, memory and storage telemetry.</p>
+                                    </div>
+
+                                    <div class="diag-btn">
+                                        <div class="diag-icon">📟</div>
+                                        <h4>Meter Test</h4>
+                                        <p>Validate Modbus communication.</p>
+                                    </div>
+
+                                    <div class="diag-btn">
+                                        <div class="diag-icon">🧾</div>
+                                        <h4>Logs</h4>
+                                        <p>Inspect runtime service logs.</p>
+                                    </div>
+
+                                    <div class="diag-btn">
+                                        <div class="diag-icon">🔳</div>
+                                        <h4>QR Generator</h4>
+                                        <p>Create Wi-Fi and device QR codes.</p>
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- RIGHT -->
+                        <div class="panel">
+
+                            <div class="panel-head">
+                                <div>
+                                    <div class="panel-title">Response Console</div>
+                                    <div class="panel-sub">
+                                        API output, provisioning logs and QR previews
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="output">
+            <pre>{
+            "status": "ready",
+            "gateway": "meter-001",
+            "network": "connected",
+            "mqtt": "online",
+            "meter": "detected",
+            "cloud_sync": true
+            }</pre>
+                            </div>
+
+                        </div>
+
+                    </section>
+
+                </main>
+
             </div>
-        </div>
 
-        <script>
-            const fields = [
-                'device_id','society_id','panel_id','wi_fi_ssid','wi_fi_password',
-                'mqtt_endpoint','https_endpoint','oauth2_token','device_secret',
-                'meter_type','meter_device',
-            ];
-            const MIN_MS = 450;
-            const sleep = ms => new Promise(r => setTimeout(r, ms));
+            <script>
 
-            // ── Loading state ─────────────────────────────────────────
-            function setLoading(on, label = 'Fetching…') {
-                const ov = document.getElementById('spinner');
-                document.getElementById('spinner_label').textContent = label;
-                ov.style.display = on ? 'flex' : 'none';
-                document.querySelectorAll('button').forEach(b => b.disabled = on);
+            function showTab(id, el){
+
+                document.querySelectorAll('.tab-view')
+                    .forEach(v => v.classList.add('hidden'));
+
+                document.getElementById(id)
+                    .classList.remove('hidden');
+
+                document.querySelectorAll('.nav-btn')
+                    .forEach(b => b.classList.remove('active'));
+
+                el.classList.add('active');
             }
 
-            // ── Tabs ──────────────────────────────────────────────────
-            function switchTab(name) {
-                document.querySelectorAll('.tab').forEach(t =>
-                    t.classList.toggle('active', t.dataset.tab === name));
-                document.getElementById('response_pane').style.display =
-                    name === 'response' ? 'block' : 'none';
-                const qp = document.getElementById('qr_pane');
-                qp.style.display = name === 'qr' ? 'flex' : 'none';
-            }
-
-            // ── Security ──────────────────────────────────────────────
-            function sanitize(obj) {
-                if (obj === null || obj === undefined) return obj;
-                if (Array.isArray(obj)) return obj.map(sanitize);
-                if (typeof obj !== 'object') return obj;
-                const out = {};
-                for (const [k, v] of Object.entries(obj)) {
-                    if (/password|secret|token|auth/i.test(k)) out[k] = '[REDACTED]';
-                    else if (k === 'wifi_string') continue;
-                    else out[k] = sanitize(v);
-                }
-                return out;
-            }
-            const esc = t => String(t)
-                .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-                .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-
-            // ── Renderer ──────────────────────────────────────────────
-            function render(v) {
-                if (v === null || v === undefined)
-                    return '<span style="color:var(--text-faint)">null</span>';
-                if (Array.isArray(v)) {
-                    if (!v.length) return '<span style="color:var(--text-faint)">[]</span>';
-                    return '<div class="res-array">' +
-                        v.map(i => '<div class="res-item">' + render(i) + '</div>').join('') +
-                    '</div>';
-                }
-                if (typeof v === 'object') {
-                    return '<table class="res-table">' +
-                        Object.entries(v).map(([k, val]) =>
-                            '<tr class="res-row">' +
-                                '<td class="res-key">' + esc(k) + '</td>' +
-                                '<td class="res-val">'  + render(val) + '</td>' +
-                            '</tr>'
-                        ).join('') +
-                    '</table>';
-                }
-                return esc(v);
-            }
-
-            function showResponse(data) {
-                const pane = document.getElementById('response_pane');
-                const payload = data?.body ?? data;
-                const hasQr = payload && typeof payload === 'object'
-                    && typeof payload.qr_code === 'string';
-
-                if (hasQr) {
-                    document.getElementById('qr_pane').innerHTML = payload.qr_code;
-                    switchTab('qr');
-                    const d = { 'http status': data.status };
-                    if (payload.ssid)       { d.type = 'Wi-Fi QR'; d.ssid = payload.ssid; }
-                    else if (payload.data)  {
-                        d.type = 'Device QR';
-                        try { d.data = JSON.parse(payload.data); } catch { d.data = payload.data; }
-                    }
-                    pane.innerHTML = render(sanitize(d));
-                    return;
-                }
-                switchTab('response');
-                pane.innerHTML = typeof payload === 'string'
-                ? esc(payload)
-                : render(sanitize(payload));
-            }
-
-            // ── Core fetch with MIN_MS anti-flicker ───────────────────
-            async function callApi(path, opts = {}, label) {
-                const lbl = label || (opts.method === 'POST' ? 'Sending…' : 'Fetching…');
-                setLoading(true, lbl);
-                try {
-                    const [r] = await Promise.all([fetch(path, opts), sleep(MIN_MS)]);
-                    const text = await r.text();
-                    let data;
-                    try { data = JSON.parse(text); } catch { data = text; }
-                    showResponse({ status: r.status, body: data });
-                } catch (e) {
-                    showResponse(String(e));
-                } finally {
-                    setLoading(false);
-                }
-            }
-
-            // ── Status bar ────────────────────────────────────────────
-            async function loadStatus() {
-                try {
-                    const r = await fetch('/api/provisioning/status');
-                    const d = await r.json();
-                    document.getElementById('status_pill').textContent = d.status;
-                    document.getElementById('step_pill').textContent = `Step ${d.step} / 5`;
-                } catch {}
-            }
-
-            // ── Config helpers ────────────────────────────────────────
-            const readForm = () => fields.reduce((c,id) => {
-                c[id] = document.getElementById(id).value; return c; }, {});
-
-            async function saveConfig() {
-                await callApi('/api/config/set', {
-                    method: 'POST',
-                    headers: {'Content-Type':'application/json'},
-                    body: JSON.stringify(readForm()),
-                }, 'Saving…');
-                await loadStatus();
-            }
-
-            async function loadConfig() {
-                setLoading(true, 'Loading config…');
-                try {
-                    const [r] = await Promise.all([fetch('/api/config/get'), sleep(MIN_MS)]);
-                    const cfg = await r.json();
-                    if (cfg) for (const id of fields)
-                        if (cfg[id] !== undefined) document.getElementById(id).value = cfg[id];
-                    showResponse({ status: r.status, body: cfg });
-                } catch (e) { showResponse(String(e)); }
-                finally { setLoading(false); }
-            }
-
-            async function loadProfiles() {
-                try {
-                    const r = await fetch('/api/meter/profiles');
-                    const d = await r.json();
-                    const sel = document.getElementById('meter_type');
-                    sel.innerHTML = '';
-                    (d.profiles || []).forEach(p => {
-                        const o = document.createElement('option');
-                        o.value = p; o.textContent = p; sel.appendChild(o);
-                    });
-                } catch {}
-            }
-
-            async function testMeter() {
-                const dev = encodeURIComponent(document.getElementById('meter_device').value);
-                const prf = encodeURIComponent(document.getElementById('meter_type').value);
-                await callApi(`/api/meter/test?device=${dev}&profile=${prf}`,
-                    {method:'POST'}, 'Testing meter…');
-            }
-
-            async function registerDevice() {
-                await callApi('/api/registration/submit', {
-                    method: 'POST',
-                    headers: {'Content-Type':'application/json'},
-                    body: JSON.stringify({
-                        device_id:    document.getElementById('device_id').value,
-                        oauth2_token: document.getElementById('oauth2_token').value,
-                    }),
-                }, 'Registering…');
-            }
-
-            loadStatus(); loadProfiles(); loadConfig();
-        </script>
-    </body>
-    </html>
+            </script>
+            </body>
+        </html>
     """
 
 
