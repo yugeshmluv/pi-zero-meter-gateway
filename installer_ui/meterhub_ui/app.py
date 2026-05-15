@@ -373,125 +373,121 @@ async def dashboard() -> str:
                 --success: #16a34a;
                 --danger: #dc2626;
                 --mono: ui-monospace, "SF Mono", Menlo, monospace;
-                --radius: 10px;
-                --radius-sm: 6px;
+                --radius: 8px;
+                --radius-sm: 5px;
             }
             * { box-sizing: border-box; }
             body {
                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
                     Roboto, sans-serif;
                 margin: 0;
-                padding: 16px;
+                padding: 8px;
                 background: var(--bg);
                 color: var(--text);
-                font-size: 14px;
-                line-height: 1.5;
+                font-size: 13px;
+                line-height: 1.4;
             }
             .container {
                 max-width: 1100px;
                 margin: 0 auto;
                 display: grid;
                 grid-template-columns: 1fr 1fr;
-                gap: 16px;
+                gap: 8px;
             }
-            .full {
-                grid-column: 1 / -1;
-            }
+            .full { grid-column: 1 / -1; }
             header.full {
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                padding: 14px 18px;
+                padding: 8px 12px;
                 background: var(--surface);
                 border: 1px solid var(--border);
                 border-radius: var(--radius);
             }
             header h1 {
                 margin: 0;
-                font-size: 1.25rem;
+                font-size: 1rem;
                 font-weight: 600;
             }
-            .status-pills {
-                display: flex;
-                gap: 8px;
-            }
+            .status-pills { display: flex; gap: 6px; }
             .pill {
-                padding: 4px 10px;
+                padding: 3px 8px;
                 background: var(--accent-soft);
                 color: var(--accent);
                 border-radius: 999px;
-                font-size: 0.78rem;
+                font-size: 0.72rem;
                 font-weight: 600;
             }
             .card {
                 background: var(--surface);
                 border: 1px solid var(--border);
                 border-radius: var(--radius);
-                padding: 16px;
+                padding: 10px 12px;
                 display: flex;
                 flex-direction: column;
                 min-height: 0;
             }
             .card h2 {
-                margin: 0 0 12px;
-                font-size: 0.85rem;
-                font-weight: 600;
+                margin: 0 0 8px;
+                font-size: 0.72rem;
+                font-weight: 700;
                 text-transform: uppercase;
-                letter-spacing: 0.05em;
+                letter-spacing: 0.06em;
                 color: var(--text-muted);
             }
             .form-grid {
                 display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 10px;
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 6px;
             }
-            .field { display: flex; flex-direction: column; gap: 4px; }
-            label {
-                font-size: 0.75rem;
-                font-weight: 500;
-                color: var(--text-muted);
-            }
+            .field { display: flex; flex-direction: column; gap: 2px; }
+            label { font-size: 0.68rem; font-weight: 500; color: var(--text-muted); }
             input, select {
-                padding: 7px 10px;
+                padding: 5px 8px;
                 border: 1px solid var(--border-strong);
                 border-radius: var(--radius-sm);
                 background: var(--surface);
                 color: var(--text);
-                font-size: 0.85rem;
+                font-size: 0.8rem;
                 font-family: inherit;
                 transition: border-color 0.15s, box-shadow 0.15s;
             }
             input:focus, select:focus {
                 outline: none;
                 border-color: var(--accent);
-                box-shadow: 0 0 0 3px var(--accent-soft);
+                box-shadow: 0 0 0 2px var(--accent-soft);
             }
             .button-row {
                 display: flex;
-                gap: 8px;
-                margin-top: 12px;
+                gap: 6px;
+                margin-top: 8px;
                 flex-wrap: wrap;
             }
             .button-grid {
                 display: grid;
-                grid-template-columns: repeat(3, 1fr);
-                gap: 6px;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 5px;
             }
             button {
                 appearance: none;
                 border: 1px solid var(--accent);
                 background: var(--accent);
                 color: white;
-                padding: 7px 12px;
+                padding: 5px 9px;
                 border-radius: var(--radius-sm);
-                font-size: 0.82rem;
+                font-size: 0.76rem;
                 font-weight: 500;
                 cursor: pointer;
                 font-family: inherit;
-                transition: background 0.12s, transform 0.06s;
+                transition: background 0.12s, opacity 0.12s, transform 0.06s;
             }
             button:hover { background: var(--accent-hover); }
             button:active { transform: translateY(1px); }
+            button:disabled {
+                opacity: 0.45;
+                cursor: not-allowed;
+                transform: none;
+            }
             button.secondary {
                 background: var(--surface);
                 color: var(--secondary);
@@ -501,87 +497,108 @@ async def dashboard() -> str:
                 background: var(--surface-alt);
                 color: var(--secondary-hover);
             }
+            button.secondary:disabled {
+                background: var(--surface);
+            }
+            /* Output pane */
+            .pane-wrap {
+                position: relative;
+                flex: 1;
+            }
             .output-area {
                 background: var(--surface-alt);
                 border: 1px solid var(--border);
                 border-radius: var(--radius-sm);
-                /* Critical: fixed height, internal scroll → no page jump */
-                height: 320px;
+                height: 260px;
                 overflow-y: auto;
-                padding: 12px;
+                padding: 10px;
                 font-family: var(--mono);
-                font-size: 0.78rem;
+                font-size: 0.75rem;
             }
             .qr-area {
                 background: var(--surface-alt);
                 border: 1px solid var(--border);
                 border-radius: var(--radius-sm);
-                height: 320px;
+                height: 260px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                padding: 12px;
+                padding: 10px;
             }
-            .qr-area svg {
-                max-width: 100%;
-                max-height: 100%;
-                width: auto;
-                height: auto;
+            .qr-area svg { max-width: 100%; max-height: 100%; width: auto; height: auto; }
+            /* Spinner overlay */
+            .spinner-overlay {
+                position: absolute;
+                inset: 0;
+                background: rgba(255,255,255,0.82);
+                border-radius: var(--radius-sm);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                z-index: 10;
+                font-size: 0.75rem;
+                color: var(--text-muted);
+                font-weight: 500;
+            }
+            @keyframes spin { to { transform: rotate(360deg); } }
+            .spinner-ring {
+                width: 28px; height: 28px;
+                border: 3px solid var(--border-strong);
+                border-top-color: var(--accent);
+                border-radius: 50%;
+                animation: spin 0.7s linear infinite;
             }
             .placeholder {
                 color: var(--text-muted);
-                font-size: 0.85rem;
+                font-size: 0.8rem;
                 text-align: center;
             }
+            /* Response renderer */
             .response-row {
                 display: grid;
-                grid-template-columns: 130px 1fr;
-                gap: 10px;
-                padding: 4px 0;
+                grid-template-columns: 120px 1fr;
+                gap: 8px;
+                padding: 3px 0;
                 border-bottom: 1px solid var(--border);
                 align-items: start;
             }
             .response-row:last-child { border-bottom: none; }
-            .response-key {
-                font-weight: 600;
-                color: var(--accent);
-                word-break: break-word;
-            }
-            .response-value {
-                color: var(--text);
-                word-break: break-word;
-            }
-            .response-object,
-            .response-array { padding-left: 4px; }
+            .response-key { font-weight: 600; color: var(--accent); word-break: break-word; }
+            .response-value { color: var(--text); word-break: break-word; }
+            .response-object, .response-array { padding-left: 2px; }
             .response-item {
-                padding-left: 8px;
-                margin: 4px 0;
+                padding-left: 6px;
+                margin: 3px 0;
                 border-left: 2px solid var(--border);
             }
+            /* Tabs */
             .tabs {
                 display: flex;
-                gap: 4px;
-                margin-bottom: 12px;
+                gap: 2px;
+                margin-bottom: 8px;
                 border-bottom: 1px solid var(--border);
             }
             .tab {
-                padding: 6px 12px;
+                padding: 4px 10px;
                 background: none;
                 border: none;
                 color: var(--text-muted);
-                font-size: 0.82rem;
+                font-size: 0.76rem;
                 cursor: pointer;
                 border-bottom: 2px solid transparent;
                 margin-bottom: -1px;
                 font-weight: 500;
             }
-            .tab.active {
-                color: var(--accent);
-                border-bottom-color: var(--accent);
-            }
+            .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
             .tab:hover { color: var(--text); }
             @media (max-width: 800px) {
                 .container { grid-template-columns: 1fr; }
+                .form-grid { grid-template-columns: 1fr 1fr; }
+                .button-grid { grid-template-columns: repeat(3, 1fr); }
+            }
+            @media (max-width: 480px) {
                 .form-grid { grid-template-columns: 1fr; }
                 .button-grid { grid-template-columns: repeat(2, 1fr); }
             }
@@ -688,14 +705,16 @@ async def dashboard() -> str:
                     <button class="tab" data-tab="qr"
                         onclick="switchTab('qr')">QR Preview</button>
                 </div>
-                <div class="output-area" id="response_pane">
-                    <div class="placeholder">
-                        Click any diagnostic button to see results.
+                <div class="pane-wrap">
+                    <div class="output-area" id="response_pane">
+                        <div class="placeholder">Click any button to see results.</div>
                     </div>
-                </div>
-                <div class="qr-area" id="qr_pane" style="display:none;">
-                    <div class="placeholder">
-                        Click "Device QR" or "Wi-Fi QR" to render.
+                    <div class="qr-area" id="qr_pane" style="display:none;">
+                        <div class="placeholder">Click "Device QR" or "Wi-Fi QR" to render.</div>
+                    </div>
+                    <div class="spinner-overlay" id="spinner" style="display:none;">
+                        <div class="spinner-ring"></div>
+                        <span id="spinner_label">Fetching…</span>
                     </div>
                 </div>
             </section>
@@ -708,6 +727,16 @@ async def dashboard() -> str:
                 'oauth2_token', 'device_secret', 'meter_type', 'meter_device',
             ];
 
+            // ── Loading state ─────────────────────────────────────────────
+            function setLoading(active, label = 'Fetching…') {
+                const spinner = document.getElementById('spinner');
+                const allBtns = document.querySelectorAll('button');
+                spinner.style.display = active ? 'flex' : 'none';
+                document.getElementById('spinner_label').textContent = label;
+                allBtns.forEach(b => { b.disabled = active; });
+            }
+
+            // ── Tab switching ─────────────────────────────────────────────
             function switchTab(name) {
                 document.querySelectorAll('.tab').forEach(t =>
                     t.classList.toggle('active', t.dataset.tab === name));
@@ -717,57 +746,50 @@ async def dashboard() -> str:
                     name === 'qr' ? 'flex' : 'none';
             }
 
+            // ── Security helpers ──────────────────────────────────────────
             function sanitizeObject(obj) {
                 if (obj === null || obj === undefined) return obj;
                 if (Array.isArray(obj)) return obj.map(sanitizeObject);
                 if (typeof obj !== 'object') return obj;
-                const sanitized = {};
-                for (const [key, value] of Object.entries(obj)) {
-                    if (/password|secret|token|auth/i.test(key)) {
-                        sanitized[key] = '[REDACTED]';
-                    } else if (key === 'wifi_string') {
-                        continue;
-                    } else {
-                        sanitized[key] = sanitizeObject(value);
-                    }
+                const out = {};
+                for (const [k, v] of Object.entries(obj)) {
+                    if (/password|secret|token|auth/i.test(k)) out[k] = '[REDACTED]';
+                    else if (k === 'wifi_string') continue;
+                    else out[k] = sanitizeObject(v);
                 }
-                return sanitized;
+                return out;
             }
 
-            function escapeHtml(text) {
-                return String(text)
-                    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-                    .replace(/>/g, '&gt;').replace(/"/g, '&quot;')
-                    .replace(/'/g, '&#39;');
+            function escapeHtml(t) {
+                return String(t)
+                    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                    .replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+                    .replace(/'/g,'&#39;');
             }
 
+            // ── Response renderer ─────────────────────────────────────────
             function renderResponse(value) {
-                if (value === null || value === undefined) {
+                if (value === null || value === undefined)
                     return '<div class="response-value">null</div>';
-                }
                 if (Array.isArray(value)) {
-                    if (value.length === 0) {
+                    if (!value.length)
                         return '<div class="response-value">[]</div>';
-                    }
-                    return '<div class="response-array">' + value.map(item =>
-                        '<div class="response-item">' +
-                            renderResponse(item) + '</div>'
-                    ).join('') + '</div>';
+                    return '<div class="response-array">' +
+                        value.map(i =>
+                            '<div class="response-item">' +
+                                renderResponse(i) + '</div>').join('') +
+                        '</div>';
                 }
                 if (typeof value === 'object') {
                     return '<div class="response-object">' +
-                        Object.entries(value).map(([key, val]) =>
+                        Object.entries(value).map(([k, v]) =>
                             '<div class="response-row">' +
-                                '<div class="response-key">' +
-                                    escapeHtml(key) + '</div>' +
-                                '<div class="response-value">' +
-                                    renderResponse(val) + '</div>' +
-                            '</div>'
-                        ).join('') +
-                    '</div>';
+                                '<div class="response-key">' + escapeHtml(k) + '</div>' +
+                                '<div class="response-value">' + renderResponse(v) + '</div>' +
+                            '</div>').join('') +
+                        '</div>';
                 }
-                return '<div class="response-value">' +
-                    escapeHtml(value) + '</div>';
+                return '<div class="response-value">' + escapeHtml(value) + '</div>';
             }
 
             function showResponse(data) {
@@ -778,14 +800,14 @@ async def dashboard() -> str:
                     && typeof payload.qr_code === 'string';
 
                 if (hasQr) {
-                    const qrPane = document.getElementById('qr_pane');
-                    qrPane.innerHTML = payload.qr_code;
+                    document.getElementById('qr_pane').innerHTML = payload.qr_code;
                     switchTab('qr');
                     const details = { status: data.status };
                     if (payload.ssid) {
                         details.type = 'Wi-Fi QR Code';
                         details.ssid = payload.ssid;
-                    } else if (payload.data) {
+                    }
+                    else if (payload.data) {
                         details.type = 'Device QR Code';
                         try { details.data = JSON.parse(payload.data); }
                         catch { details.data = payload.data; }
@@ -795,15 +817,19 @@ async def dashboard() -> str:
                 }
 
                 switchTab('response');
-                if (typeof payload === 'string') {
-                    pane.innerHTML = '<div class="response-value">' +
-                        escapeHtml(payload) + '</div>';
-                } else {
+                if (typeof payload === 'string')
+                    pane.innerHTML = '<div class="response-value">'
+                        + escapeHtml(payload)
+                        + '</div>';
+                else
                     pane.innerHTML = renderResponse(sanitizeObject(payload));
-                }
             }
 
-            async function callApi(path, opts = {}) {
+            // ── Core API helper ───────────────────────────────────────────
+            async function callApi(path, opts = {}, spinnerLabel) {
+                const label = spinnerLabel || (opts.method === 'POST'
+                    ? 'Sending…' : 'Fetching…');
+                setLoading(true, label);
                 try {
                     const r = await fetch(path, opts);
                     const text = await r.text();
@@ -812,22 +838,26 @@ async def dashboard() -> str:
                     showResponse({ status: r.status, body: data });
                 } catch (e) {
                     showResponse(String(e));
+                } finally {
+                    setLoading(false);
                 }
             }
 
+            // ── Status bar ────────────────────────────────────────────────
             async function loadStatus() {
-                const r = await fetch('/api/provisioning/status');
-                const d = await r.json();
-                document.getElementById('status_pill').innerText = d.status;
-                document.getElementById('step_pill').innerText =
-                    `Step ${d.step} / 5`;
+                try {
+                    const r = await fetch('/api/provisioning/status');
+                    const d = await r.json();
+                    document.getElementById('status_pill').innerText = d.status;
+                    document.getElementById('step_pill').innerText =
+                        `Step ${d.step} / 5`;
+                } catch {}
             }
 
+            // ── Config helpers ────────────────────────────────────────────
             function readConfigForm() {
                 return fields.reduce((c, id) => {
-                    c[id] = document.getElementById(id).value;
-                    return c;
-                }, {});
+                    c[id] = document.getElementById(id).value; return c; }, {});
             }
 
             async function saveConfig() {
@@ -835,34 +865,40 @@ async def dashboard() -> str:
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(readConfigForm()),
-                });
+                }, 'Saving…');
                 await loadStatus();
             }
 
             async function loadConfig() {
-                const r = await fetch('/api/config/get');
-                const config = await r.json();
-                if (config) {
-                    for (const id of fields) {
-                        if (config[id] !== undefined) {
-                            document.getElementById(id).value = config[id];
-                        }
+                setLoading(true, 'Loading…');
+                try {
+                    const r = await fetch('/api/config/get');
+                    const config = await r.json();
+                    if (config) {
+                        for (const id of fields)
+                            if (config[id] !== undefined)
+                                document.getElementById(id).value = config[id];
                     }
+                    showResponse({ status: r.status, body: config });
+                } catch (e) {
+                    showResponse(String(e));
+                } finally {
+                    setLoading(false);
                 }
-                showResponse({ status: r.status, body: config });
             }
 
             async function loadProfiles() {
-                const r = await fetch('/api/meter/profiles');
-                const data = await r.json();
-                const select = document.getElementById('meter_type');
-                select.innerHTML = '';
-                for (const profile of data.profiles || []) {
-                    const o = document.createElement('option');
-                    o.value = profile;
-                    o.innerText = profile;
-                    select.appendChild(o);
-                }
+                try {
+                    const r = await fetch('/api/meter/profiles');
+                    const data = await r.json();
+                    const sel = document.getElementById('meter_type');
+                    sel.innerHTML = '';
+                    for (const p of data.profiles || []) {
+                        const o = document.createElement('option');
+                        o.value = p; o.innerText = p;
+                        sel.appendChild(o);
+                    }
+                } catch {}
             }
 
             async function testMeter() {
@@ -872,8 +908,7 @@ async def dashboard() -> str:
                     document.getElementById('meter_type').value);
                 await callApi(
                     `/api/meter/test?device=${device}&profile=${profile}`,
-                    { method: 'POST' }
-                );
+                    { method: 'POST' }, 'Testing meter…');
             }
 
             async function registerDevice() {
@@ -882,10 +917,9 @@ async def dashboard() -> str:
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         device_id: document.getElementById('device_id').value,
-                        oauth2_token: document.getElementById(
-                            'oauth2_token').value,
+                        oauth2_token: document.getElementById('oauth2_token').value,
                     }),
-                });
+                }, 'Registering…');
             }
 
             loadStatus();
