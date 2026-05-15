@@ -357,121 +357,269 @@ async def dashboard() -> str:
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <style>
-            body { font-family: Arial, sans-serif; margin: 0; padding: 20px;
-                   background: #f5f5f5; color: #222; }
-            .container { max-width: 980px; margin: 0 auto; background: white;
-                         padding: 20px; border-radius: 8px; }
-            h1 { color: #333; }
-            h2 { margin-bottom: 8px; }
-            .step { margin: 20px 0; padding: 15px; border: 1px solid #ddd;
-                    border-radius: 4px; }
-            .status { font-weight: bold; }
-            button { padding: 10px 20px; margin: 5px; background: #0066cc;
-                     color: white; border: none; border-radius: 4px; cursor: pointer; }
-            button:hover { background: #0052a3; }
-            button.secondary { background: #555; }
-            label { display: block; font-weight: bold; margin-top: 10px; }
-            input, select { box-sizing: border-box; width: 100%; padding: 9px;
-                            margin-top: 4px; border: 1px solid #bbb; border-radius: 4px; }
-            .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
-                    gap: 12px; }
-            .info { background: #e3f2fd; padding: 10px; border-radius: 4px;
-                    margin: 10px 0; }
-            .warn { background: #fff4d6; padding: 10px; border-radius: 4px;
-                    margin: 10px 0; }
-            pre { overflow: auto; background: #111; color: #eee; padding: 12px;
-                  border-radius: 4px; min-height: 80px; }
-            .qr-code { text-align: center; margin: 20px 0; }
-            .qr-code img,
-            .qr-code svg {
-                max-width: 300px;
-                max-height: 300px;
-                border: 2px solid #ddd;
-                padding: 10px;
+            body {
+                font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 20px;
+                background: #f2f6fb;
+                color: #1d2635;
             }
-            @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
+            .container {
+                max-width: 1100px;
+                margin: 0 auto;
+                padding: 20px;
+                background: #ffffff;
+                border-radius: 18px;
+                box-shadow: 0 24px 80px rgba(15, 23, 42, 0.08);
+            }
+            h1 { margin-top: 0; font-size: 2rem; }
+            .info-row {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 16px;
+                margin-bottom: 24px;
+            }
+            .info-card {
+                flex: 1 1 220px;
+                min-width: 220px;
+                padding: 18px;
+                background: #f5fbff;
+                border: 1px solid #d8e7f6;
+                border-radius: 16px;
+            }
+            .info-card strong {
+                display: block;
+                margin-bottom: 6px;
+                color: #0f4fa8;
+            }
+            .card {
+                background: #fbfdff;
+                border: 1px solid #dde6f0;
+                border-radius: 18px;
+                padding: 22px;
+                margin-bottom: 24px;
+            }
+            .card h2 { margin-top: 0; font-size: 1.35rem; }
+            .form-grid {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 18px;
+            }
+            .button-row {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 12px;
+                margin-top: 16px;
+            }
+            .button-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+                gap: 12px;
+                margin-top: 16px;
+            }
+            button {
+                appearance: none;
+                border: none;
+                border-radius: 12px;
+                padding: 12px 16px;
+                background: #1e5de0;
+                color: white;
+                cursor: pointer;
+                font-size: 0.95rem;
+                transition: transform 0.12s ease, background 0.12s ease,
+                    box-shadow 0.12s ease;
+            }
+            button:hover {
+                background: #104bbe;
+                transform: translateY(-1px);
+                box-shadow: 0 10px 30px rgba(16, 75, 190, 0.18);
+            }
+            button.secondary { background: #535f70; }
+            button.secondary:hover { background: #3f4c5c; }
+            label {
+                display: block;
+                font-weight: 600;
+                margin-bottom: 8px;
+                color: #2d3a4d;
+            }
+            input, select {
+                width: 100%;
+                padding: 12px 14px;
+                border: 1px solid #cdd8e9;
+                border-radius: 12px;
+                background: white;
+                color: #1d2635;
+                box-sizing: border-box;
+            }
+            .qr-panel {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 20px;
+            }
+            .qr-card {
+                background: #ffffff;
+                border: 1px solid #d9e4ee;
+                border-radius: 18px;
+                padding: 20px;
+                text-align: center;
+                min-height: 260px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+            .qr-card h3 { margin-top: 0; }
+            .qr-placeholder {
+                color: #6b7c94;
+                font-size: 0.98rem;
+            }
+            .qr-code {
+                margin: 0 auto;
+                width: 100%;
+                max-width: 340px;
+            }
+            .qr-code svg {
+                width: 100%;
+                height: auto;
+                border-radius: 16px;
+                border: 1px solid #d8e6f2;
+            }
+            .qr-details pre {
+                background: #f7fbff;
+                color: #1a2640;
+                padding: 16px;
+                border-radius: 16px;
+                border: 1px solid #d7e5f1;
+                min-height: 136px;
+                overflow-x: auto;
+                text-align: left;
+            }
+            pre#output {
+                background: #11151f;
+                color: #ecf5ff;
+                padding: 18px;
+                border-radius: 18px;
+                border: 1px solid #2f4156;
+                min-height: 220px;
+                overflow-x: auto;
+            }
+            @media (max-width: 900px) {
+                .form-grid,
+                .qr-panel {
+                    grid-template-columns: 1fr;
+                }
+            }
         </style>
     </head>
     <body>
         <div class="container">
             <h1>MeterHub Installer</h1>
-            <div class="info">
-                <strong>Status:</strong> <span id="status">Loading...</span><br>
-                <strong>Step:</strong> <span id="step">0/5</span>
-            </div>
-            <div id="wizard"></div>
-            <button onclick="nextStep()">Next</button>
-            <button onclick="resetProvisioning()">Reset</button>
-
-            <div class="step">
-                <h2>Device Configuration</h2>
-                <div class="warn">
-                    Save configuration first, then use the checks below.
-                    Meter checks report unavailable until an RS485
-                    adapter appears as a serial device.
+            <div class="info-row">
+                <div class="info-card">
+                    <strong>Status</strong>
+                    <span id="status">Loading…</span>
                 </div>
-                <div class="grid">
-                    <label>Device ID
+                <div class="info-card">
+                    <strong>Step</strong>
+                    <span id="step">0 / 5</span>
+                </div>
+                <div class="info-card">
+                    <strong>Tip</strong>
+                    <span>Save configuration before generating QR codes.</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Device Configuration</h2>
+                <div class="form-grid">
+                    <div>
+                        <label for="device_id">Device ID</label>
                         <input id="device_id" value="meter-001">
-                    </label>
-                    <label>Society ID
+                    </div>
+                    <div>
+                        <label for="society_id">Society ID</label>
                         <input id="society_id" value="test-society">
-                    </label>
-                    <label>Panel ID
+                    </div>
+                    <div>
+                        <label for="panel_id">Panel ID</label>
                         <input id="panel_id" value="main-panel">
-                    </label>
-                    <label>Wi-Fi SSID
+                    </div>
+                    <div>
+                        <label for="wi_fi_ssid">Wi-Fi SSID</label>
                         <input id="wi_fi_ssid" value="test-wifi">
-                    </label>
-                    <label>Wi-Fi Password
+                    </div>
+                    <div>
+                        <label for="wi_fi_password">Wi-Fi Password</label>
                         <input id="wi_fi_password" type="password" value="">
-                    </label>
-                    <label>MQTT Endpoint
+                    </div>
+                    <div>
+                        <label for="mqtt_endpoint">MQTT Endpoint</label>
                         <input id="mqtt_endpoint" value="test.mosquitto.org">
-                    </label>
-                    <label>HTTPS Endpoint
+                    </div>
+                    <div>
+                        <label for="https_endpoint">HTTPS Endpoint</label>
                         <input id="https_endpoint" value="https://api.example.com/v1">
-                    </label>
-                    <label>OAuth2 Token
+                    </div>
+                    <div>
+                        <label for="oauth2_token">OAuth2 Token</label>
                         <input id="oauth2_token" value="test-token">
-                    </label>
-                    <label>Device Secret
+                    </div>
+                    <div>
+                        <label for="device_secret">Device Secret</label>
                         <input id="device_secret" value="test-secret">
-                    </label>
-                    <label>Meter Profile
+                    </div>
+                    <div>
+                        <label for="meter_type">Meter Profile</label>
                         <select id="meter_type">
                             <option value="schneider-em6400">schneider-em6400</option>
                         </select>
-                    </label>
-                    <label>Meter Device
+                    </div>
+                    <div>
+                        <label for="meter_device">Meter Device</label>
                         <input id="meter_device" value="/dev/ttyUSB0">
-                    </label>
-                </div>
-                <button onclick="saveConfig()">Save Config</button>
-                <button class="secondary" onclick="loadConfig()">Load Config</button>
-            </div>
-
-            <div class="step">
-                <h2>Diagnostics</h2>
-                <button onclick="callApi('/health')">Health</button>
-                <button onclick="callApi('/info')">Info</button>
-                <button onclick="callApi('/api/system/status')">System</button>
-                <button onclick="callApi('/api/system/logs?lines=80')">Logs</button>
-                <button onclick="callApi('/api/network/scan')">Network Scan</button>
-                <button onclick="callApi('/api/network/status')">Network Status</button>
-                <button onclick="callApi('/api/meter/devices')">Serial Devices</button>
-                <button onclick="callApi('/api/meter/profiles')">Meter Profiles</button>
-                <button onclick="callApi('/api/services/status')">Service Status</button>
-                <button onclick="testMeter()">Meter Test</button>
-                <button onclick="callApi('/api/qrcode/device')">Device QR</button>
-                <button onclick="callApi('/api/qrcode/wifi')">Wi-Fi QR</button>
-                <button onclick="registerDevice()">Register</button>
-                <div class="step" style="margin-top: 10px; padding: 10px;">
-                    <h3>QR Code Preview</h3>
-                    <div id="qr_output" class="qr-code">
-                        <p>Click a QR button to render the device or Wi-Fi QR code here.</p>
                     </div>
                 </div>
+                <div class="button-row">
+                    <button onclick="saveConfig()">Save Config</button>
+                    <button class="secondary" onclick="loadConfig()">Load Config</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Diagnostics</h2>
+                <div class="button-grid">
+                    <button onclick="callApi('/health')">Health</button>
+                    <button onclick="callApi('/info')">Info</button>
+                    <button onclick="callApi('/api/system/status')">System</button>
+                    <button onclick="callApi('/api/system/logs?lines=80')">Logs</button>
+                    <button onclick="callApi('/api/network/scan')">Network Scan</button>
+                    <button onclick="callApi('/api/network/status')">Network Status</button>
+                    <button onclick="callApi('/api/meter/devices')">Serial Devices</button>
+                    <button onclick="callApi('/api/meter/profiles')">Meter Profiles</button>
+                    <button onclick="callApi('/api/services/status')">Service Status</button>
+                    <button onclick="testMeter()">Meter Test</button>
+                    <button onclick="callApi('/api/qrcode/device')">Device QR</button>
+                    <button onclick="callApi('/api/qrcode/wifi')">Wi-Fi QR</button>
+                    <button onclick="registerDevice()">Register</button>
+                </div>
+            </div>
+
+            <div class="qr-panel">
+                <div class="qr-card">
+                    <h3>QR Code Preview</h3>
+                    <div id="qr_output" class="qr-code">
+                        <div class="qr-placeholder">Click a QR button to render the SVG here.</div>
+                    </div>
+                </div>
+                <div class="qr-card">
+                    <h3>QR Metadata</h3>
+                    <div id="qr_details" class="qr-details">
+                        <pre>No QR generated yet.</pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>API Response</h2>
                 <pre id="output">Results appear here.</pre>
             </div>
         </div>
@@ -490,68 +638,68 @@ async def dashboard() -> str:
                 'meter_device',
             ];
 
-            async function loadStatus() {
-                const r = await fetch('/api/provisioning/status');
-                const d = await r.json();
-                document.getElementById('status').innerText = d.status;
-                document.getElementById('step').innerText = d.step + '/5';
-                renderStep(d.step);
+            function sanitizeObject(obj) {
+                if (obj === null || obj === undefined) {
+                    return obj;
+                }
+                if (Array.isArray(obj)) {
+                    return obj.map(sanitizeObject);
+                }
+                if (typeof obj !== 'object') {
+                    return obj;
+                }
+                const sanitized = {};
+                for (const [key, value] of Object.entries(obj)) {
+                    if (/password|secret|token|auth/i.test(key)) {
+                        sanitized[key] = '[REDACTED]';
+                    } else if (key === 'wifi_string') {
+                        continue;
+                    } else {
+                        sanitized[key] = sanitizeObject(value);
+                    }
+                }
+                return sanitized;
             }
 
-            async function nextStep() {
-                const opts = { method: 'POST' };
-                await fetch('/api/provisioning/step/next', opts);
-                await loadStatus();
-            }
-
-            async function resetProvisioning() {
-                const opts = { method: 'POST' };
-                await fetch('/api/provisioning/reset', opts);
-                await loadStatus();
-            }
-
-            function renderStep(step) {
-                const w = document.getElementById('wizard');
-                const s = [
-                    '<div class="step"><h2>Step 1: Device Identity</h2>' +
-                    '<p>Use the form below to set identifiers.</p></div>',
-                    '<div class="step"><h2>Step 2: Wi-Fi Setup</h2>' +
-                    '<p>Check current network state or save SSID for commissioning.</p></div>',
-                    '<div class="step"><h2>Step 3: Cloud Endpoints</h2>' +
-                    '<p>Use placeholder values until real cloud credentials exist.</p></div>',
-                    '<div class="step"><h2>Step 4: Meter Profile</h2>' +
-                    '<p>Profile list can be checked without hardware.</p></div>',
-                    '<div class="step"><h2>Step 5: Test & Verify</h2>' +
-                    '<p>Run diagnostics. Meter test requires a serial adapter.</p></div>',
-                    '<div class="step"><h2>Complete</h2>' +
-                    '<p>Provisioning step flow completed.</p></div>',
-                ];
-                w.innerHTML = s[step] || s[5];
+            function updateQrPreview(svg, details) {
+                const qrOutput = document.getElementById('qr_output');
+                const qrDetails = document.getElementById('qr_details');
+                qrOutput.innerHTML = svg ||
+                    '<div class="qr-placeholder">No QR available.</div>';
+                qrDetails.innerHTML =
+                    '<pre>' + JSON.stringify(details, null, 2) + '</pre>';
             }
 
             function show(data) {
                 const output = document.getElementById('output');
-                const qrOutput = document.getElementById('qr_output');
-                const payload = data && typeof data === 'object' && data.body ? data.body : data;
+                const payload = data && typeof data === 'object' && data.body
+                    ? data.body
+                    : data;
+                const hasQr = payload && typeof payload === 'object'
+                    && typeof payload.qr_code === 'string';
 
-                if (payload && typeof payload === 'object' && typeof payload.qr_code === 'string') {
-                    qrOutput.innerHTML = payload.qr_code;
-                    const metadata = { ...payload };
-                    delete metadata.qr_code;
-                    output.innerText = JSON.stringify(
-                        {
-                            status: data.status,
-                            ...metadata,
-                        },
-                        null,
-                        2
-                    );
+                if (hasQr) {
+                    const details = { status: data.status };
+                    if (payload.ssid) {
+                        details.type = 'Wi-Fi QR Code';
+                        details.ssid = payload.ssid;
+                    } else if (payload.data) {
+                        details.type = 'Device QR Code';
+                        try {
+                            details.data = JSON.parse(payload.data);
+                        } catch {
+                            details.data = payload.data;
+                        }
+                    }
+                    updateQrPreview(payload.qr_code, details);
+                    output.innerText = JSON.stringify(sanitizeObject(details), null, 2);
                     return;
                 }
 
-                qrOutput.innerHTML = '<p>No QR code available.</p>';
-                output.innerText =
-                    typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+                updateQrPreview(null, { message: 'No QR generated.' });
+                output.innerText = typeof payload === 'string'
+                    ? payload
+                    : JSON.stringify(sanitizeObject(payload), null, 2);
             }
 
             async function callApi(path, opts = {}) {
@@ -559,26 +707,46 @@ async def dashboard() -> str:
                     const r = await fetch(path, opts);
                     const text = await r.text();
                     let data;
-                    try { data = JSON.parse(text); } catch { data = text; }
+                    try {
+                        data = JSON.parse(text);
+                    } catch {
+                        data = text;
+                    }
                     show({ status: r.status, body: data });
                 } catch (e) {
                     show(String(e));
                 }
             }
 
+            async function loadStatus() {
+                const r = await fetch('/api/provisioning/status');
+                const d = await r.json();
+                document.getElementById('status').innerText = d.status;
+                document.getElementById('step').innerText = `${d.step} / 5`;
+            }
+
+            async function nextStep() {
+                await fetch('/api/provisioning/step/next', { method: 'POST' });
+                await loadStatus();
+            }
+
+            async function resetProvisioning() {
+                await fetch('/api/provisioning/reset', { method: 'POST' });
+                await loadStatus();
+            }
+
             function readConfigForm() {
-                const config = {};
-                for (const id of fields) {
+                return fields.reduce((config, id) => {
                     config[id] = document.getElementById(id).value;
-                }
-                return config;
+                    return config;
+                }, {});
             }
 
             async function saveConfig() {
                 await callApi('/api/config/set', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(readConfigForm())
+                    body: JSON.stringify(readConfigForm()),
                 });
                 await loadStatus();
             }
@@ -586,11 +754,9 @@ async def dashboard() -> str:
             async function loadConfig() {
                 const r = await fetch('/api/config/get');
                 const config = await r.json();
-                if (config) {
-                    for (const id of fields) {
-                        if (config[id] !== undefined) {
-                            document.getElementById(id).value = config[id];
-                        }
+                for (const id of fields) {
+                    if (config[id] !== undefined) {
+                        document.getElementById(id).value = config[id];
                     }
                 }
                 show({ status: r.status, body: config });
@@ -618,9 +784,7 @@ async def dashboard() -> str:
                 );
                 const meterTestUrl =
                     '/api/meter/test?device=' + device + '&profile=' + profile;
-                await callApi(meterTestUrl, {
-                    method: 'POST',
-                });
+                await callApi(meterTestUrl, { method: 'POST' });
             }
 
             async function registerDevice() {
