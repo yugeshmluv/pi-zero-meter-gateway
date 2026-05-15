@@ -973,7 +973,6 @@ async def dashboard() -> str:
 
                     <section class="content">
 
-                        <!-- LEFT -->
                         <div class="panel">
 
                             <!-- INSTALLER TAB -->
@@ -986,6 +985,12 @@ async def dashboard() -> str:
                                             Guided provisioning lifecycle
                                         </div>
                                     </div>
+
+                                    <button class="primary"
+                                        onclick="loadStatus()">
+
+                                        Refresh Status
+                                    </button>
                                 </div>
 
                                 <div class="steps">
@@ -1022,6 +1027,26 @@ async def dashboard() -> str:
 
                                 </div>
 
+                                <div style="
+                                    padding:0 22px 22px 22px;
+                                    display:flex;
+                                    gap:12px;
+                                ">
+
+                                    <button class="primary"
+                                        onclick="registerDevice()">
+
+                                        Register Gateway
+                                    </button>
+
+                                    <button class="ghost"
+                                        onclick="callApi('/api/services/status')">
+
+                                        Check Services
+                                    </button>
+
+                                </div>
+
                             </div>
 
                             <!-- CONFIG TAB -->
@@ -1031,8 +1056,24 @@ async def dashboard() -> str:
                                     <div>
                                         <div class="panel-title">Gateway Configuration</div>
                                         <div class="panel-sub">
-                                            Secure device provisioning form
+                                            Secure provisioning parameters
                                         </div>
+                                    </div>
+
+                                    <div style="display:flex;gap:10px">
+
+                                        <button class="ghost"
+                                            onclick="loadConfig()">
+
+                                            Load
+                                        </button>
+
+                                        <button class="primary"
+                                            onclick="saveConfig()">
+
+                                            Save
+                                        </button>
+
                                     </div>
                                 </div>
 
@@ -1041,72 +1082,106 @@ async def dashboard() -> str:
                                     <div class="form-grid">
 
                                         <div class="field">
-                                            <label>Device ID</label>
-                                            <input value="meter-001">
+                                            <label for="device_id">Device ID</label>
+                                            <input id="device_id" value="meter-001">
                                         </div>
 
                                         <div class="field">
-                                            <label>Society ID</label>
-                                            <input value="test-society">
+                                            <label for="society_id">Society ID</label>
+                                            <input id="society_id" value="test-society">
                                         </div>
 
                                         <div class="field">
-                                            <label>Panel ID</label>
-                                            <input value="main-panel">
+                                            <label for="panel_id">Panel ID</label>
+                                            <input id="panel_id" value="main-panel">
                                         </div>
 
                                         <div class="field">
-                                            <label>Wi-Fi SSID</label>
-                                            <input value="test-wifi">
+                                            <label for="wi_fi_ssid">Wi-Fi SSID</label>
+                                            <input id="wi_fi_ssid" value="test-wifi">
                                         </div>
 
                                         <div class="field">
-                                            <label>Wi-Fi Password</label>
-                                            <input type="password">
+                                            <label for="wi_fi_password">Wi-Fi Password</label>
+                                            <input id="wi_fi_password" type="password">
                                         </div>
 
                                         <div class="field">
-                                            <label>MQTT Endpoint</label>
-                                            <input value="test.mosquitto.org">
+                                            <label for="mqtt_endpoint">MQTT Endpoint</label>
+                                            <input id="mqtt_endpoint"
+                                                value="test.mosquitto.org">
                                         </div>
 
                                         <div class="field full">
-                                            <label>HTTPS Endpoint</label>
-                                            <input value="https://api.example.com/v1">
+                                            <label for="https_endpoint">
+                                                HTTPS Endpoint
+                                            </label>
+
+                                            <input id="https_endpoint"
+                                                value="https://api.example.com/v1">
                                         </div>
 
                                         <div class="field">
-                                            <label>OAuth2 Token</label>
-                                            <input value="test-token">
+                                            <label for="oauth2_token">
+                                                OAuth2 Token
+                                            </label>
+
+                                            <input id="oauth2_token"
+                                                value="test-token">
                                         </div>
 
                                         <div class="field">
-                                            <label>Device Secret</label>
-                                            <input value="test-secret">
+                                            <label for="device_secret">
+                                                Device Secret
+                                            </label>
+
+                                            <input id="device_secret"
+                                                value="test-secret">
                                         </div>
 
                                         <div class="field">
-                                            <label>Meter Profile</label>
-                                            <select>
-                                                <option>schneider-em6400</option>
+                                            <label for="meter_type">
+                                                Meter Profile
+                                            </label>
+
+                                            <select id="meter_type">
+                                                <option value="schneider-em6400">
+                                                    schneider-em6400
+                                                </option>
                                             </select>
                                         </div>
 
                                         <div class="field">
-                                            <label>Serial Device</label>
-                                            <input value="/dev/ttyUSB0">
+                                            <label for="meter_device">
+                                                Serial Device
+                                            </label>
+
+                                            <input id="meter_device"
+                                                value="/dev/ttyUSB0">
                                         </div>
 
                                     </div>
 
                                     <div class="form-actions">
-                                        <button class="primary">
+
+                                        <button class="primary"
+                                            onclick="saveConfig()">
+
                                             Save Configuration
                                         </button>
 
-                                        <button class="ghost">
-                                            Load Saved Config
+                                        <button class="ghost"
+                                            onclick="loadConfig()">
+
+                                            Reload Config
                                         </button>
+
+                                        <button class="ghost"
+                                            onclick="callApi('/api/config/get')">
+
+                                            Preview JSON
+                                        </button>
+
                                     </div>
 
                                 </div>
@@ -1114,82 +1189,270 @@ async def dashboard() -> str:
                             </div>
 
                             <!-- DIAGNOSTICS TAB -->
-                            <div id="diagnostics" class="tab-view hidden">
+                            <div id="diagnostics"
+                                class="tab-view hidden"
+                                style="height:100%;min-height:0;">
 
                                 <div class="panel-head">
                                     <div>
-                                        <div class="panel-title">Diagnostics & Utilities</div>
+                                        <div class="panel-title">
+                                            Diagnostics Workspace
+                                        </div>
+
                                         <div class="panel-sub">
-                                            Real-time gateway tooling
+                                            Live gateway debugging and response console
                                         </div>
                                     </div>
+
+                                    <button class="ghost"
+                                        onclick="clearConsole()">
+
+                                        Clear Console
+                                    </button>
                                 </div>
 
-                                <div class="diag-grid">
+                                <div style="
+                                    display:grid;
+                                    grid-template-columns:360px 1fr;
+                                    height:100%;
+                                    min-height:0;
+                                ">
 
-                                    <div class="diag-btn">
-                                        <div class="diag-icon">💚</div>
-                                        <h4>Health Check</h4>
-                                        <p>Verify API and runtime health.</p>
+                                    <!-- TOOL PANEL -->
+                                    <div style="
+                                        border-right:1px solid var(--border);
+                                        overflow:auto;
+                                        padding:18px;
+                                    ">
+
+                                        <div class="diag-grid"
+                                            style="
+                                                grid-template-columns:1fr;
+                                                padding:0;
+                                            ">
+
+                                            <div class="diag-btn"
+                                                onclick="callApi('/health')">
+
+                                                <div class="diag-icon">💚</div>
+
+                                                <h4>Health Check</h4>
+
+                                                <p>
+                                                    Verify API and runtime health.
+                                                </p>
+                                            </div>
+
+                                            <div class="diag-btn"
+                                                onclick="callApi('/info')">
+
+                                                <div class="diag-icon">📦</div>
+
+                                                <h4>System Info</h4>
+
+                                                <p>
+                                                    Gateway runtime and firmware.
+                                                </p>
+                                            </div>
+
+                                            <div class="diag-btn"
+                                                onclick="callApi('/api/system/status')">
+
+                                                <div class="diag-icon">⚙️</div>
+
+                                                <h4>System Status</h4>
+
+                                                <p>
+                                                    CPU, memory and storage telemetry.
+                                                </p>
+                                            </div>
+
+                                            <div class="diag-btn"
+                                                onclick="callApi('/api/system/logs?lines=100')">
+
+                                                <div class="diag-icon">🧾</div>
+
+                                                <h4>Logs</h4>
+
+                                                <p>
+                                                    Inspect runtime service logs.
+                                                </p>
+                                            </div>
+
+                                            <div class="diag-btn"
+                                                onclick="callApi('/api/network/scan')">
+
+                                                <div class="diag-icon">📶</div>
+
+                                                <h4>Wi-Fi Scan</h4>
+
+                                                <p>
+                                                    Discover nearby wireless networks.
+                                                </p>
+                                            </div>
+
+                                            <div class="diag-btn"
+                                                onclick="callApi('/api/network/status')">
+
+                                                <div class="diag-icon">🌐</div>
+
+                                                <h4>Network Status</h4>
+
+                                                <p>
+                                                    Verify active connectivity.
+                                                </p>
+                                            </div>
+
+                                            <div class="diag-btn"
+                                                onclick="callApi('/api/meter/devices')">
+
+                                                <div class="diag-icon">🔌</div>
+
+                                                <h4>Serial Devices</h4>
+
+                                                <p>
+                                                    Detect connected serial ports.
+                                                </p>
+                                            </div>
+
+                                            <div class="diag-btn"
+                                                onclick="testMeter()">
+
+                                                <div class="diag-icon">📟</div>
+
+                                                <h4>Meter Test</h4>
+
+                                                <p>
+                                                    Validate Modbus communication.
+                                                </p>
+                                            </div>
+
+                                            <div class="diag-btn"
+                                                onclick="callApi('/api/qrcode/device')">
+
+                                                <div class="diag-icon">🔳</div>
+
+                                                <h4>Device QR</h4>
+
+                                                <p>
+                                                    Generate provisioning QR code.
+                                                </p>
+                                            </div>
+
+                                            <div class="diag-btn"
+                                                onclick="callApi('/api/qrcode/wifi')">
+
+                                                <div class="diag-icon">📡</div>
+
+                                                <h4>Wi-Fi QR</h4>
+
+                                                <p>
+                                                    Generate onboarding Wi-Fi QR.
+                                                </p>
+                                            </div>
+
+                                        </div>
+
                                     </div>
 
-                                    <div class="diag-btn">
-                                        <div class="diag-icon">📶</div>
-                                        <h4>Wi-Fi Scan</h4>
-                                        <p>Discover nearby networks.</p>
-                                    </div>
+                                    <!-- LIVE CONSOLE -->
+                                    <div style="
+                                        background:#0f172a;
+                                        color:#e2e8f0;
+                                        display:flex;
+                                        flex-direction:column;
+                                        min-height:0;
+                                        position:relative;
+                                    ">
 
-                                    <div class="diag-btn">
-                                        <div class="diag-icon">⚙️</div>
-                                        <h4>System Status</h4>
-                                        <p>CPU, memory and storage telemetry.</p>
-                                    </div>
+                                        <!-- CONSOLE TOP -->
+                                        <div style="
+                                            height:56px;
+                                            border-bottom:1px solid rgba(255,255,255,.08);
+                                            display:flex;
+                                            align-items:center;
+                                            justify-content:space-between;
+                                            padding:0 18px;
+                                            background:rgba(255,255,255,.03);
+                                        ">
 
-                                    <div class="diag-btn">
-                                        <div class="diag-icon">📟</div>
-                                        <h4>Meter Test</h4>
-                                        <p>Validate Modbus communication.</p>
-                                    </div>
+                                            <div style="
+                                                display:flex;
+                                                align-items:center;
+                                                gap:10px;
+                                                font-size:.82rem;
+                                                font-weight:700;
+                                            ">
 
-                                    <div class="diag-btn">
-                                        <div class="diag-icon">🧾</div>
-                                        <h4>Logs</h4>
-                                        <p>Inspect runtime service logs.</p>
-                                    </div>
+                                                <div style="
+                                                    width:10px;
+                                                    height:10px;
+                                                    border-radius:50%;
+                                                    background:#22c55e;
+                                                    box-shadow:0 0 12px #22c55e;
+                                                "></div>
 
-                                    <div class="diag-btn">
-                                        <div class="diag-icon">🔳</div>
-                                        <h4>QR Generator</h4>
-                                        <p>Create Wi-Fi and device QR codes.</p>
+                                                Live Response Console
+
+                                            </div>
+
+                                            <div style="
+                                                font-size:.72rem;
+                                                opacity:.65;
+                                            ">
+
+                                                MeterHub Runtime
+
+                                            </div>
+
+                                        </div>
+
+                                        <!-- RESPONSE -->
+                                        <div id="response_pane"
+                                            style="
+                                                flex:1;
+                                                overflow:auto;
+                                                padding:22px;
+                                                font-family:var(--mono);
+                                                font-size:.8rem;
+                                                line-height:1.7;
+                                                white-space:pre-wrap;
+                                                word-break:break-word;
+                                            ">
+
+                                            <div style="
+                                                opacity:.45;
+                                                text-align:center;
+                                                margin-top:80px;
+                                            ">
+
+                                                Run diagnostics to see
+                                                live API responses...
+
+                                            </div>
+
+                                        </div>
+
+                                        <!-- QR OVERLAY -->
+                                        <div id="qr_pane"
+                                            style="
+                                                display:none;
+                                                position:absolute;
+                                                inset:0;
+                                                background:rgba(15,23,42,.96);
+                                                z-index:50;
+                                                align-items:center;
+                                                justify-content:center;
+                                                flex-direction:column;
+                                                gap:20px;
+                                            ">
+
+                                        </div>
+
                                     </div>
 
                                 </div>
 
-                            </div>
-
-                        </div>
-
-                        <!-- RIGHT -->
-                        <div class="panel">
-
-                            <div class="panel-head">
-                                <div>
-                                    <div class="panel-title">Response Console</div>
-                                    <div class="panel-sub">
-                                        API output, provisioning logs and QR previews
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="output">
-            <pre>{
-            "status": "ready",
-            "gateway": "meter-001",
-            "network": "connected",
-            "mqtt": "online",
-            "meter": "detected",
-            "cloud_sync": true
-            }</pre>
                             </div>
 
                         </div>
