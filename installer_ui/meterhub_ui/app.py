@@ -527,15 +527,25 @@ async def dashboard() -> str:
             function show(data) {
                 const output = document.getElementById('output');
                 const qrOutput = document.getElementById('qr_output');
-                if (
-                    data &&
-                    typeof data === 'object' &&
-                    data.body &&
-                    typeof data.body === 'object' &&
-                    typeof data.body.qr_code === 'string'
-                ) {
-                    qrOutput.innerHTML = data.body.qr_code;
-                    const metadata = { ...data.body };
+                let qrCode = null;
+                let metadata = null;
+
+                if (data && typeof data === 'object') {
+                    if (typeof data.qr_code === 'string') {
+                        qrCode = data.qr_code;
+                        metadata = { ...data };
+                    } else if (
+                        data.body &&
+                        typeof data.body === 'object' &&
+                        typeof data.body.qr_code === 'string'
+                    ) {
+                        qrCode = data.body.qr_code;
+                        metadata = { ...data.body };
+                    }
+                }
+
+                if (qrCode !== null) {
+                    qrOutput.innerHTML = qrCode;
                     delete metadata.qr_code;
                     output.innerText = JSON.stringify(
                         {
