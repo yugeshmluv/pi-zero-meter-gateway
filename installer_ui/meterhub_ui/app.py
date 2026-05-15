@@ -357,256 +357,292 @@ async def dashboard() -> str:
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <style>
+            :root {
+                --bg: #f4f6fa;
+                --surface: #ffffff;
+                --surface-alt: #f8fafc;
+                --border: #e3e8ef;
+                --border-strong: #cbd5e1;
+                --text: #1a2233;
+                --text-muted: #64748b;
+                --accent: #2563eb;
+                --accent-hover: #1d4ed8;
+                --accent-soft: #eff6ff;
+                --secondary: #475569;
+                --secondary-hover: #334155;
+                --success: #16a34a;
+                --danger: #dc2626;
+                --mono: ui-monospace, "SF Mono", Menlo, monospace;
+                --radius: 10px;
+                --radius-sm: 6px;
+            }
+            * { box-sizing: border-box; }
             body {
-                font-family: Arial, sans-serif;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+                    Roboto, sans-serif;
                 margin: 0;
-                padding: 20px;
-                background: #f2f6fb;
-                color: #1d2635;
+                padding: 16px;
+                background: var(--bg);
+                color: var(--text);
+                font-size: 14px;
+                line-height: 1.5;
             }
             .container {
                 max-width: 1100px;
                 margin: 0 auto;
-                padding: 20px;
-                background: #ffffff;
-                border-radius: 18px;
-                box-shadow: 0 24px 80px rgba(15, 23, 42, 0.08);
-            }
-            h1 { margin-top: 0; font-size: 2rem; }
-            .info-row {
-                display: flex;
-                flex-wrap: wrap;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
                 gap: 16px;
-                margin-bottom: 24px;
             }
-            .info-card {
-                flex: 1 1 220px;
-                min-width: 220px;
-                padding: 18px;
-                background: #f5fbff;
-                border: 1px solid #d8e7f6;
-                border-radius: 16px;
+            .full {
+                grid-column: 1 / -1;
             }
-            .info-card strong {
-                display: block;
-                margin-bottom: 6px;
-                color: #0f4fa8;
+            header.full {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 14px 18px;
+                background: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+            }
+            header h1 {
+                margin: 0;
+                font-size: 1.25rem;
+                font-weight: 600;
+            }
+            .status-pills {
+                display: flex;
+                gap: 8px;
+            }
+            .pill {
+                padding: 4px 10px;
+                background: var(--accent-soft);
+                color: var(--accent);
+                border-radius: 999px;
+                font-size: 0.78rem;
+                font-weight: 600;
             }
             .card {
-                background: #fbfdff;
-                border: 1px solid #dde6f0;
-                border-radius: 18px;
-                padding: 22px;
-                margin-bottom: 24px;
+                background: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                padding: 16px;
+                display: flex;
+                flex-direction: column;
+                min-height: 0;
             }
-            .card h2 { margin-top: 0; font-size: 1.35rem; }
+            .card h2 {
+                margin: 0 0 12px;
+                font-size: 0.85rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: var(--text-muted);
+            }
             .form-grid {
                 display: grid;
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-                gap: 18px;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+            .field { display: flex; flex-direction: column; gap: 4px; }
+            label {
+                font-size: 0.75rem;
+                font-weight: 500;
+                color: var(--text-muted);
+            }
+            input, select {
+                padding: 7px 10px;
+                border: 1px solid var(--border-strong);
+                border-radius: var(--radius-sm);
+                background: var(--surface);
+                color: var(--text);
+                font-size: 0.85rem;
+                font-family: inherit;
+                transition: border-color 0.15s, box-shadow 0.15s;
+            }
+            input:focus, select:focus {
+                outline: none;
+                border-color: var(--accent);
+                box-shadow: 0 0 0 3px var(--accent-soft);
             }
             .button-row {
                 display: flex;
+                gap: 8px;
+                margin-top: 12px;
                 flex-wrap: wrap;
-                gap: 12px;
-                margin-top: 16px;
             }
             .button-grid {
                 display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-                gap: 12px;
-                margin-top: 16px;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 6px;
             }
             button {
                 appearance: none;
-                border: none;
-                border-radius: 12px;
-                padding: 12px 16px;
-                background: #1e5de0;
+                border: 1px solid var(--accent);
+                background: var(--accent);
                 color: white;
+                padding: 7px 12px;
+                border-radius: var(--radius-sm);
+                font-size: 0.82rem;
+                font-weight: 500;
                 cursor: pointer;
-                font-size: 0.95rem;
-                transition: transform 0.12s ease, background 0.12s ease,
-                    box-shadow 0.12s ease;
+                font-family: inherit;
+                transition: background 0.12s, transform 0.06s;
             }
-            button:hover {
-                background: #104bbe;
-                transform: translateY(-1px);
-                box-shadow: 0 10px 30px rgba(16, 75, 190, 0.18);
+            button:hover { background: var(--accent-hover); }
+            button:active { transform: translateY(1px); }
+            button.secondary {
+                background: var(--surface);
+                color: var(--secondary);
+                border-color: var(--border-strong);
             }
-            button.secondary { background: #535f70; }
-            button.secondary:hover { background: #3f4c5c; }
-            label {
-                display: block;
-                font-weight: 600;
-                margin-bottom: 8px;
-                color: #2d3a4d;
+            button.secondary:hover {
+                background: var(--surface-alt);
+                color: var(--secondary-hover);
             }
-            input, select {
-                width: 100%;
-                padding: 12px 14px;
-                border: 1px solid #cdd8e9;
-                border-radius: 12px;
-                background: white;
-                color: #1d2635;
-                box-sizing: border-box;
-            }
-            .qr-panel {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 20px;
-            }
-            .qr-card {
-                background: #ffffff;
-                border: 1px solid #d9e4ee;
-                border-radius: 18px;
-                padding: 20px;
-                text-align: center;
-                min-height: 260px;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-            }
-            .qr-card h3 { margin-top: 0; }
-            .qr-placeholder {
-                color: #6b7c94;
-                font-size: 0.98rem;
-            }
-            .qr-code {
-                margin: 0 auto;
-                width: 100%;
-                max-width: 340px;
-            }
-            .qr-code svg {
-                width: 100%;
-                height: auto;
-                border-radius: 16px;
-                border: 1px solid #d8e6f2;
-            }
-            .qr-details pre {
-                background: #f7fbff;
-                color: #1a2640;
-                padding: 16px;
-                border-radius: 16px;
-                border: 1px solid #d7e5f1;
-                min-height: 136px;
-                overflow-x: auto;
-                text-align: left;
-            }
-            pre#output {
-                background: #11151f;
-                color: #ecf5ff;
-                padding: 18px;
-                border-radius: 18px;
-                border: 1px solid #2f4156;
-                min-height: 260px;
-                max-height: 320px;
-                overflow-x: auto;
+            .output-area {
+                background: var(--surface-alt);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-sm);
+                /* Critical: fixed height, internal scroll → no page jump */
+                height: 320px;
                 overflow-y: auto;
-                white-space: pre-wrap;
-                word-break: break-word;
-                transition: background 0.2s ease, border-color 0.2s ease;
+                padding: 12px;
+                font-family: var(--mono);
+                font-size: 0.78rem;
+            }
+            .qr-area {
+                background: var(--surface-alt);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-sm);
+                height: 320px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 12px;
+            }
+            .qr-area svg {
+                max-width: 100%;
+                max-height: 100%;
+                width: auto;
+                height: auto;
+            }
+            .placeholder {
+                color: var(--text-muted);
+                font-size: 0.85rem;
+                text-align: center;
             }
             .response-row {
-                display: flex;
-                gap: 14px;
-                padding: 8px 0;
-                border-bottom: 1px solid rgba(236, 245, 255, 0.08);
-                align-items: flex-start;
+                display: grid;
+                grid-template-columns: 130px 1fr;
+                gap: 10px;
+                padding: 4px 0;
+                border-bottom: 1px solid var(--border);
+                align-items: start;
             }
+            .response-row:last-child { border-bottom: none; }
             .response-key {
-                flex: 0 0 170px;
-                font-weight: 700;
-                color: #8fb6ff;
+                font-weight: 600;
+                color: var(--accent);
                 word-break: break-word;
             }
             .response-value {
-                flex: 1;
-                color: #e9f0ff;
+                color: var(--text);
                 word-break: break-word;
             }
             .response-object,
-            .response-array {
-                margin-left: 14px;
-            }
+            .response-array { padding-left: 4px; }
             .response-item {
-                margin-left: 12px;
+                padding-left: 8px;
+                margin: 4px 0;
+                border-left: 2px solid var(--border);
             }
-            .response-placeholder {
-                color: #94a6c3;
+            .tabs {
+                display: flex;
+                gap: 4px;
+                margin-bottom: 12px;
+                border-bottom: 1px solid var(--border);
             }
-            @media (max-width: 900px) {
-                .form-grid,
-                .qr-panel {
-                    grid-template-columns: 1fr;
-                }
+            .tab {
+                padding: 6px 12px;
+                background: none;
+                border: none;
+                color: var(--text-muted);
+                font-size: 0.82rem;
+                cursor: pointer;
+                border-bottom: 2px solid transparent;
+                margin-bottom: -1px;
+                font-weight: 500;
+            }
+            .tab.active {
+                color: var(--accent);
+                border-bottom-color: var(--accent);
+            }
+            .tab:hover { color: var(--text); }
+            @media (max-width: 800px) {
+                .container { grid-template-columns: 1fr; }
+                .form-grid { grid-template-columns: 1fr; }
+                .button-grid { grid-template-columns: repeat(2, 1fr); }
             }
         </style>
     </head>
     <body>
         <div class="container">
-            <h1>MeterHub Installer</h1>
-            <div class="info-row">
-                <div class="info-card">
-                    <strong>Status</strong>
-                    <span id="status">Loading…</span>
+            <header class="full">
+                <h1>MeterHub Installer</h1>
+                <div class="status-pills">
+                    <span class="pill" id="status_pill">Loading…</span>
+                    <span class="pill" id="step_pill">Step 0 / 5</span>
                 </div>
-                <div class="info-card">
-                    <strong>Step</strong>
-                    <span id="step">0 / 5</span>
-                </div>
-                <div class="info-card">
-                    <strong>Tip</strong>
-                    <span>Save configuration before generating QR codes.</span>
-                </div>
-            </div>
+            </header>
 
-            <div class="card">
+            <section class="card full">
                 <h2>Device Configuration</h2>
                 <div class="form-grid">
-                    <div>
+                    <div class="field">
                         <label for="device_id">Device ID</label>
                         <input id="device_id" value="meter-001">
                     </div>
-                    <div>
+                    <div class="field">
                         <label for="society_id">Society ID</label>
                         <input id="society_id" value="test-society">
                     </div>
-                    <div>
+                    <div class="field">
                         <label for="panel_id">Panel ID</label>
                         <input id="panel_id" value="main-panel">
                     </div>
-                    <div>
+                    <div class="field">
                         <label for="wi_fi_ssid">Wi-Fi SSID</label>
                         <input id="wi_fi_ssid" value="test-wifi">
                     </div>
-                    <div>
+                    <div class="field">
                         <label for="wi_fi_password">Wi-Fi Password</label>
-                        <input id="wi_fi_password" type="password" value="">
+                        <input id="wi_fi_password" type="password">
                     </div>
-                    <div>
+                    <div class="field">
                         <label for="mqtt_endpoint">MQTT Endpoint</label>
                         <input id="mqtt_endpoint" value="test.mosquitto.org">
                     </div>
-                    <div>
+                    <div class="field">
                         <label for="https_endpoint">HTTPS Endpoint</label>
                         <input id="https_endpoint" value="https://api.example.com/v1">
                     </div>
-                    <div>
+                    <div class="field">
                         <label for="oauth2_token">OAuth2 Token</label>
                         <input id="oauth2_token" value="test-token">
                     </div>
-                    <div>
+                    <div class="field">
                         <label for="device_secret">Device Secret</label>
                         <input id="device_secret" value="test-secret">
                     </div>
-                    <div>
+                    <div class="field">
                         <label for="meter_type">Meter Profile</label>
                         <select id="meter_type">
                             <option value="schneider-em6400">schneider-em6400</option>
                         </select>
                     </div>
-                    <div>
+                    <div class="field">
                         <label for="meter_device">Meter Device</label>
                         <input id="meter_device" value="/dev/ttyUSB0">
                     </div>
@@ -615,68 +651,76 @@ async def dashboard() -> str:
                     <button onclick="saveConfig()">Save Config</button>
                     <button class="secondary" onclick="loadConfig()">Load Config</button>
                 </div>
-            </div>
+            </section>
 
-            <div class="card">
+            <section class="card">
                 <h2>Diagnostics</h2>
                 <div class="button-grid">
-                    <button onclick="callApi('/health')">Health</button>
-                    <button onclick="callApi('/info')">Info</button>
-                    <button onclick="callApi('/api/system/status')">System</button>
-                    <button onclick="callApi('/api/system/logs?lines=80')">Logs</button>
-                    <button onclick="callApi('/api/network/scan')">Network Scan</button>
-                    <button onclick="callApi('/api/network/status')">Network Status</button>
-                    <button onclick="callApi('/api/meter/devices')">Serial Devices</button>
-                    <button onclick="callApi('/api/meter/profiles')">Meter Profiles</button>
-                    <button onclick="callApi('/api/services/status')">Service Status</button>
+                    <button class="secondary" onclick="callApi('/health')">Health</button>
+                    <button class="secondary" onclick="callApi('/info')">Info</button>
+                    <button class="secondary"
+                        onclick="callApi('/api/system/status')">System</button>
+                    <button class="secondary"
+                        onclick="callApi('/api/system/logs?lines=80')">Logs</button>
+                    <button class="secondary"
+                        onclick="callApi('/api/network/scan')">Wi-Fi Scan</button>
+                    <button class="secondary"
+                        onclick="callApi('/api/network/status')">Network</button>
+                    <button class="secondary"
+                        onclick="callApi('/api/meter/devices')">Devices</button>
+                    <button class="secondary"
+                        onclick="callApi('/api/meter/profiles')">Profiles</button>
+                    <button class="secondary"
+                        onclick="callApi('/api/services/status')">Services</button>
                     <button onclick="testMeter()">Meter Test</button>
                     <button onclick="callApi('/api/qrcode/device')">Device QR</button>
                     <button onclick="callApi('/api/qrcode/wifi')">Wi-Fi QR</button>
-                    <button onclick="registerDevice()">Register</button>
                 </div>
-            </div>
+                <div class="button-row">
+                    <button onclick="registerDevice()">Register Device</button>
+                </div>
+            </section>
 
-            <div class="qr-panel">
-                <div class="qr-card">
-                    <h3>Generic API Response</h3>
-                    <div id="qr_details" class="qr-details">
-                        <pre>Click any diagnostic button to view structured response details here.
-                        </pre>
+            <section class="card">
+                <div class="tabs">
+                    <button class="tab active" data-tab="response"
+                        onclick="switchTab('response')">Response</button>
+                    <button class="tab" data-tab="qr"
+                        onclick="switchTab('qr')">QR Preview</button>
+                </div>
+                <div class="output-area" id="response_pane">
+                    <div class="placeholder">
+                        Click any diagnostic button to see results.
                     </div>
                 </div>
-                <div class="qr-card">
-                    <h3>QR Code Preview</h3>
-                    <div id="qr_output" class="qr-code">
-                        <div class="qr-placeholder">Click a QR button to render the SVG here.</div>
+                <div class="qr-area" id="qr_pane" style="display:none;">
+                    <div class="placeholder">
+                        Click "Device QR" or "Wi-Fi QR" to render.
                     </div>
                 </div>
-            </div>
+            </section>
         </div>
+
         <script>
             const fields = [
-                'device_id',
-                'society_id',
-                'panel_id',
-                'wi_fi_ssid',
-                'wi_fi_password',
-                'mqtt_endpoint',
-                'https_endpoint',
-                'oauth2_token',
-                'device_secret',
-                'meter_type',
-                'meter_device',
+                'device_id', 'society_id', 'panel_id', 'wi_fi_ssid',
+                'wi_fi_password', 'mqtt_endpoint', 'https_endpoint',
+                'oauth2_token', 'device_secret', 'meter_type', 'meter_device',
             ];
 
+            function switchTab(name) {
+                document.querySelectorAll('.tab').forEach(t =>
+                    t.classList.toggle('active', t.dataset.tab === name));
+                document.getElementById('response_pane').style.display =
+                    name === 'response' ? 'block' : 'none';
+                document.getElementById('qr_pane').style.display =
+                    name === 'qr' ? 'flex' : 'none';
+            }
+
             function sanitizeObject(obj) {
-                if (obj === null || obj === undefined) {
-                    return obj;
-                }
-                if (Array.isArray(obj)) {
-                    return obj.map(sanitizeObject);
-                }
-                if (typeof obj !== 'object') {
-                    return obj;
-                }
+                if (obj === null || obj === undefined) return obj;
+                if (Array.isArray(obj)) return obj.map(sanitizeObject);
+                if (typeof obj !== 'object') return obj;
                 const sanitized = {};
                 for (const [key, value] of Object.entries(obj)) {
                     if (/password|secret|token|auth/i.test(key)) {
@@ -690,22 +734,10 @@ async def dashboard() -> str:
                 return sanitized;
             }
 
-            function updateQrPreview(svg, details) {
-                const qrOutput = document.getElementById('qr_output');
-                qrOutput.innerHTML = svg ||
-                    '<div class="qr-placeholder">No QR available.</div>';
-                const qrDetails = document.getElementById('qr_details');
-                if (details) {
-                    qrDetails.innerHTML = renderResponse(sanitizeObject(details));
-                }
-            }
-
             function escapeHtml(text) {
                 return String(text)
-                    .replace(/&/g, '&amp;')
-                    .replace(/</g, '&lt;')
-                    .replace(/>/g, '&gt;')
-                    .replace(/"/g, '&quot;')
+                    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;').replace(/"/g, '&quot;')
                     .replace(/'/g, '&#39;');
             }
 
@@ -714,61 +746,60 @@ async def dashboard() -> str:
                     return '<div class="response-value">null</div>';
                 }
                 if (Array.isArray(value)) {
+                    if (value.length === 0) {
+                        return '<div class="response-value">[]</div>';
+                    }
                     return '<div class="response-array">' + value.map(item =>
-                        '<div class="response-item">' + renderResponse(item) + '</div>'
+                        '<div class="response-item">' +
+                            renderResponse(item) + '</div>'
                     ).join('') + '</div>';
                 }
                 if (typeof value === 'object') {
                     return '<div class="response-object">' +
                         Object.entries(value).map(([key, val]) =>
                             '<div class="response-row">' +
-                                '<div class="response-key">' + escapeHtml(key) + '</div>' +
-                                '<div class="response-value">' + renderResponse(val) + '</div>' +
+                                '<div class="response-key">' +
+                                    escapeHtml(key) + '</div>' +
+                                '<div class="response-value">' +
+                                    renderResponse(val) + '</div>' +
                             '</div>'
                         ).join('') +
                     '</div>';
                 }
-                return '<div class="response-value">' + escapeHtml(value) + '</div>';
+                return '<div class="response-value">' +
+                    escapeHtml(value) + '</div>';
             }
 
-            function show(data) {
-                const detailsArea = document.getElementById('qr_details');
+            function showResponse(data) {
+                const pane = document.getElementById('response_pane');
                 const payload = data && typeof data === 'object' && data.body
-                    ? data.body
-                    : data;
+                    ? data.body : data;
                 const hasQr = payload && typeof payload === 'object'
                     && typeof payload.qr_code === 'string';
 
                 if (hasQr) {
+                    const qrPane = document.getElementById('qr_pane');
+                    qrPane.innerHTML = payload.qr_code;
+                    switchTab('qr');
                     const details = { status: data.status };
                     if (payload.ssid) {
                         details.type = 'Wi-Fi QR Code';
                         details.ssid = payload.ssid;
                     } else if (payload.data) {
                         details.type = 'Device QR Code';
-                        try {
-                            details.data = JSON.parse(payload.data);
-                        } catch {
-                            details.data = payload.data;
-                        }
+                        try { details.data = JSON.parse(payload.data); }
+                        catch { details.data = payload.data; }
                     }
-                    updateQrPreview(payload.qr_code, details);
-                    detailsArea.innerHTML = renderResponse(
-                        sanitizeObject(details)
-                    );
+                    pane.innerHTML = renderResponse(sanitizeObject(details));
                     return;
                 }
 
-                updateQrPreview(null, null);
+                switchTab('response');
                 if (typeof payload === 'string') {
-                    detailsArea.innerHTML =
-                        '<div class="response-value">' +
-                        escapeHtml(payload) +
-                        '</div>';
+                    pane.innerHTML = '<div class="response-value">' +
+                        escapeHtml(payload) + '</div>';
                 } else {
-                    detailsArea.innerHTML = renderResponse(
-                        sanitizeObject(payload)
-                    );
+                    pane.innerHTML = renderResponse(sanitizeObject(payload));
                 }
             }
 
@@ -777,38 +808,25 @@ async def dashboard() -> str:
                     const r = await fetch(path, opts);
                     const text = await r.text();
                     let data;
-                    try {
-                        data = JSON.parse(text);
-                    } catch {
-                        data = text;
-                    }
-                    show({ status: r.status, body: data });
+                    try { data = JSON.parse(text); } catch { data = text; }
+                    showResponse({ status: r.status, body: data });
                 } catch (e) {
-                    show(String(e));
+                    showResponse(String(e));
                 }
             }
 
             async function loadStatus() {
                 const r = await fetch('/api/provisioning/status');
                 const d = await r.json();
-                document.getElementById('status').innerText = d.status;
-                document.getElementById('step').innerText = `${d.step} / 5`;
-            }
-
-            async function nextStep() {
-                await fetch('/api/provisioning/step/next', { method: 'POST' });
-                await loadStatus();
-            }
-
-            async function resetProvisioning() {
-                await fetch('/api/provisioning/reset', { method: 'POST' });
-                await loadStatus();
+                document.getElementById('status_pill').innerText = d.status;
+                document.getElementById('step_pill').innerText =
+                    `Step ${d.step} / 5`;
             }
 
             function readConfigForm() {
-                return fields.reduce((config, id) => {
-                    config[id] = document.getElementById(id).value;
-                    return config;
+                return fields.reduce((c, id) => {
+                    c[id] = document.getElementById(id).value;
+                    return c;
                 }, {});
             }
 
@@ -824,12 +842,14 @@ async def dashboard() -> str:
             async function loadConfig() {
                 const r = await fetch('/api/config/get');
                 const config = await r.json();
-                for (const id of fields) {
-                    if (config[id] !== undefined) {
-                        document.getElementById(id).value = config[id];
+                if (config) {
+                    for (const id of fields) {
+                        if (config[id] !== undefined) {
+                            document.getElementById(id).value = config[id];
+                        }
                     }
                 }
-                show({ status: r.status, body: config });
+                showResponse({ status: r.status, body: config });
             }
 
             async function loadProfiles() {
@@ -838,34 +858,33 @@ async def dashboard() -> str:
                 const select = document.getElementById('meter_type');
                 select.innerHTML = '';
                 for (const profile of data.profiles || []) {
-                    const option = document.createElement('option');
-                    option.value = profile;
-                    option.innerText = profile;
-                    select.appendChild(option);
+                    const o = document.createElement('option');
+                    o.value = profile;
+                    o.innerText = profile;
+                    select.appendChild(o);
                 }
             }
 
             async function testMeter() {
                 const device = encodeURIComponent(
-                    document.getElementById('meter_device').value
-                );
+                    document.getElementById('meter_device').value);
                 const profile = encodeURIComponent(
-                    document.getElementById('meter_type').value
+                    document.getElementById('meter_type').value);
+                await callApi(
+                    `/api/meter/test?device=${device}&profile=${profile}`,
+                    { method: 'POST' }
                 );
-                const meterTestUrl =
-                    '/api/meter/test?device=' + device + '&profile=' + profile;
-                await callApi(meterTestUrl, { method: 'POST' });
             }
 
             async function registerDevice() {
-                const registrationBody = JSON.stringify({
-                    device_id: document.getElementById('device_id').value,
-                    oauth2_token: document.getElementById('oauth2_token').value,
-                });
                 await callApi('/api/registration/submit', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: registrationBody,
+                    body: JSON.stringify({
+                        device_id: document.getElementById('device_id').value,
+                        oauth2_token: document.getElementById(
+                            'oauth2_token').value,
+                    }),
                 });
             }
 
