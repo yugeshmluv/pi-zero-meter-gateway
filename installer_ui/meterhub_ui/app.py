@@ -638,27 +638,18 @@ async def dashboard() -> str:
 
             <div class="qr-panel">
                 <div class="qr-card">
+                    <h3>Generic API Response</h3>
+                    <div id="qr_details" class="qr-details">
+                        <pre>Click any diagnostic button to view structured response details here.
+                        </pre>
+                    </div>
+                </div>
+                <div class="qr-card">
                     <h3>QR Code Preview</h3>
                     <div id="qr_output" class="qr-code">
                         <div class="qr-placeholder">Click a QR button to render the SVG here.</div>
                     </div>
                 </div>
-                <div class="qr-card">
-                    <h3>QR Metadata</h3>
-                    <div id="qr_details" class="qr-details">
-                        <pre>No QR generated yet.</pre>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card response-card">
-                <h2>API Response</h2>
-                <p class="response-placeholder">
-                    Click any diagnostic button to view structured response details here.
-                </p>
-                <pre id="output">
-                    Click a button to view a structured response here.
-                </pre>
             </div>
         </div>
         <script>
@@ -701,11 +692,12 @@ async def dashboard() -> str:
 
             function updateQrPreview(svg, details) {
                 const qrOutput = document.getElementById('qr_output');
-                const qrDetails = document.getElementById('qr_details');
                 qrOutput.innerHTML = svg ||
                     '<div class="qr-placeholder">No QR available.</div>';
-                qrDetails.innerHTML =
-                    '<pre>' + JSON.stringify(details, null, 2) + '</pre>';
+                const qrDetails = document.getElementById('qr_details');
+                if (details) {
+                    qrDetails.innerHTML = renderResponse(sanitizeObject(details));
+                }
             }
 
             function escapeHtml(text) {
@@ -740,7 +732,7 @@ async def dashboard() -> str:
             }
 
             function show(data) {
-                const output = document.getElementById('output');
+                const detailsArea = document.getElementById('qr_details');
                 const payload = data && typeof data === 'object' && data.body
                     ? data.body
                     : data;
@@ -761,18 +753,22 @@ async def dashboard() -> str:
                         }
                     }
                     updateQrPreview(payload.qr_code, details);
-                    output.innerHTML = renderResponse(sanitizeObject(details));
+                    detailsArea.innerHTML = renderResponse(
+                        sanitizeObject(details)
+                    );
                     return;
                 }
 
-                updateQrPreview(null, { message: 'No QR generated.' });
+                updateQrPreview(null, null);
                 if (typeof payload === 'string') {
-                    output.innerHTML =
+                    detailsArea.innerHTML =
                         '<div class="response-value">' +
                         escapeHtml(payload) +
                         '</div>';
                 } else {
-                    output.innerHTML = renderResponse(sanitizeObject(payload));
+                    detailsArea.innerHTML = renderResponse(
+                        sanitizeObject(payload)
+                    );
                 }
             }
 
