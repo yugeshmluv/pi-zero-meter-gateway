@@ -45,6 +45,7 @@ wheels/
 htmlcov/
 .tox/
 .hypothesis/
+pytest-output.txt
 
 # Build artifacts
 *.tar.gz

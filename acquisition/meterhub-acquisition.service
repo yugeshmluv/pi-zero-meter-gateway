@@ -24,17 +24,18 @@ StartLimitBurst=5
 # Resource limits (strict)
 MemoryMax=42M
 MemoryAccounting=true
-CPUQuota=50%  # 50% of single core on RPi Zero W
+# 50% of a single core on Raspberry Pi Zero W
+CPUQuota=50%
 
 # Security
 PrivateTmp=true
 NoNewPrivileges=true
 ProtectSystem=strict
 ProtectHome=true
-ReadWritePaths=/var/lib/meterhub /var/log/meterhub /etc/meterhub/secrets
+ReadWritePaths=/var/lib/meterhub /var/cache/meterhub /var/log/meterhub /etc/meterhub/secrets
 
 # Environment
-Environment="METREHUB_ENV=production"
+Environment="METERHUB_ENV=production"
 EnvironmentFile=/etc/meterhub/config.env
 EnvironmentFile=-/etc/meterhub/secrets.env
 

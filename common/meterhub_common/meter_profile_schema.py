@@ -35,6 +35,7 @@ class ModbusRegister:
     description: str = ""  # Human-readable description
     writable: bool = False  # Is this register writable?
     read_only: bool = True  # Is this register read-only?
+    function_code: int = 3  # 3 = holding register, 4 = input register
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
@@ -48,6 +49,7 @@ class ModbusRegister:
             "description": self.description,
             "writable": self.writable,
             "read_only": self.read_only,
+            "function_code": self.function_code,
         }
 
 
@@ -109,6 +111,7 @@ class MeterProfile:
                     description=reg_data.get("description", ""),
                     writable=reg_data.get("writable", False),
                     read_only=reg_data.get("read_only", True),
+                    function_code=reg_data.get("function_code", 3),
                 )
                 registers[name] = reg
 

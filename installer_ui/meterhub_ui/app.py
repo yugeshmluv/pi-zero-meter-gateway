@@ -17,7 +17,12 @@ Features:
 import logging
 import json
 import asyncio
+import glob
+import os
+import socket
+import subprocess
 from datetime import datetime
+from dataclasses import asdict
 from typing import Any
 from pathlib import Path
 
@@ -25,6 +30,10 @@ from fastapi import FastAPI, HTTPException, Query, Body, status
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 import aiofiles
+
+from .meter_tester import MeterTester
+from .network_manager import NetworkManager
+from .qr_code_generator import QRCodeGenerator
 
 # Global state
 logger = logging.getLogger(__name__)
@@ -34,9 +43,17 @@ logging.basicConfig(
 )
 
 # Configuration paths
-CONFIG_DIR = Path("/etc/meterhub")
-STATE_DIR = Path("/var/lib/meterhub")
-CACHE_DIR = Path("/var/cache/meterhub")
+CONFIG_DIR = Path(os.getenv("METERHUB_CONFIG_DIR", "/etc/meterhub"))
+STATE_DIR = Path(os.getenv("METERHUB_STATE_DIR", "/var/lib/meterhub"))
+CACHE_DIR = Path(os.getenv("METERHUB_CACHE_DIR", "/var/cache/meterhub"))
+LOG_DIR = Path(os.getenv("METERHUB_LOG_DIR", "/var/log/meterhub"))
+PROFILE_DIR = CONFIG_DIR / "profiles"
+REPO_PROFILE_DIR = Path(__file__).resolve().parents[2] / "profiles"
+SERVICE_NAMES = {
+    "acquisition": "meterhub-acquisition",
+    "uploader": "meterhub-uploader",
+    "installer_ui": "meterhub-installer-ui",
+}
 
 
 class StatusEnum:
@@ -84,6 +101,7 @@ class DeviceConfig(BaseModel):
     meter_device: str
     meter_baud_rate: int = 9600
     meter_parity: str = "N"
+    wi_fi_password: str = ""
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     def __init__(self, **data: Any) -> None:
@@ -93,6 +111,127 @@ class DeviceConfig(BaseModel):
 
 
 # Shared service state
+def _run_command(command: list[str], timeout: int = 5) -> dict[str, Any]:
+    """Run a local command and return a JSON-safe result."""
+    try:
+        result = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            check=False,
+        )
+        return {
+            "returncode": result.returncode,
+            "stdout": result.stdout.strip(),
+            "stderr": result.stderr.strip(),
+        }
+    except FileNotFoundError:
+        return {"returncode": 127, "stdout": "", "stderr": f"{command[0]} not found"}
+    except subprocess.TimeoutExpired as e:
+        return {
+            "returncode": 124,
+            "stdout": (e.stdout or "").strip() if isinstance(e.stdout, str) else "",
+            "stderr": f"Timed out after {timeout}s",
+        }
+
+
+def _config_path(filename: str) -> Path:
+    """Return writable config path, with a dev/test fallback outside /etc."""
+    if os.getenv("METERHUB_ENV") == "production":
+        return CONFIG_DIR / filename
+
+    try:
+        CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+        probe = CONFIG_DIR / ".write-test"
+        probe.write_text("ok")
+        probe.unlink(missing_ok=True)
+        return CONFIG_DIR / filename
+    except OSError:
+        fallback = Path(os.getenv("METERHUB_DEV_CONFIG_DIR", "/tmp/meterhub"))
+        fallback.mkdir(parents=True, exist_ok=True)
+        return fallback / filename
+
+
+def _systemctl_status(unit: str) -> dict[str, Any]:
+    """Read systemd unit state if systemd is available."""
+    active = _run_command(["systemctl", "is-active", unit], timeout=3)
+    enabled = _run_command(["systemctl", "is-enabled", unit], timeout=3)
+    show = _run_command(
+        [
+            "systemctl",
+            "show",
+            unit,
+            "--property=LoadState,ActiveState,SubState,MainPID,NRestarts,ExecMainStatus",
+            "--no-page",
+        ],
+        timeout=3,
+    )
+    details: dict[str, str] = {}
+    for line in show["stdout"].splitlines():
+        if "=" in line:
+            key, value = line.split("=", 1)
+            details[key] = value
+
+    return {
+        "name": unit,
+        "unit": unit,
+        "status": active["stdout"] or "unknown",
+        "active": active["stdout"] or "unknown",
+        "enabled": enabled["stdout"] or "unknown",
+        "load_state": details.get("LoadState", "unknown"),
+        "sub_state": details.get("SubState", "unknown"),
+        "main_pid": int(details.get("MainPID") or 0),
+        "restart_count": int(details.get("NRestarts") or 0),
+        "exec_status": int(details.get("ExecMainStatus") or 0),
+        "available": active["returncode"] != 127,
+    }
+
+
+def _list_profile_files() -> list[Path]:
+    """List meter profile YAML files from installed config, then repo fallback."""
+    profiles: dict[str, Path] = {}
+    for directory in (PROFILE_DIR, REPO_PROFILE_DIR):
+        if directory.exists():
+            for path in sorted(directory.glob("*.yaml")):
+                profiles.setdefault(path.name, path)
+    return list(profiles.values())
+
+
+def _serial_devices() -> list[dict[str, Any]]:
+    """Return visible serial devices that may be used for Modbus RTU."""
+    devices = []
+    for pattern in ("/dev/ttyUSB*", "/dev/ttyAMA*", "/dev/ttyACM*", "/dev/serial/by-id/*"):
+        for item in sorted(glob.glob(pattern)):
+            path = Path(item)
+            try:
+                resolved = path.resolve()
+            except OSError:
+                resolved = path
+            devices.append(
+                {
+                    "path": str(path),
+                    "resolved_path": str(resolved),
+                    "exists": path.exists(),
+                }
+            )
+    return devices
+
+
+def _sqlite_count(db_path: Path, table: str) -> int | None:
+    """Return a table row count if sqlite can open the database."""
+    try:
+        import sqlite3
+
+        if not db_path.exists():
+            return None
+        with sqlite3.connect(str(db_path)) as conn:
+            row = conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()
+            return int(row[0])
+    except Exception:
+        return None
+
+
 class InstallerService:
     """Installer service state manager."""
 
@@ -118,14 +257,25 @@ class InstallerService:
     async def save_device_config(self, config: DeviceConfig) -> bool:
         """Save device configuration to disk."""
         try:
-            config_path = CONFIG_DIR / "device_config.json"
+            config_path = _config_path("device_config.json")
             config_path.parent.mkdir(parents=True, exist_ok=True)
 
             async with aiofiles.open(config_path, "w") as f:
-                await f.write(config.json(indent=2))
+                await f.write(config.model_dump_json(indent=2))
 
             logger.info(f"Device config saved: {config_path}")
             self.device_config = config
+            await self.update_provisioning(
+                status=StatusEnum.IN_PROGRESS,
+                device_id=config.device_id,
+                society_id=config.society_id,
+                panel_id=config.panel_id,
+                wi_fi_ssid=config.wi_fi_ssid,
+                mqtt_endpoint=config.mqtt_endpoint,
+                https_endpoint=config.https_endpoint,
+                meter_profile=config.meter_type,
+                meter_device=config.meter_device,
+            )
             return True
         except Exception as e:
             logger.error(f"Failed to save config: {e}")
@@ -134,7 +284,7 @@ class InstallerService:
     async def load_device_config(self) -> DeviceConfig | None:
         """Load device configuration from disk."""
         try:
-            config_path = CONFIG_DIR / "device_config.json"
+            config_path = _config_path("device_config.json")
             if not config_path.exists():
                 return None
 
@@ -181,8 +331,10 @@ async def health_check() -> dict[str, Any]:
 @app.get("/info", tags=["System"])
 async def device_info() -> dict[str, Any]:
     """Get device information."""
+    config = service.device_config or await service.load_device_config()
     return {
-        "device_id": service.device_config.device_id if service.device_config else None,
+        "device_id": config.device_id if config else None,
+        "hostname": socket.gethostname(),
         "provisioning_status": service.provisioning_state.status,
         "provisioning_step": service.provisioning_state.step,
         "uptime_seconds": service.get_uptime_seconds(),
@@ -206,34 +358,126 @@ async def dashboard() -> str:
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <style>
             body { font-family: Arial, sans-serif; margin: 0; padding: 20px;
-                   background: #f5f5f5; }
-            .container { max-width: 800px; margin: 0 auto; background: white;
+                   background: #f5f5f5; color: #222; }
+            .container { max-width: 980px; margin: 0 auto; background: white;
                          padding: 20px; border-radius: 8px; }
             h1 { color: #333; }
+            h2 { margin-bottom: 8px; }
             .step { margin: 20px 0; padding: 15px; border: 1px solid #ddd;
                     border-radius: 4px; }
             .status { font-weight: bold; }
             button { padding: 10px 20px; margin: 5px; background: #0066cc;
                      color: white; border: none; border-radius: 4px; cursor: pointer; }
             button:hover { background: #0052a3; }
+            button.secondary { background: #555; }
+            label { display: block; font-weight: bold; margin-top: 10px; }
+            input, select { box-sizing: border-box; width: 100%; padding: 9px;
+                            margin-top: 4px; border: 1px solid #bbb; border-radius: 4px; }
+            .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+                    gap: 12px; }
             .info { background: #e3f2fd; padding: 10px; border-radius: 4px;
                     margin: 10px 0; }
+            .warn { background: #fff4d6; padding: 10px; border-radius: 4px;
+                    margin: 10px 0; }
+            pre { overflow: auto; background: #111; color: #eee; padding: 12px;
+                  border-radius: 4px; min-height: 80px; }
             .qr-code { text-align: center; margin: 20px 0; }
             .qr-code img { max-width: 300px; border: 2px solid #ddd; padding: 10px; }
+            @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
         </style>
     </head>
     <body>
         <div class="container">
-            <h1>🔧 MeterHub Installer</h1>
+            <h1>MeterHub Installer</h1>
             <div class="info">
                 <strong>Status:</strong> <span id="status">Loading...</span><br>
                 <strong>Step:</strong> <span id="step">0/5</span>
             </div>
             <div id="wizard"></div>
-            <button onclick="nextStep()">Next →</button>
+            <button onclick="nextStep()">Next</button>
             <button onclick="resetProvisioning()">Reset</button>
+
+            <div class="step">
+                <h2>Device Configuration</h2>
+                <div class="warn">
+                    Save configuration first, then use the checks below.
+                    Meter checks report unavailable until an RS485
+                    adapter appears as a serial device.
+                </div>
+                <div class="grid">
+                    <label>Device ID
+                        <input id="device_id" value="meter-001">
+                    </label>
+                    <label>Society ID
+                        <input id="society_id" value="test-society">
+                    </label>
+                    <label>Panel ID
+                        <input id="panel_id" value="main-panel">
+                    </label>
+                    <label>Wi-Fi SSID
+                        <input id="wi_fi_ssid" value="test-wifi">
+                    </label>
+                    <label>Wi-Fi Password
+                        <input id="wi_fi_password" type="password" value="">
+                    </label>
+                    <label>MQTT Endpoint
+                        <input id="mqtt_endpoint" value="test.mosquitto.org">
+                    </label>
+                    <label>HTTPS Endpoint
+                        <input id="https_endpoint" value="https://api.example.com/v1">
+                    </label>
+                    <label>OAuth2 Token
+                        <input id="oauth2_token" value="test-token">
+                    </label>
+                    <label>Device Secret
+                        <input id="device_secret" value="test-secret">
+                    </label>
+                    <label>Meter Profile
+                        <select id="meter_type">
+                            <option value="schneider-em6400">schneider-em6400</option>
+                        </select>
+                    </label>
+                    <label>Meter Device
+                        <input id="meter_device" value="/dev/ttyUSB0">
+                    </label>
+                </div>
+                <button onclick="saveConfig()">Save Config</button>
+                <button class="secondary" onclick="loadConfig()">Load Config</button>
+            </div>
+
+            <div class="step">
+                <h2>Diagnostics</h2>
+                <button onclick="callApi('/health')">Health</button>
+                <button onclick="callApi('/info')">Info</button>
+                <button onclick="callApi('/api/system/status')">System</button>
+                <button onclick="callApi('/api/system/logs?lines=80')">Logs</button>
+                <button onclick="callApi('/api/network/scan')">Network Scan</button>
+                <button onclick="callApi('/api/network/status')">Network Status</button>
+                <button onclick="callApi('/api/meter/devices')">Serial Devices</button>
+                <button onclick="callApi('/api/meter/profiles')">Meter Profiles</button>
+                <button onclick="callApi('/api/services/status')">Service Status</button>
+                <button onclick="testMeter()">Meter Test</button>
+                <button onclick="callApi('/api/qrcode/device')">Device QR</button>
+                <button onclick="callApi('/api/qrcode/wifi')">Wi-Fi QR</button>
+                <button onclick="registerDevice()">Register</button>
+                <pre id="output">Results appear here.</pre>
+            </div>
         </div>
         <script>
+            const fields = [
+                'device_id',
+                'society_id',
+                'panel_id',
+                'wi_fi_ssid',
+                'wi_fi_password',
+                'mqtt_endpoint',
+                'https_endpoint',
+                'oauth2_token',
+                'device_secret',
+                'meter_type',
+                'meter_device',
+            ];
+
             async function loadStatus() {
                 const r = await fetch('/api/provisioning/status');
                 const d = await r.json();
@@ -257,23 +501,111 @@ async def dashboard() -> str:
             function renderStep(step) {
                 const w = document.getElementById('wizard');
                 const s = [
-                    '<div class="step"><h2>Step 1: Device ' +
-                    'Identity</h2><p>Enter identifiers...</p></div>',
-                    '<div class="step"><h2>Step 2: Wi-Fi ' +
-                    'Setup</h2><p>Configure network...</p></div>',
-                    '<div class="step"><h2>Step 3: Cloud ' +
-                    'Endpoints</h2><p>Cloud connectivity...</p></div>',
-                    '<div class="step"><h2>Step 4: Meter ' +
-                    'Profile</h2><p>Select type...</p></div>',
-                    '<div class="step"><h2>Step 5: Test & ' +
-                    'Verify</h2><p>Run diagnostics...</p></div>',
-                    '<div class="step"><h2>Complete!</h2><p>' +
-                    'Device provisioned ✓</p></div>'
+                    '<div class="step"><h2>Step 1: Device Identity</h2>' +
+                    '<p>Use the form below to set identifiers.</p></div>',
+                    '<div class="step"><h2>Step 2: Wi-Fi Setup</h2>' +
+                    '<p>Check current network state or save SSID for commissioning.</p></div>',
+                    '<div class="step"><h2>Step 3: Cloud Endpoints</h2>' +
+                    '<p>Use placeholder values until real cloud credentials exist.</p></div>',
+                    '<div class="step"><h2>Step 4: Meter Profile</h2>' +
+                    '<p>Profile list can be checked without hardware.</p></div>',
+                    '<div class="step"><h2>Step 5: Test & Verify</h2>' +
+                    '<p>Run diagnostics. Meter test requires a serial adapter.</p></div>',
+                    '<div class="step"><h2>Complete</h2>' +
+                    '<p>Provisioning step flow completed.</p></div>',
                 ];
                 w.innerHTML = s[step] || s[5];
             }
 
+            function show(data) {
+                document.getElementById('output').innerText =
+                    typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+            }
+
+            async function callApi(path, opts = {}) {
+                try {
+                    const r = await fetch(path, opts);
+                    const text = await r.text();
+                    let data;
+                    try { data = JSON.parse(text); } catch { data = text; }
+                    show({ status: r.status, body: data });
+                } catch (e) {
+                    show(String(e));
+                }
+            }
+
+            function readConfigForm() {
+                const config = {};
+                for (const id of fields) {
+                    config[id] = document.getElementById(id).value;
+                }
+                return config;
+            }
+
+            async function saveConfig() {
+                await callApi('/api/config/set', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(readConfigForm())
+                });
+                await loadStatus();
+            }
+
+            async function loadConfig() {
+                const r = await fetch('/api/config/get');
+                const config = await r.json();
+                if (config) {
+                    for (const id of fields) {
+                        if (config[id] !== undefined) {
+                            document.getElementById(id).value = config[id];
+                        }
+                    }
+                }
+                show({ status: r.status, body: config });
+            }
+
+            async function loadProfiles() {
+                const r = await fetch('/api/meter/profiles');
+                const data = await r.json();
+                const select = document.getElementById('meter_type');
+                select.innerHTML = '';
+                for (const profile of data.profiles || []) {
+                    const option = document.createElement('option');
+                    option.value = profile;
+                    option.innerText = profile;
+                    select.appendChild(option);
+                }
+            }
+
+            async function testMeter() {
+                const device = encodeURIComponent(
+                    document.getElementById('meter_device').value
+                );
+                const profile = encodeURIComponent(
+                    document.getElementById('meter_type').value
+                );
+                const meterTestUrl =
+                    '/api/meter/test?device=' + device + '&profile=' + profile;
+                await callApi(meterTestUrl, {
+                    method: 'POST',
+                });
+            }
+
+            async function registerDevice() {
+                const registrationBody = JSON.stringify({
+                    device_id: document.getElementById('device_id').value,
+                    oauth2_token: document.getElementById('oauth2_token').value,
+                });
+                await callApi('/api/registration/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: registrationBody,
+                });
+            }
+
             loadStatus();
+            loadProfiles();
+            loadConfig();
         </script>
     </body>
     </html>
@@ -334,7 +666,7 @@ async def get_device_config() -> dict[str, Any] | None:
     """Get device configuration."""
     config = await service.load_device_config()
     if config:
-        return config.dict()
+        return config.model_dump(mode="json")
     return None
 
 
@@ -346,23 +678,38 @@ async def get_device_config() -> dict[str, Any] | None:
 @app.get("/api/services/status", tags=["Services"])
 async def get_services_status() -> dict[str, dict[str, Any]]:
     """Get status of all MeterHub services."""
+    services = {key: _systemctl_status(unit) for key, unit in SERVICE_NAMES.items()}
+    services["installer_ui"]["uptime_seconds"] = service.get_uptime_seconds()
+    services["acquisition"]["telemetry_rows"] = _sqlite_count(
+        CACHE_DIR / "telemetry.db", "meter_readings"
+    )
+    services["uploader"]["queued_rows"] = _sqlite_count(
+        CACHE_DIR / "telemetry.db", "meter_readings"
+    )
+    return services
+
+
+@app.post("/api/services/{service_key}/{action}", tags=["Services"])
+async def control_service(service_key: str, action: str) -> dict[str, Any]:
+    """Start, stop, restart, enable, or disable a MeterHub systemd service."""
+    if service_key not in SERVICE_NAMES:
+        raise HTTPException(status_code=404, detail="Unknown service")
+    if action not in {"start", "stop", "restart", "enable", "disable"}:
+        raise HTTPException(status_code=400, detail="Unsupported action")
+
+    unit = SERVICE_NAMES[service_key]
+    command = ["systemctl", action, unit]
+    if os.geteuid() != 0:
+        command.insert(0, "sudo")
+    result = _run_command(command, timeout=20)
     return {
-        "acquisition": {
-            "name": "meterhub-acquisition",
-            "status": "running",
-            "last_event": "2026-05-11T10:30:00Z",
-        },
-        "uploader": {
-            "name": "meterhub-uploader",
-            "status": "running",
-            "mqtt_connected": True,
-            "queue_depth": 12,
-        },
-        "installer_ui": {
-            "name": "meterhub-installer-ui",
-            "status": "running",
-            "uptime_seconds": service.get_uptime_seconds(),
-        },
+        "service": service_key,
+        "unit": unit,
+        "action": action,
+        "ok": result["returncode"] == 0,
+        "stdout": result["stdout"],
+        "stderr": result["stderr"],
+        "status": _systemctl_status(unit),
     }
 
 
@@ -373,38 +720,31 @@ async def get_services_status() -> dict[str, dict[str, Any]]:
 
 @app.get("/api/qrcode/device", tags=["QR Code"])
 async def get_device_qr_code(format: str = Query("svg")) -> dict[str, str]:
-    """Generate QR code for device credentials (placeholder)."""
-    if not service.device_config:
+    """Generate QR code for device credentials."""
+    config = service.device_config or await service.load_device_config()
+    if not config:
         raise HTTPException(status_code=404, detail="Device not configured")
 
-    qr_data = {
-        "device_id": service.device_config.device_id,
-        "society_id": service.device_config.society_id,
-        "panel_id": service.device_config.panel_id,
-    }
-
-    # Placeholder: In production, use qrcode library
-    return {
-        "qr_code": "placeholder_qr_svg",
-        "data": json.dumps(qr_data),
-    }
+    return QRCodeGenerator().generate_device_qr(
+        device_id=config.device_id,
+        society_id=config.society_id,
+        panel_id=config.panel_id,
+        format=format,
+    )
 
 
 @app.get("/api/qrcode/wifi", tags=["QR Code"])
 async def get_wifi_qr_code() -> dict[str, str]:
     """Generate QR code for Wi-Fi provisioning."""
-    if not service.device_config:
+    config = service.device_config or await service.load_device_config()
+    if not config:
         raise HTTPException(status_code=404, detail="Device not configured")
 
-    # WiFi QR format: WIFI:T:WPA;S:SSID;P:PASSWORD;;
-    ssid = service.device_config.wi_fi_ssid
-    # Note: In production, retrieve password from secure storage
-    wifi_qr = f"WIFI:T:WPA;S:{ssid};P:DefaultPassword;;"
-
-    return {
-        "qr_code": "placeholder_qr_svg",
-        "wifi_string": wifi_qr,
-    }
+    return QRCodeGenerator().generate_wifi_qr(
+        ssid=config.wi_fi_ssid,
+        password=config.wi_fi_password,
+        security="WPA" if config.wi_fi_password else "nopass",
+    )
 
 
 # ============================================================================
@@ -415,24 +755,51 @@ async def get_wifi_qr_code() -> dict[str, str]:
 @app.get("/api/network/scan", tags=["Network"])
 async def scan_networks() -> dict[str, list[dict[str, Any]]]:
     """Scan for available Wi-Fi networks."""
-    # Placeholder: In production, use nmcli or iwlist
+    networks = await NetworkManager(use_nmcli=True).scan_networks()
+    if networks:
+        return {"networks": [asdict(network) for network in networks]}
+
+    networks = await NetworkManager(use_nmcli=False).scan_networks()
     return {
-        "networks": [
-            {"ssid": "HomeWiFi", "signal": 85, "security": "WPA2"},
-            {"ssid": "GuestWiFi", "signal": 60, "security": "Open"},
-        ]
+        "networks": [asdict(network) for network in networks],
     }
 
 
 @app.get("/api/network/status", tags=["Network"])
 async def get_network_status() -> dict[str, Any]:
     """Get current network status."""
+    status_data = await NetworkManager(use_nmcli=True).get_status()
+    if status_data.get("status") == "unknown":
+        status_data = await NetworkManager(use_nmcli=False).get_status()
+
+    route = _run_command(["ip", "route", "show", "default"], timeout=3)
+    hostname = _run_command(["hostname", "-I"], timeout=3)
+    status_data.update(
+        {
+            "hostname": socket.gethostname(),
+            "addresses": hostname["stdout"].split(),
+            "default_route": route["stdout"],
+            "wi_fi_connected": bool(status_data.get("ip_address")),
+            "ethernet_connected": Path("/sys/class/net/eth0/carrier").exists()
+            and Path("/sys/class/net/eth0/carrier").read_text().strip() == "1",
+        }
+    )
+    status_data.setdefault("gateway", None)
+    status_data.setdefault("dns", [])
+    if status_data.get("ip_address") is None:
+        status_data["ip_address"] = ""
+    return status_data
+
+
+@app.post("/api/network/connect", tags=["Network"])
+async def connect_network(ssid: str = Body(...), password: str = Body("")) -> dict[str, Any]:
+    """Connect to a Wi-Fi network using the local network manager."""
+    connected = await NetworkManager(use_nmcli=True).connect(ssid, password)
+    if not connected:
+        connected = await NetworkManager(use_nmcli=False).connect(ssid, password)
     return {
-        "ip_address": "192.168.1.100",
-        "gateway": "192.168.1.1",
-        "dns": ["8.8.8.8", "8.8.4.4"],
-        "wi_fi_connected": True,
-        "ethernet_connected": False,
+        "ssid": ssid,
+        "connected": connected,
     }
 
 
@@ -442,31 +809,59 @@ async def get_network_status() -> dict[str, Any]:
 
 
 @app.post("/api/meter/test", tags=["Meter"])
-async def test_meter_connectivity(device: str = Query("/dev/ttyUSB0")) -> dict[str, Any]:
+async def test_meter_connectivity(
+    device: str = Query("/dev/ttyUSB0"),
+    profile: str | None = Query(None),
+) -> dict[str, Any]:
     """Test Modbus meter connectivity."""
-    # Placeholder: In production, use ModbusRTUClient from common
-    await asyncio.sleep(1)  # Simulate test delay
-    return {
-        "device": device,
-        "connected": True,
-        "registers_read": 13,
-        "voltage_l1_v": 230.5,
-        "current_l1_a": 5.2,
-        "instant_kw": 1.19,
-        "totalizer_kwh": 12345.67,
-    }
+    if not Path(device).exists():
+        return {
+            "device": device,
+            "connected": False,
+            "registers_read": 0,
+            "registers_failed": 0,
+            "test_duration_ms": 0,
+            "timestamp": datetime.utcnow().isoformat(),
+            "error_message": f"Serial device not found: {device}",
+            "available_devices": _serial_devices(),
+        }
+
+    config = service.device_config or await service.load_device_config()
+    profile_name = profile or (config.meter_type if config else "schneider-em6400.yaml")
+    if not profile_name.endswith(".yaml"):
+        profile_name = f"{profile_name}.yaml"
+
+    profile_path = PROFILE_DIR / profile_name
+    if not profile_path.exists():
+        profiles = [path for path in _list_profile_files() if path.name == profile_name]
+        if not profiles:
+            profiles = _list_profile_files()
+        if not profiles:
+            raise HTTPException(status_code=404, detail="No meter profiles installed")
+        profile_path = profiles[0]
+
+    result = await MeterTester().test_connectivity(
+        device=device,
+        meter_profile_path=str(profile_path),
+    )
+    data = asdict(result)
+    data["timestamp"] = result.timestamp.isoformat()
+    return data
 
 
 @app.get("/api/meter/profiles", tags=["Meter"])
 async def list_meter_profiles() -> dict[str, list[str]]:
     """List available meter profiles."""
+    profiles = _list_profile_files()
     return {
-        "profiles": [
-            "schneider-em6400.yaml",
-            "siemens-pac3200.yaml",
-            "generic-modbus.yaml",
-        ]
+        "profiles": [path.name for path in profiles],
     }
+
+
+@app.get("/api/meter/devices", tags=["Meter"])
+async def list_meter_devices() -> dict[str, list[dict[str, Any]]]:
+    """List available serial devices for RS485 adapters."""
+    return {"devices": _serial_devices()}
 
 
 # ============================================================================
@@ -478,9 +873,21 @@ async def list_meter_profiles() -> dict[str, list[str]]:
 async def submit_device_registration(
     device_id: str = Body(...), oauth2_token: str = Body(...)
 ) -> dict[str, str]:
-    """Register device with cloud backend."""
-    # Placeholder: In production, call cloud API
-    return {"message": "Device registered", "device_id": device_id}
+    """Record device registration inputs for local commissioning."""
+    registration_path = _config_path("registration.json")
+    payload = {
+        "device_id": device_id,
+        "oauth2_token_set": bool(oauth2_token),
+        "registered_at": datetime.utcnow().isoformat(),
+        "mode": "local",
+    }
+    try:
+        async with aiofiles.open(registration_path, "w") as f:
+            await f.write(json.dumps(payload, indent=2))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save registration: {e}") from e
+
+    return {"message": "Device registration saved locally", "device_id": device_id}
 
 
 # ============================================================================
@@ -494,10 +901,52 @@ async def shutdown_installer_ui() -> dict[str, str]:
     return {"message": "Installer UI will shutdown in 30 minutes"}
 
 
+@app.get("/api/system/status", tags=["System"])
+async def get_system_status() -> dict[str, Any]:
+    """Get local system status for commissioning."""
+    disk = _run_command(["df", "-h", "/"], timeout=3)
+    memory = _run_command(["free", "-h"], timeout=3)
+    temperature_path = Path("/sys/class/thermal/thermal_zone0/temp")
+    temperature_c: float | None = None
+    if temperature_path.exists():
+        try:
+            temperature_c = int(temperature_path.read_text().strip()) / 1000
+        except ValueError:
+            temperature_c = None
+
+    return {
+        "hostname": socket.gethostname(),
+        "time_utc": datetime.utcnow().isoformat(),
+        "uptime_seconds": service.get_uptime_seconds(),
+        "disk": disk["stdout"],
+        "memory": memory["stdout"],
+        "temperature_c": temperature_c,
+        "config_dir": str(CONFIG_DIR),
+        "state_dir": str(STATE_DIR),
+        "cache_dir": str(CACHE_DIR),
+        "log_dir": str(LOG_DIR),
+    }
+
+
 @app.get("/api/system/logs", tags=["System"])
 async def get_system_logs(lines: int = Query(100)) -> dict[str, list[str]]:
     """Get recent system logs."""
-    return {"logs": ["Log entry 1", "Log entry 2", "..."]}
+    safe_lines = max(1, min(lines, 500))
+    result = _run_command(
+        ["journalctl", "-u", "meterhub-installer-ui", "-n", str(safe_lines), "--no-pager"],
+        timeout=5,
+    )
+    if result["returncode"] == 127:
+        log_files = sorted(LOG_DIR.glob("*.log")) if LOG_DIR.exists() else []
+        logs: list[str] = []
+        for log_file in log_files:
+            try:
+                logs.extend(log_file.read_text().splitlines()[-safe_lines:])
+            except OSError:
+                continue
+        return {"logs": logs[-safe_lines:]}
+
+    return {"logs": result["stdout"].splitlines()}
 
 
 if __name__ == "__main__":

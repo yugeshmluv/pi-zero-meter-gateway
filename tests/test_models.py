@@ -14,6 +14,7 @@ from common.meterhub_common.models import (
     OTAManifest,
     AuditLogEntry,
 )
+from common.meterhub_common.meter_profile_schema import MeterProfile
 
 
 @pytest.mark.unit
@@ -111,3 +112,14 @@ def test_audit_log_entry_creation():
     )
     assert entry.event_type == "config_change"
     assert entry.details == {}  # default
+
+
+@pytest.mark.unit
+def test_flow_meter_profile_loads():
+    """Japsin electromagnetic flow meter profile loads with input registers."""
+    profile = MeterProfile.from_yaml("profiles/japsin-jii-bhi-electromagnetic-flowmeter.yaml")
+
+    assert profile.meter_type == "japsin-jii-bhi-electromagnetic-flowmeter"
+    assert "flow_rate_m3_h" in profile.registers
+    assert profile.registers["flow_rate_m3_h"].function_code == 4
+    assert profile.registers["flow_rate_m3_h"].unit == "m3/h"

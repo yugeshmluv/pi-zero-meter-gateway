@@ -94,14 +94,23 @@ class MeterTester:
             registers_read = 0
             registers_failed = 0
 
-            # Try to read key registers
-            key_registers = [
+            # Try preferred registers first, then fall back to the first profile registers.
+            preferred_registers = [
+                "flow_rate_m3_h",
+                "flow_velocity_m_s",
+                "flow_total_m3",
+                "totalizer_m3",
                 "voltage_l1",
                 "current_l1",
                 "instant_kw",
                 "totalizer_kwh",
                 "frequency_hz",
             ]
+            key_registers = [name for name in preferred_registers if name in profile.registers]
+            for name in profile.registers:
+                if name not in key_registers:
+                    key_registers.append(name)
+            key_registers = key_registers[: min(8, len(key_registers))]
 
             for reg_name in key_registers:
                 try:
@@ -129,8 +138,9 @@ class MeterTester:
 
             end_ms = datetime.utcnow().timestamp() * 1000
 
-            # Determine success (at least 3 registers read)
-            success = registers_read >= 3
+            # Determine success: at least one valid profile register is enough for
+            # profile-agnostic hardware detection.
+            success = registers_read > 0
 
             return MeterTestResult(
                 device=device,
@@ -139,7 +149,11 @@ class MeterTester:
                 registers_failed=registers_failed,
                 test_duration_ms=end_ms - start_ms,
                 timestamp=start_time,
-                error_message=None if success else f"Only {registers_read}/5 registers read",
+                error_message=(
+                    None
+                    if success
+                    else f"Only {registers_read}/{len(key_registers)} registers read"
+                ),
                 sample_readings=sample_readings,
             )
 
@@ -245,8 +259,9 @@ class MeterTester:
                     }
                     continue
 
-                # Try reading a simple register
-                result = await client.read_register("voltage_l1", force_refresh=True)
+                # Try reading the first register in the selected profile.
+                register_name = next(iter(profile.registers))
+                result = await client.read_register(register_name, force_refresh=True)
                 await client.disconnect()
 
                 success = result.read_successful

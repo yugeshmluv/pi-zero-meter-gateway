@@ -238,26 +238,29 @@ class ModbusRTUClient:
         """Read raw register value (handle multi-register types)."""
         address = register_def.address
         data_type = register_def.data_type
+        function_code = getattr(register_def, "function_code", 3)
+        if function_code == 4:
+            read_registers = self.client.read_input_registers
+            register_kind = "input"
+        else:
+            read_registers = self.client.read_holding_registers
+            register_kind = "holding"
 
         if data_type == DataType.UINT16 or data_type == DataType.INT16:
             # Single 16-bit register
-            result = await self.client.read_holding_registers(
-                address, count=1, device_id=self.slave_id
-            )
+            result = await read_registers(address, count=1, device_id=self.slave_id)
             if result.isError():
                 raise ModbusException(  # type: ignore[no-untyped-call]
-                    f"Failed to read register {address}"
+                    f"Failed to read {register_kind} register {address}"
                 )
             return result.registers[0]
 
         elif data_type == DataType.UINT32 or data_type == DataType.INT32:
             # Two 16-bit registers (big-endian)
-            result = await self.client.read_holding_registers(
-                address, count=2, device_id=self.slave_id
-            )
+            result = await read_registers(address, count=2, device_id=self.slave_id)
             if result.isError():
                 raise ModbusException(  # type: ignore[no-untyped-call]
-                    f"Failed to read registers {address}-{address + 1}"
+                    f"Failed to read {register_kind} registers {address}-{address + 1}"
                 )
             high = result.registers[0]
             low = result.registers[1]
@@ -265,12 +268,10 @@ class ModbusRTUClient:
 
         elif data_type == DataType.FLOAT32:
             # Two 16-bit registers as IEEE 754 float
-            result = await self.client.read_holding_registers(
-                address, count=2, device_id=self.slave_id
-            )
+            result = await read_registers(address, count=2, device_id=self.slave_id)
             if result.isError():
                 raise ModbusException(  # type: ignore[no-untyped-call]
-                    f"Failed to read float32 at {address}"
+                    f"Failed to read {register_kind} float32 at {address}"
                 )
             high = result.registers[0]
             low = result.registers[1]
@@ -280,12 +281,10 @@ class ModbusRTUClient:
 
         elif data_type == DataType.FLOAT64:
             # Four 16-bit registers as IEEE 754 double
-            result = await self.client.read_holding_registers(
-                address, count=4, device_id=self.slave_id
-            )
+            result = await read_registers(address, count=4, device_id=self.slave_id)
             if result.isError():
                 raise ModbusException(  # type: ignore[no-untyped-call]
-                    f"Failed to read float64 at {address}"
+                    f"Failed to read {register_kind} float64 at {address}"
                 )
             combined = struct.pack(
                 ">HHHH",

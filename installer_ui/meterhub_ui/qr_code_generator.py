@@ -9,6 +9,7 @@ Generates QR codes for:
 
 import json
 import logging
+from io import BytesIO
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -87,7 +88,7 @@ class QRCodeGenerator:
                 img = qr.make_image(fill_color="black", back_color="white")
 
             return {
-                "qr_code": str(img),
+                "qr_code": self._image_to_string(img),
                 "data": device_json,
                 "format": format,
             }
@@ -151,7 +152,7 @@ class QRCodeGenerator:
             img = qr.make_image(image_factory=svg.SvgPathImage)
 
             return {
-                "qr_code": str(img),
+                "qr_code": self._image_to_string(img),
                 "wifi_string": wifi_string,
                 "ssid": ssid,
             }
@@ -207,7 +208,7 @@ class QRCodeGenerator:
             img = qr.make_image(image_factory=svg.SvgPathImage)
 
             return {
-                "qr_code": str(img),
+                "qr_code": self._image_to_string(img),
                 "provisioning_data": prov_json,
             }
 
@@ -249,3 +250,10 @@ class QRCodeGenerator:
             </text>
         </svg>
         """
+
+    @staticmethod
+    def _image_to_string(img: Any) -> str:
+        """Serialize a qrcode image object to text."""
+        buffer = BytesIO()
+        img.save(buffer)
+        return buffer.getvalue().decode("utf-8")

@@ -10,6 +10,8 @@ Handles:
 
 import logging
 import hashlib
+import os
+import tempfile
 from pathlib import Path
 from dataclasses import dataclass
 
@@ -44,15 +46,21 @@ class OTAManifest:
 class ImageSigner:
     """Sign and verify OTA images using Ed25519."""
 
-    def __init__(self, key_dir: Path = Path("/etc/meterhub/keys")) -> None:
+    def __init__(self, key_dir: Path | None = None) -> None:
         """
         Initialize image signer.
 
         Args:
             key_dir: Directory containing signing keys
         """
-        self.key_dir = Path(key_dir)
-        self.key_dir.mkdir(parents=True, exist_ok=True)
+        self.key_dir = Path(key_dir or os.getenv("METERHUB_KEY_DIR") or "/etc/meterhub/keys")
+        try:
+            self.key_dir.mkdir(parents=True, exist_ok=True)
+        except PermissionError:
+            if os.getenv("METERHUB_ENV") == "production":
+                raise
+            self.key_dir = Path(tempfile.gettempdir()) / "meterhub" / "keys"
+            self.key_dir.mkdir(parents=True, exist_ok=True)
 
         self.private_key_path = self.key_dir / "ota_private.pem"
         self.public_key_path = self.key_dir / "ota_public.pem"

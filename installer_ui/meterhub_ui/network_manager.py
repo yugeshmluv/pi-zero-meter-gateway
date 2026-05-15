@@ -11,6 +11,7 @@ Handles:
 
 import logging
 import subprocess
+import re
 from typing import Any
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -97,23 +98,24 @@ class NetworkManager:
                 if not line:
                     continue
 
-                parts = line.split(":")
+                parts = line.split(":", 4)
                 if len(parts) >= 5:
                     ssid = parts[0].strip()
                     signal = int(parts[1].strip() or 0)
                     security = parts[2].strip() or "Open"
                     freq_str = parts[3].strip()
-                    bssid = parts[4].strip() if len(parts) > 4 else None
+                    bssid = parts[4].strip().replace("\\:", ":") if len(parts) > 4 else None
+                    freq_mhz = self._parse_frequency_mhz(freq_str)
 
                     # Determine frequency band
-                    freq_ghz = "2.4" if int(freq_str or 2400) < 4000 else "5"
+                    freq_ghz = "2.4" if freq_mhz < 4000 else "5"
 
                     networks.append(
                         WiFiNetwork(
                             ssid=ssid,
                             signal_strength=signal,
                             security=security,
-                            channel=self._freq_to_channel(int(freq_str or 2400)),
+                            channel=self._freq_to_channel(freq_mhz),
                             frequency_ghz=freq_ghz,
                             bssid=bssid,
                         )
@@ -151,7 +153,7 @@ class NetworkManager:
 
                 elif "Signal level" in line:
                     signal_str = line.split("=")[1].strip().split()[0]
-                    signal = min(100, abs(int(signal_str)))
+                    signal = self._parse_signal_strength(signal_str)
                     current_network["signal_strength"] = signal
 
                 elif "Frequency" in line:
@@ -348,6 +350,36 @@ class NetworkManager:
             return (freq_mhz - 2407) // 5
         else:  # 5 GHz band
             return (freq_mhz - 5000) // 5
+
+    @staticmethod
+    def _parse_frequency_mhz(value: str) -> int:
+        """Parse frequencies like '2437', '2437 MHz', or '2.437 GHz'."""
+        match = re.search(r"(\d+(?:\.\d+)?)", value or "")
+        if not match:
+            return 2400
+        frequency = float(match.group(1))
+        if frequency < 100:
+            frequency *= 1000
+        return int(frequency)
+
+    @staticmethod
+    def _parse_signal_strength(value: str) -> int:
+        """Parse signal values like '-45', '70/70', or '85' into 0-100."""
+        value = value.strip()
+        if "/" in value:
+            numerator, denominator = value.split("/", 1)
+            try:
+                return max(0, min(100, round((float(numerator) / float(denominator)) * 100)))
+            except (ValueError, ZeroDivisionError):
+                return 0
+
+        match = re.search(r"-?\d+", value)
+        if not match:
+            return 0
+        signal = int(match.group(0))
+        if signal < 0:
+            return max(0, min(100, 2 * (signal + 100)))
+        return max(0, min(100, signal))
 
     @staticmethod
     def _build_wifi_network(data: dict[str, Any]) -> WiFiNetwork:

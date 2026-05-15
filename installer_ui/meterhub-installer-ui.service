@@ -33,10 +33,10 @@ PrivateTmp=true
 NoNewPrivileges=true
 ProtectSystem=strict
 ProtectHome=true
-ReadWritePaths=/var/lib/meterhub /var/log/meterhub /etc/meterhub/secrets
+ReadWritePaths=/var/lib/meterhub /var/cache/meterhub /var/log/meterhub /etc/meterhub /etc/meterhub/secrets
 
 # Environment
-Environment="METREHUB_ENV=production"
+Environment="METERHUB_ENV=production"
 EnvironmentFile=/etc/meterhub/config.env
 EnvironmentFile=-/etc/meterhub/secrets.env
 

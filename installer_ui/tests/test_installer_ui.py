@@ -11,18 +11,28 @@ Tests:
 """
 
 import pytest
+from pathlib import Path
 
 from fastapi.testclient import TestClient
 
 # Import app and modules
-from installer_ui.meterhub_ui.app import app, InstallerService, StatusEnum
+from installer_ui.meterhub_ui.app import (
+    app,
+    InstallerService,
+    ProvisioningState,
+    StatusEnum,
+    service,
+)
 from installer_ui.meterhub_ui.qr_code_generator import QRCodeGenerator
 from installer_ui.meterhub_ui.network_manager import NetworkManager
 
 
 @pytest.fixture
-def client() -> TestClient:
+def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> TestClient:
     """FastAPI test client."""
+    monkeypatch.setenv("METERHUB_DEV_CONFIG_DIR", str(tmp_path))
+    service.provisioning_state = ProvisioningState()
+    service.device_config = None
     return TestClient(app)
 
 
@@ -168,8 +178,7 @@ class TestNetwork:
         assert response.status_code == 200
         data = response.json()
         assert "networks" in data
-        # Placeholder data should have at least one network
-        assert len(data["networks"]) >= 1
+        assert isinstance(data["networks"], list)
 
     def test_network_status(self, client: TestClient) -> None:
         """Test get network status."""
@@ -214,6 +223,7 @@ class TestMeter:
 
         # Check known profiles
         assert "schneider-em6400.yaml" in data["profiles"]
+        assert "japsin-jii-bhi-electromagnetic-flowmeter.yaml" in data["profiles"]
 
 
 class TestQRCode:
@@ -308,6 +318,16 @@ class TestNetworkManager:
         assert NetworkManager._freq_to_channel(5180) == 36
         # Channel 149 = 5745 MHz
         assert NetworkManager._freq_to_channel(5745) == 149
+
+    def test_parse_frequency_with_units(self) -> None:
+        """Test frequency parsing from common Wi-Fi command formats."""
+        assert NetworkManager._parse_frequency_mhz("2437 MHz") == 2437
+        assert NetworkManager._parse_frequency_mhz("2.437 GHz") == 2437
+
+    def test_parse_signal_strength_ratio(self) -> None:
+        """Test signal parsing from iwlist ratio format."""
+        assert NetworkManager._parse_signal_strength("70/70") == 100
+        assert NetworkManager._parse_signal_strength("-50") == 100
 
     def test_wifi_string_escaping(self) -> None:
         """Test Wi-Fi string escaping."""

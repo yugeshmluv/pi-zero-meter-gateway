@@ -1,0 +1,73 @@
+meter_type: "japsin-jii-bhi-electromagnetic-flowmeter"
+manufacturer: "Japsin Instrumentation"
+protocol_version: "Modbus RTU"
+baud_rate: 9600
+parity: "none"
+stop_bits: 1
+data_bits: 8
+timeout_ms: 1000
+description: "Provisional profile for JAPSIN-JII-BHI electromagnetic flow meter. Confirm register addresses against the vendor Modbus map before production use."
+
+# Nameplate notes from device:
+# - Electromagnetic flow meter
+# - Measurement range: 160 m3/h (as read from nameplate)
+# - Accuracy: 0.5
+# - Nominal pressure: 1.6 MPa
+# - Temperature: 0-60 C
+# - Lining material: PTFE
+# - Electrode material: SS316L
+# - Power supply: 230 VAC
+#
+# IMPORTANT:
+# A public Modbus register map for the exact JAPSIN-JII-BHI model was not available
+# during implementation. Japsin publishes RS485/Modbus RTU as an output option for
+# its electromagnetic flow meter family, and many mag-meter converters expose live
+# process values as 300xx input registers. The addresses below are a provisional
+# starting point for field testing. If reads fail or values look wrong, replace these
+# addresses/data types with the register table from the meter manual or vendor.
+
+registers:
+  - name: "flow_rate_m3_h"
+    address: 0x0000
+    function_code: 4
+    data_type: "float32"
+    scale: 1.0
+    unit: "m3/h"
+    description: "Instantaneous volumetric flow rate (provisional input register 30001-30002)"
+    read_only: true
+
+  - name: "flow_velocity_m_s"
+    address: 0x0002
+    function_code: 4
+    data_type: "float32"
+    scale: 1.0
+    unit: "m/s"
+    description: "Flow velocity (provisional input register 30003-30004)"
+    read_only: true
+
+  - name: "flow_total_m3"
+    address: 0x0004
+    function_code: 4
+    data_type: "float32"
+    scale: 1.0
+    unit: "m3"
+    description: "Forward/positive totalizer (provisional input register 30005-30006)"
+    read_only: true
+
+  - name: "flow_percent"
+    address: 0x0006
+    function_code: 4
+    data_type: "float32"
+    scale: 1.0
+    unit: "%"
+    description: "Flow percentage of configured range (provisional)"
+    read_only: true
+
+  - name: "conductivity_us_cm"
+    address: 0x0008
+    function_code: 4
+    data_type: "float32"
+    scale: 1.0
+    unit: "uS/cm"
+    description: "Fluid conductivity diagnostic (provisional)"
+    read_only: true
