@@ -348,44 +348,49 @@ async def device_info() -> dict[str, Any]:
 
 @app.get("/", response_class=HTMLResponse, tags=["UI"])
 async def dashboard() -> str:
-    """Main dashboard page (single-page app)."""
     return """
     <!DOCTYPE html>
-            <html lang="en">
-            <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <title>MeterHub Provisioning Console</title>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <title>MeterHub Provisioning Studio</title>
 
-            <style>
+        <style>
+
             :root{
                 --bg:#edf2f7;
-                --panel:#ffffff;
-                --panel-2:#f8fafc;
+                --panel:rgba(255,255,255,.78);
+                --panel-solid:#ffffff;
                 --border:#dbe4ee;
                 --text:#0f172a;
                 --muted:#64748b;
-                --soft:#94a3b8;
 
                 --primary:#2563eb;
-                --primary-2:#1d4ed8;
-                --primary-soft:#dbeafe;
+                --primary2:#4f46e5;
 
                 --success:#16a34a;
                 --danger:#dc2626;
-                --warning:#d97706;
 
                 --shadow:
-                    0 1px 2px rgba(0,0,0,.03),
-                    0 8px 24px rgba(15,23,42,.06);
+                    0 2px 8px rgba(0,0,0,.04),
+                    0 18px 40px rgba(15,23,42,.08);
 
-                --radius:18px;
-                --radius-sm:12px;
+                --radius:26px;
+                --radius-sm:16px;
 
                 --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
             }
 
-            *{box-sizing:border-box;margin:0;padding:0}
+            *{
+                margin:0;
+                padding:0;
+                box-sizing:border-box;
+            }
+
+            html,body{
+                height:100%;
+            }
 
             body{
                 font-family:
@@ -396,57 +401,66 @@ async def dashboard() -> str:
                     sans-serif;
 
                 background:
-                    radial-gradient(circle at top left,#dbeafe 0%,transparent 28%),
-                    radial-gradient(circle at bottom right,#e9d5ff 0%,transparent 22%),
+                    radial-gradient(circle at top left,#dbeafe 0%,transparent 25%),
+                    radial-gradient(circle at bottom right,#ede9fe 0%,transparent 20%),
                     var(--bg);
 
                 color:var(--text);
-                height:100vh;
                 overflow:hidden;
-                padding:14px;
             }
 
-            /* ───────────────────────── APP ───────────────────────── */
+            /* APP */
 
             .app{
+                height:100vh;
                 display:grid;
                 grid-template-columns:280px 1fr;
-                gap:14px;
-                height:100%;
             }
 
-            /* ───────────────────── SIDEBAR ───────────────────────── */
+            /* SIDEBAR */
 
             .sidebar{
-                background:rgba(255,255,255,.78);
+                padding:20px;
+                display:flex;
+                flex-direction:column;
+                gap:20px;
+            }
+
+            .sidebar-inner{
+                flex:1;
+
+                background:var(--panel);
                 backdrop-filter:blur(18px);
+
                 border:1px solid rgba(255,255,255,.7);
-                border-radius:28px;
-                padding:18px;
+                border-radius:32px;
+
                 box-shadow:var(--shadow);
+
+                padding:20px;
 
                 display:flex;
                 flex-direction:column;
-                gap:18px;
             }
 
             .brand{
                 display:flex;
                 align-items:center;
-                gap:12px;
+                gap:14px;
+                margin-bottom:28px;
             }
 
             .logo{
-                width:44px;
-                height:44px;
-                border-radius:14px;
+                width:52px;
+                height:52px;
+                border-radius:18px;
 
                 background:
                     linear-gradient(135deg,#2563eb,#7c3aed);
 
                 box-shadow:
                     inset 0 1px 0 rgba(255,255,255,.35),
-                    0 6px 20px rgba(37,99,235,.28);
+                    0 8px 30px rgba(37,99,235,.3);
 
                 position:relative;
             }
@@ -454,46 +468,43 @@ async def dashboard() -> str:
             .logo::after{
                 content:'';
                 position:absolute;
-                inset:11px;
-                border-radius:10px;
+                inset:13px;
                 background:white;
-                opacity:.92;
+                border-radius:12px;
             }
 
             .brand h1{
                 font-size:1rem;
                 line-height:1.1;
-                letter-spacing:-.02em;
             }
 
             .brand small{
                 color:var(--muted);
-                font-size:.74rem;
             }
 
             .nav{
                 display:flex;
                 flex-direction:column;
-                gap:8px;
+                gap:10px;
             }
 
             .nav-btn{
                 border:none;
                 background:transparent;
-                padding:14px 16px;
-                border-radius:16px;
-                text-align:left;
-                cursor:pointer;
+
+                border-radius:20px;
+                padding:16px;
 
                 display:flex;
+                gap:14px;
                 align-items:center;
-                gap:12px;
 
-                transition:.18s ease;
+                cursor:pointer;
+                transition:.18s;
             }
 
             .nav-btn:hover{
-                background:rgba(255,255,255,.65);
+                background:rgba(255,255,255,.6);
             }
 
             .nav-btn.active{
@@ -502,126 +513,131 @@ async def dashboard() -> str:
             }
 
             .nav-icon{
-                width:38px;
-                height:38px;
-                border-radius:12px;
+                width:46px;
+                height:46px;
+
+                border-radius:16px;
 
                 display:flex;
                 align-items:center;
                 justify-content:center;
 
-                font-size:1rem;
-                background:var(--primary-soft);
-                color:var(--primary);
-                flex-shrink:0;
-            }
+                background:#dbeafe;
+                color:#2563eb;
 
-            .nav-meta{
-                display:flex;
-                flex-direction:column;
+                font-size:1.1rem;
             }
 
             .nav-title{
                 font-weight:700;
-                font-size:.88rem;
+                font-size:.92rem;
             }
 
             .nav-sub{
-                font-size:.72rem;
                 color:var(--muted);
+                font-size:.74rem;
             }
 
-            /* ───────────────────── STATUS ───────────────────────── */
+            /* STATUS */
 
-            .status-card{
+            .status{
                 margin-top:auto;
 
                 background:
                     linear-gradient(135deg,#0f172a,#1e293b);
 
+                border-radius:24px;
+                padding:20px;
+
                 color:white;
-                border-radius:22px;
-                padding:18px;
             }
 
             .status-row{
                 display:flex;
                 justify-content:space-between;
-                margin-bottom:12px;
+                margin-bottom:14px;
             }
 
-            .status-label{
+            .status small{
                 color:rgba(255,255,255,.7);
-                font-size:.74rem;
             }
 
             .progress{
-                height:10px;
+                height:12px;
                 border-radius:999px;
-                background:rgba(255,255,255,.08);
                 overflow:hidden;
+                background:rgba(255,255,255,.08);
             }
 
-            .progress > div{
+            .progress-bar{
                 height:100%;
                 width:20%;
+
                 background:
                     linear-gradient(90deg,#60a5fa,#818cf8);
             }
 
-            /* ───────────────────── MAIN ───────────────────────── */
+            /* MAIN */
 
             .main{
+                padding:20px 20px 20px 0;
                 display:flex;
                 flex-direction:column;
-                gap:14px;
+                gap:18px;
                 overflow:hidden;
             }
 
-            .hero{
-                background:rgba(255,255,255,.82);
-                backdrop-filter:blur(20px);
+            /* HERO */
 
-                border-radius:28px;
-                padding:22px 26px;
+            .hero{
+                background:var(--panel);
+                backdrop-filter:blur(18px);
+
+                border-radius:32px;
+                padding:26px 30px;
 
                 display:flex;
                 justify-content:space-between;
                 align-items:center;
 
+                border:1px solid rgba(255,255,255,.7);
+
                 box-shadow:var(--shadow);
             }
 
             .hero h2{
-                font-size:1.45rem;
+                font-size:1.7rem;
                 letter-spacing:-.03em;
             }
 
             .hero p{
                 color:var(--muted);
-                margin-top:4px;
-                font-size:.9rem;
+                margin-top:6px;
             }
 
             .hero-actions{
                 display:flex;
-                gap:10px;
+                gap:12px;
             }
 
             button{
                 border:none;
-                border-radius:14px;
-                padding:11px 18px;
-                font-size:.82rem;
-                font-weight:600;
                 cursor:pointer;
-                transition:.18s ease;
+                transition:.18s;
+                font-weight:600;
             }
 
             .primary{
-                background:linear-gradient(135deg,#2563eb,#4f46e5);
+                background:
+                    linear-gradient(135deg,#2563eb,#4f46e5);
+
                 color:white;
-                box-shadow:0 8px 20px rgba(37,99,235,.22);
+
+                padding:13px 20px;
+                border-radius:16px;
+
+                box-shadow:
+                    0 10px 24px rgba(37,99,235,.25);
             }
 
             .primary:hover{
@@ -630,123 +646,140 @@ async def dashboard() -> str:
 
             .ghost{
                 background:white;
-                color:var(--text);
                 border:1px solid var(--border);
+
+                padding:13px 18px;
+                border-radius:16px;
             }
 
             .ghost:hover{
                 background:#f8fafc;
             }
 
-            /* ───────────────────── CONTENT ───────────────────────── */
+            /* CONTENT */
 
             .content{
                 flex:1;
                 min-height:0;
+            }
+
+            .view{
+                height:100%;
+                display:none;
+            }
+
+            .view.active{
                 display:grid;
-                grid-template-columns:1.1fr .9fr;
-                gap:14px;
             }
 
-            .panel{
-                background:rgba(255,255,255,.82);
-                backdrop-filter:blur(18px);
+            /* INSTALLER */
 
-                border-radius:28px;
-                box-shadow:var(--shadow);
-
-                overflow:hidden;
-
-                display:flex;
-                flex-direction:column;
-            }
-
-            .panel-head{
-                padding:18px 22px;
-                border-bottom:1px solid rgba(226,232,240,.9);
-
-                display:flex;
-                align-items:center;
-                justify-content:space-between;
-            }
-
-            .panel-title{
-                font-weight:800;
-                letter-spacing:-.02em;
-            }
-
-            .panel-sub{
-                color:var(--muted);
-                font-size:.78rem;
-                margin-top:2px;
-            }
-
-            /* ───────────────────── INSTALLER ───────────────────────── */
-
-            .steps{
-                padding:22px;
-                display:grid;
+            #installer{
                 grid-template-columns:repeat(5,1fr);
-                gap:12px;
+                gap:16px;
             }
 
             .step{
-                padding:16px;
-                border-radius:20px;
-                background:var(--panel-2);
-                border:1px solid var(--border);
+                background:var(--panel);
+                backdrop-filter:blur(18px);
 
-                position:relative;
-                overflow:hidden;
+                border-radius:28px;
+                padding:24px;
+
+                border:1px solid rgba(255,255,255,.7);
+
+                box-shadow:var(--shadow);
+
+                display:flex;
+                flex-direction:column;
+                justify-content:space-between;
+
+                min-height:280px;
             }
 
             .step.active{
-                background:linear-gradient(135deg,#2563eb,#4f46e5);
+                background:
+                    linear-gradient(135deg,#2563eb,#4f46e5);
+
                 color:white;
-                border:none;
             }
 
             .step-num{
-                width:30px;
-                height:30px;
-                border-radius:10px;
+                width:42px;
+                height:42px;
+
+                border-radius:14px;
+
+                background:rgba(255,255,255,.14);
+
                 display:flex;
                 align-items:center;
                 justify-content:center;
-                background:rgba(255,255,255,.14);
-                font-size:.78rem;
+
                 font-weight:700;
-                margin-bottom:12px;
             }
 
-            .step h4{
-                font-size:.86rem;
-                margin-bottom:4px;
+            .step h3{
+                margin-top:auto;
+                margin-bottom:10px;
             }
 
             .step p{
-                font-size:.72rem;
-                opacity:.85;
-                line-height:1.45;
+                font-size:.84rem;
+                line-height:1.6;
+                opacity:.9;
             }
 
-            /* ───────────────────── FORM ───────────────────────── */
+            /* CONFIG */
+
+            #config{
+                grid-template-columns:1fr 340px;
+                gap:18px;
+            }
+
+            .panel{
+                background:var(--panel);
+                backdrop-filter:blur(18px);
+
+                border-radius:32px;
+                border:1px solid rgba(255,255,255,.7);
+
+                box-shadow:var(--shadow);
+
+                overflow:hidden;
+            }
+
+            .panel-head{
+                padding:22px 26px;
+                border-bottom:1px solid rgba(226,232,240,.8);
+            }
+
+            .panel-head h3{
+                font-size:1rem;
+            }
+
+            .panel-head p{
+                color:var(--muted);
+                margin-top:4px;
+                font-size:.8rem;
+            }
 
             .form-wrap{
-                padding:22px;
+                padding:26px;
                 overflow:auto;
+                height:calc(100% - 82px);
             }
 
             .form-grid{
                 display:grid;
-                grid-template-columns:repeat(2,1fr);
-                gap:14px;
+                grid-template-columns:1fr 1fr;
+                gap:16px;
             }
 
             .field{
                 display:flex;
                 flex-direction:column;
-                gap:6px;
+                gap:7px;
             }
 
             .field.full{
@@ -754,19 +787,20 @@ async def dashboard() -> str:
             }
 
             label{
-                font-size:.72rem;
+                font-size:.76rem;
                 font-weight:700;
                 color:var(--muted);
             }
 
             input,select{
-                width:100%;
                 border:1px solid var(--border);
+                border-radius:16px;
+
+                padding:14px 15px;
+
+                font-size:.88rem;
+
                 background:white;
-                border-radius:14px;
-                padding:12px 14px;
-                font-size:.86rem;
-                transition:.18s ease;
             }
 
             input:focus,select:focus{
@@ -776,32 +810,62 @@ async def dashboard() -> str:
             }
 
             .form-actions{
-                margin-top:20px;
+                margin-top:22px;
                 display:flex;
-                gap:10px;
+                gap:12px;
             }
 
-            /* ───────────────────── DIAGNOSTICS ───────────────────────── */
+            /* QUICK PANEL */
 
-            .diag-grid{
-                padding:22px;
+            .quick{
+                padding:24px;
+                display:flex;
+                flex-direction:column;
+                gap:14px;
+            }
+
+            .quick-card{
+                background:white;
+                border-radius:20px;
+                border:1px solid var(--border);
+
+                padding:18px;
+            }
+
+            .quick-card h4{
+                margin-bottom:6px;
+            }
+
+            .quick-card p{
+                color:var(--muted);
+                font-size:.8rem;
+                line-height:1.5;
+            }
+
+            /* DIAGNOSTICS */
+
+            #diagnostics{
+                grid-template-columns:420px 1fr;
+                gap:18px;
+            }
+
+            .diag-tools{
                 display:grid;
-                grid-template-columns:repeat(3,1fr);
-                gap:12px;
+                grid-template-columns:1fr 1fr;
+                gap:14px;
+                padding:20px;
             }
 
             .diag-btn{
                 background:white;
                 border:1px solid var(--border);
-                border-radius:20px;
+
+                border-radius:22px;
                 padding:18px;
 
-                display:flex;
-                flex-direction:column;
-                gap:8px;
+                text-align:left;
 
-                cursor:pointer;
-                transition:.18s ease;
+                transition:.18s;
             }
 
             .diag-btn:hover{
@@ -809,62 +873,53 @@ async def dashboard() -> str:
                 box-shadow:var(--shadow);
             }
 
-            .diag-icon{
-                width:44px;
-                height:44px;
-                border-radius:14px;
-
-                display:flex;
-                align-items:center;
-                justify-content:center;
-
-                background:var(--primary-soft);
-                color:var(--primary);
-                font-size:1rem;
-            }
-
             .diag-btn h4{
-                font-size:.84rem;
+                margin-bottom:8px;
             }
 
             .diag-btn p{
-                font-size:.72rem;
+                font-size:.76rem;
                 color:var(--muted);
-                line-height:1.45;
+                line-height:1.5;
             }
 
-            /* ───────────────────── OUTPUT ───────────────────────── */
+            /* OUTPUT */
 
             .output{
-                padding:22px;
-                overflow:auto;
-                font-family:var(--mono);
-                font-size:.8rem;
-                line-height:1.65;
+                height:100%;
+                display:flex;
+                flex-direction:column;
             }
 
-            .output pre{
+            .output-body{
+                flex:1;
+                overflow:auto;
+                padding:24px;
+
+                font-family:var(--mono);
+                font-size:.82rem;
+                line-height:1.7;
+            }
+
+            pre{
                 white-space:pre-wrap;
                 word-break:break-word;
+            }
+
+            .qr-wrap{
+                display:flex;
+                align-items:center;
+                justify-content:center;
             }
 
             .hidden{
                 display:none !important;
             }
 
-            /* ───────────────────── MOBILE ───────────────────────── */
-
             @media(max-width:1200px){
-                .content{
-                    grid-template-columns:1fr;
-                }
-            }
-
-            @media(max-width:900px){
 
                 body{
                     overflow:auto;
-                    height:auto;
                 }
 
                 .app{
@@ -872,616 +927,588 @@ async def dashboard() -> str:
                     height:auto;
                 }
 
-                .steps{
+                .main{
+                    padding:0 20px 20px 20px;
+                }
+
+                #installer{
                     grid-template-columns:1fr 1fr;
                 }
 
-                .diag-grid{
-                    grid-template-columns:1fr 1fr;
+                #config{
+                    grid-template-columns:1fr;
                 }
 
-                .form-grid{
+                #diagnostics{
                     grid-template-columns:1fr;
                 }
             }
+        </style>
+    </head>
 
-            </style>
-            </head>
+    <body>
 
-            <body>
+    <div class="app">
 
-            <div class="app">
+        <aside class="sidebar">
+            <div class="sidebar-inner">
 
-                <!-- SIDEBAR -->
-                <aside class="sidebar">
+                <div class="brand">
+                    <div class="logo"></div>
+                    <div>
+                        <h1>MeterHub Studio</h1>
+                        <small>Gateway Provisioning</small>
+                    </div>
+                </div>
 
-                    <div class="brand">
-                        <div class="logo"></div>
+                <div class="nav">
+
+                    <button class="nav-btn active" onclick="showView('installer',this)">
+                        <div class="nav-icon">⚡</div>
                         <div>
-                            <h1>MeterHub Console</h1>
-                            <small>Provisioning Studio</small>
+                            <div class="nav-title">Installer</div>
+                            <div class="nav-sub">Provisioning flow</div>
                         </div>
-                    </div>
+                    </button>
 
-                    <div class="nav">
-
-                        <button class="nav-btn active" onclick="showTab('installer', this)">
-                            <div class="nav-icon">⚡</div>
-                            <div class="nav-meta">
-                                <div class="nav-title">Installer Flow</div>
-                                <div class="nav-sub">Provisioning lifecycle</div>
-                            </div>
-                        </button>
-
-                        <button class="nav-btn" onclick="showTab('config', this)">
-                            <div class="nav-icon">🛠</div>
-                            <div class="nav-meta">
-                                <div class="nav-title">Configuration</div>
-                                <div class="nav-sub">Save & edit forms</div>
-                            </div>
-                        </button>
-
-                        <button class="nav-btn" onclick="showTab('diagnostics', this)">
-                            <div class="nav-icon">📡</div>
-                            <div class="nav-meta">
-                                <div class="nav-title">Diagnostics</div>
-                                <div class="nav-sub">Network & meter tools</div>
-                            </div>
-                        </button>
-
-                    </div>
-
-                    <div class="status-card">
-
-                        <div class="status-row">
-                            <div>
-                                <div class="status-label">Device Status</div>
-                                <div id="status_pill">Ready</div>
-                            </div>
-
-                            <div style="text-align:right">
-                                <div class="status-label">Progress</div>
-                                <div id="step_pill">1 / 5</div>
-                            </div>
-                        </div>
-
-                        <div class="progress">
-                            <div id="progress_bar"></div>
-                        </div>
-
-                    </div>
-
-                </aside>
-
-                <!-- MAIN -->
-                <main class="main">
-
-                    <section class="hero">
+                    <button class="nav-btn" onclick="showView('config',this)">
+                        <div class="nav-icon">🛠</div>
                         <div>
-                            <h2>Provision & Monitor Devices</h2>
-                            <p>
-                                Modern installer workspace for MeterHub gateways,
-                                diagnostics, Wi-Fi onboarding and QR provisioning.
-                            </p>
+                            <div class="nav-title">Configuration</div>
+                            <div class="nav-sub">Gateway settings</div>
+                        </div>
+                    </button>
+
+                    <button class="nav-btn" onclick="showView('diagnostics',this)">
+                        <div class="nav-icon">📡</div>
+                        <div>
+                            <div class="nav-title">Diagnostics</div>
+                            <div class="nav-sub">Tools & response</div>
+                        </div>
+                    </button>
+
+                </div>
+
+                <div class="status">
+
+                    <div class="status-row">
+                        <div>
+                            <small>Status</small>
+                            <div id="status_pill">Ready</div>
                         </div>
 
-                        <div class="hero-actions">
-                            <button class="ghost">Export Config</button>
-                            <button class="primary">Deploy Gateway</button>
+                        <div style="text-align:right">
+                            <small>Step</small>
+                            <div id="step_pill">1 / 5</div>
                         </div>
-                    </section>
+                    </div>
 
-                    <section class="content">
+                    <div class="progress">
+                        <div class="progress-bar" id="progress_bar"></div>
+                    </div>
 
-                        <div class="panel">
-
-                            <!-- INSTALLER TAB -->
-                            <div id="installer" class="tab-view">
-
-                                <div class="panel-head">
-                                    <div>
-                                        <div class="panel-title">Installer Workflow</div>
-                                        <div class="panel-sub">
-                                            Guided provisioning lifecycle
-                                        </div>
-                                    </div>
-
-                                    <button class="primary"
-                                        onclick="loadStatus()">
-
-                                        Refresh Status
-                                    </button>
-                                </div>
-
-                                <div class="steps">
-
-                                    <div class="step active">
-                                        <div class="step-num">01</div>
-                                        <h4>Initialize</h4>
-                                        <p>Load provisioning state and validate hardware.</p>
-                                    </div>
-
-                                    <div class="step">
-                                        <div class="step-num">02</div>
-                                        <h4>Configure</h4>
-                                        <p>Apply network, meter and cloud parameters.</p>
-                                    </div>
-
-                                    <div class="step">
-                                        <div class="step-num">03</div>
-                                        <h4>Register</h4>
-                                        <p>Link gateway with cloud provisioning service.</p>
-                                    </div>
-
-                                    <div class="step">
-                                        <div class="step-num">04</div>
-                                        <h4>Validate</h4>
-                                        <p>Test meter communication and MQTT handshake.</p>
-                                    </div>
-
-                                    <div class="step">
-                                        <div class="step-num">05</div>
-                                        <h4>Deploy</h4>
-                                        <p>Finalize onboarding and activate telemetry.</p>
-                                    </div>
-
-                                </div>
-
-                                <div style="
-                                    padding:0 22px 22px 22px;
-                                    display:flex;
-                                    gap:12px;
-                                ">
-
-                                    <button class="primary"
-                                        onclick="registerDevice()">
-
-                                        Register Gateway
-                                    </button>
-
-                                    <button class="ghost"
-                                        onclick="callApi('/api/services/status')">
-
-                                        Check Services
-                                    </button>
-
-                                </div>
-
-                            </div>
-
-                            <!-- CONFIG TAB -->
-                            <div id="config" class="tab-view hidden">
-
-                                <div class="panel-head">
-                                    <div>
-                                        <div class="panel-title">Gateway Configuration</div>
-                                        <div class="panel-sub">
-                                            Secure provisioning parameters
-                                        </div>
-                                    </div>
-
-                                    <div style="display:flex;gap:10px">
-
-                                        <button class="ghost"
-                                            onclick="loadConfig()">
-
-                                            Load
-                                        </button>
-
-                                        <button class="primary"
-                                            onclick="saveConfig()">
-
-                                            Save
-                                        </button>
-
-                                    </div>
-                                </div>
-
-                                <div class="form-wrap">
-
-                                    <div class="form-grid">
-
-                                        <div class="field">
-                                            <label for="device_id">Device ID</label>
-                                            <input id="device_id" value="meter-001">
-                                        </div>
-
-                                        <div class="field">
-                                            <label for="society_id">Society ID</label>
-                                            <input id="society_id" value="test-society">
-                                        </div>
-
-                                        <div class="field">
-                                            <label for="panel_id">Panel ID</label>
-                                            <input id="panel_id" value="main-panel">
-                                        </div>
-
-                                        <div class="field">
-                                            <label for="wi_fi_ssid">Wi-Fi SSID</label>
-                                            <input id="wi_fi_ssid" value="test-wifi">
-                                        </div>
-
-                                        <div class="field">
-                                            <label for="wi_fi_password">Wi-Fi Password</label>
-                                            <input id="wi_fi_password" type="password">
-                                        </div>
-
-                                        <div class="field">
-                                            <label for="mqtt_endpoint">MQTT Endpoint</label>
-                                            <input id="mqtt_endpoint"
-                                                value="test.mosquitto.org">
-                                        </div>
-
-                                        <div class="field full">
-                                            <label for="https_endpoint">
-                                                HTTPS Endpoint
-                                            </label>
-
-                                            <input id="https_endpoint"
-                                                value="https://api.example.com/v1">
-                                        </div>
-
-                                        <div class="field">
-                                            <label for="oauth2_token">
-                                                OAuth2 Token
-                                            </label>
-
-                                            <input id="oauth2_token"
-                                                value="test-token">
-                                        </div>
-
-                                        <div class="field">
-                                            <label for="device_secret">
-                                                Device Secret
-                                            </label>
-
-                                            <input id="device_secret"
-                                                value="test-secret">
-                                        </div>
-
-                                        <div class="field">
-                                            <label for="meter_type">
-                                                Meter Profile
-                                            </label>
-
-                                            <select id="meter_type">
-                                                <option value="schneider-em6400">
-                                                    schneider-em6400
-                                                </option>
-                                            </select>
-                                        </div>
-
-                                        <div class="field">
-                                            <label for="meter_device">
-                                                Serial Device
-                                            </label>
-
-                                            <input id="meter_device"
-                                                value="/dev/ttyUSB0">
-                                        </div>
-
-                                    </div>
-
-                                    <div class="form-actions">
-
-                                        <button class="primary"
-                                            onclick="saveConfig()">
-
-                                            Save Configuration
-                                        </button>
-
-                                        <button class="ghost"
-                                            onclick="loadConfig()">
-
-                                            Reload Config
-                                        </button>
-
-                                        <button class="ghost"
-                                            onclick="callApi('/api/config/get')">
-
-                                            Preview JSON
-                                        </button>
-
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-                            <!-- DIAGNOSTICS TAB -->
-                            <div id="diagnostics"
-                                class="tab-view hidden"
-                                style="height:100%;min-height:0;">
-
-                                <div class="panel-head">
-                                    <div>
-                                        <div class="panel-title">
-                                            Diagnostics Workspace
-                                        </div>
-
-                                        <div class="panel-sub">
-                                            Live gateway debugging and response console
-                                        </div>
-                                    </div>
-
-                                    <button class="ghost"
-                                        onclick="clearConsole()">
-
-                                        Clear Console
-                                    </button>
-                                </div>
-
-                                <div style="
-                                    display:grid;
-                                    grid-template-columns:360px 1fr;
-                                    height:100%;
-                                    min-height:0;
-                                ">
-
-                                    <!-- TOOL PANEL -->
-                                    <div style="
-                                        border-right:1px solid var(--border);
-                                        overflow:auto;
-                                        padding:18px;
-                                    ">
-
-                                        <div class="diag-grid"
-                                            style="
-                                                grid-template-columns:1fr;
-                                                padding:0;
-                                            ">
-
-                                            <div class="diag-btn"
-                                                onclick="callApi('/health')">
-
-                                                <div class="diag-icon">💚</div>
-
-                                                <h4>Health Check</h4>
-
-                                                <p>
-                                                    Verify API and runtime health.
-                                                </p>
-                                            </div>
-
-                                            <div class="diag-btn"
-                                                onclick="callApi('/info')">
-
-                                                <div class="diag-icon">📦</div>
-
-                                                <h4>System Info</h4>
-
-                                                <p>
-                                                    Gateway runtime and firmware.
-                                                </p>
-                                            </div>
-
-                                            <div class="diag-btn"
-                                                onclick="callApi('/api/system/status')">
-
-                                                <div class="diag-icon">⚙️</div>
-
-                                                <h4>System Status</h4>
-
-                                                <p>
-                                                    CPU, memory and storage telemetry.
-                                                </p>
-                                            </div>
-
-                                            <div class="diag-btn"
-                                                onclick="callApi('/api/system/logs?lines=100')">
-
-                                                <div class="diag-icon">🧾</div>
-
-                                                <h4>Logs</h4>
-
-                                                <p>
-                                                    Inspect runtime service logs.
-                                                </p>
-                                            </div>
-
-                                            <div class="diag-btn"
-                                                onclick="callApi('/api/network/scan')">
-
-                                                <div class="diag-icon">📶</div>
-
-                                                <h4>Wi-Fi Scan</h4>
-
-                                                <p>
-                                                    Discover nearby wireless networks.
-                                                </p>
-                                            </div>
-
-                                            <div class="diag-btn"
-                                                onclick="callApi('/api/network/status')">
-
-                                                <div class="diag-icon">🌐</div>
-
-                                                <h4>Network Status</h4>
-
-                                                <p>
-                                                    Verify active connectivity.
-                                                </p>
-                                            </div>
-
-                                            <div class="diag-btn"
-                                                onclick="callApi('/api/meter/devices')">
-
-                                                <div class="diag-icon">🔌</div>
-
-                                                <h4>Serial Devices</h4>
-
-                                                <p>
-                                                    Detect connected serial ports.
-                                                </p>
-                                            </div>
-
-                                            <div class="diag-btn"
-                                                onclick="testMeter()">
-
-                                                <div class="diag-icon">📟</div>
-
-                                                <h4>Meter Test</h4>
-
-                                                <p>
-                                                    Validate Modbus communication.
-                                                </p>
-                                            </div>
-
-                                            <div class="diag-btn"
-                                                onclick="callApi('/api/qrcode/device')">
-
-                                                <div class="diag-icon">🔳</div>
-
-                                                <h4>Device QR</h4>
-
-                                                <p>
-                                                    Generate provisioning QR code.
-                                                </p>
-                                            </div>
-
-                                            <div class="diag-btn"
-                                                onclick="callApi('/api/qrcode/wifi')">
-
-                                                <div class="diag-icon">📡</div>
-
-                                                <h4>Wi-Fi QR</h4>
-
-                                                <p>
-                                                    Generate onboarding Wi-Fi QR.
-                                                </p>
-                                            </div>
-
-                                        </div>
-
-                                    </div>
-
-                                    <!-- LIVE CONSOLE -->
-                                    <div style="
-                                        background:#0f172a;
-                                        color:#e2e8f0;
-                                        display:flex;
-                                        flex-direction:column;
-                                        min-height:0;
-                                        position:relative;
-                                    ">
-
-                                        <!-- CONSOLE TOP -->
-                                        <div style="
-                                            height:56px;
-                                            border-bottom:1px solid rgba(255,255,255,.08);
-                                            display:flex;
-                                            align-items:center;
-                                            justify-content:space-between;
-                                            padding:0 18px;
-                                            background:rgba(255,255,255,.03);
-                                        ">
-
-                                            <div style="
-                                                display:flex;
-                                                align-items:center;
-                                                gap:10px;
-                                                font-size:.82rem;
-                                                font-weight:700;
-                                            ">
-
-                                                <div style="
-                                                    width:10px;
-                                                    height:10px;
-                                                    border-radius:50%;
-                                                    background:#22c55e;
-                                                    box-shadow:0 0 12px #22c55e;
-                                                "></div>
-
-                                                Live Response Console
-
-                                            </div>
-
-                                            <div style="
-                                                font-size:.72rem;
-                                                opacity:.65;
-                                            ">
-
-                                                MeterHub Runtime
-
-                                            </div>
-
-                                        </div>
-
-                                        <!-- RESPONSE -->
-                                        <div id="response_pane"
-                                            style="
-                                                flex:1;
-                                                overflow:auto;
-                                                padding:22px;
-                                                font-family:var(--mono);
-                                                font-size:.8rem;
-                                                line-height:1.7;
-                                                white-space:pre-wrap;
-                                                word-break:break-word;
-                                            ">
-
-                                            <div style="
-                                                opacity:.45;
-                                                text-align:center;
-                                                margin-top:80px;
-                                            ">
-
-                                                Run diagnostics to see
-                                                live API responses...
-
-                                            </div>
-
-                                        </div>
-
-                                        <!-- QR OVERLAY -->
-                                        <div id="qr_pane"
-                                            style="
-                                                display:none;
-                                                position:absolute;
-                                                inset:0;
-                                                background:rgba(15,23,42,.96);
-                                                z-index:50;
-                                                align-items:center;
-                                                justify-content:center;
-                                                flex-direction:column;
-                                                gap:20px;
-                                            ">
-
-                                        </div>
-
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </section>
-
-                </main>
+                </div>
 
             </div>
+        </aside>
 
-            <script>
+        <main class="main">
 
-            function showTab(id, el){
+            <section class="hero">
 
-                document.querySelectorAll('.tab-view')
-                    .forEach(v => v.classList.add('hidden'));
+                <div>
+                    <h2>MeterHub Provisioning Console</h2>
+                    <p>
+                        Modern deployment workspace for gateway onboarding,
+                        diagnostics, QR provisioning and meter validation.
+                    </p>
+                </div>
 
-                document.getElementById(id)
-                    .classList.remove('hidden');
+                <div class="hero-actions">
+                    <button class="ghost" onclick="loadConfig()">
+                        Load Config
+                    </button>
 
-                document.querySelectorAll('.nav-btn')
-                    .forEach(b => b.classList.remove('active'));
+                    <button class="primary" onclick="saveConfig()">
+                        Save Configuration
+                    </button>
+                </div>
 
-                el.classList.add('active');
+            </section>
+
+            <section class="content">
+
+                <!-- INSTALLER -->
+
+                <div id="installer" class="view active">
+
+                    <div class="step active">
+                        <div class="step-num">01</div>
+                        <h3>Initialize</h3>
+                        <p>Load runtime services and validate provisioning environment.</p>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-num">02</div>
+                        <h3>Configure</h3>
+                        <p>Apply network credentials and meter communication settings.</p>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-num">03</div>
+                        <h3>Register</h3>
+                        <p>Bind gateway securely with MeterHub cloud services.</p>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-num">04</div>
+                        <h3>Validate</h3>
+                        <p>Run connectivity tests and meter communication checks.</p>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-num">05</div>
+                        <h3>Deploy</h3>
+                        <p>Activate telemetry pipeline and finalize onboarding.</p>
+                    </div>
+
+                </div>
+
+                <!-- CONFIG -->
+
+                <div id="config" class="view">
+
+                    <div class="panel">
+
+                        <div class="panel-head">
+                            <h3>Gateway Configuration</h3>
+                            <p>Provision network, cloud and meter parameters</p>
+                        </div>
+
+                        <div class="form-wrap">
+
+                            <div class="form-grid">
+
+                                <div class="field">
+                                    <label>Device ID</label>
+                                    <input id="device_id" value="meter-001">
+                                </div>
+
+                                <div class="field">
+                                    <label>Society ID</label>
+                                    <input id="society_id" value="test-society">
+                                </div>
+
+                                <div class="field">
+                                    <label>Panel ID</label>
+                                    <input id="panel_id" value="main-panel">
+                                </div>
+
+                                <div class="field">
+                                    <label>Wi-Fi SSID</label>
+                                    <input id="wi_fi_ssid" value="test-wifi">
+                                </div>
+
+                                <div class="field">
+                                    <label>Wi-Fi Password</label>
+                                    <input id="wi_fi_password" type="password">
+                                </div>
+
+                                <div class="field">
+                                    <label>MQTT Endpoint</label>
+                                    <input id="mqtt_endpoint" value="test.mosquitto.org">
+                                </div>
+
+                                <div class="field full">
+                                    <label>HTTPS Endpoint</label>
+                                    <input id="https_endpoint" value="https://api.example.com/v1">
+                                </div>
+
+                                <div class="field">
+                                    <label>OAuth2 Token</label>
+                                    <input id="oauth2_token" value="test-token">
+                                </div>
+
+                                <div class="field">
+                                    <label>Device Secret</label>
+                                    <input id="device_secret" value="test-secret">
+                                </div>
+
+                                <div class="field">
+                                    <label>Meter Profile</label>
+                                    <select id="meter_type">
+                                        <option value="schneider-em6400">
+                                            schneider-em6400
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <div class="field">
+                                    <label>Serial Device</label>
+                                    <input id="meter_device" value="/dev/ttyUSB0">
+                                </div>
+
+                            </div>
+
+                            <div class="form-actions">
+                                <button class="primary" onclick="saveConfig()">
+                                    Save Configuration
+                                </button>
+
+                                <button class="ghost" onclick="loadConfig()">
+                                    Load Saved Config
+                                </button>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="panel">
+
+                        <div class="panel-head">
+                            <h3>Quick Actions</h3>
+                            <p>Fast provisioning utilities</p>
+                        </div>
+
+                        <div class="quick">
+
+                            <div class="quick-card">
+                                <h4>Register Device</h4>
+                                <p>Bind the gateway with cloud provisioning APIs.</p>
+                                <br>
+                                <button class="primary" onclick="registerDevice()">
+                                    Register
+                                </button>
+                            </div>
+
+                            <div class="quick-card">
+                                <h4>Test Meter</h4>
+                                <p>Run live Modbus validation on configured serial device.</p>
+                                <br>
+                                <button class="ghost" onclick="testMeter()">
+                                    Run Meter Test
+                                </button>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- DIAGNOSTICS -->
+
+                <div id="diagnostics" class="view">
+
+                    <div class="panel">
+
+                        <div class="panel-head">
+                            <h3>Diagnostics Toolkit</h3>
+                            <p>Gateway runtime inspection utilities</p>
+                        </div>
+
+                        <div class="diag-tools">
+
+                            <button class="diag-btn" onclick="callApi('/health')">
+                                <h4>💚 Health Check</h4>
+                                <p>Verify API and runtime status.</p>
+                            </button>
+
+                            <button class="diag-btn" onclick="callApi('/info')">
+                                <h4>📄 Info</h4>
+                                <p>Gateway metadata and build info.</p>
+                            </button>
+
+                            <button class="diag-btn" onclick="callApi('/api/system/status')">
+                                <h4>⚙️ System</h4>
+                                <p>CPU, memory and storage telemetry.</p>
+                            </button>
+
+                            <button class="diag-btn" onclick="callApi('/api/system/logs?lines=80')">
+                                <h4>🧾 Logs</h4>
+                                <p>Runtime and service logs.</p>
+                            </button>
+
+                            <button class="diag-btn" onclick="callApi('/api/network/scan')">
+                                <h4>📶 Wi-Fi Scan</h4>
+                                <p>Discover nearby wireless networks.</p>
+                            </button>
+
+                            <button class="diag-btn" onclick="callApi('/api/network/status')">
+                                <h4>🌐 Network</h4>
+                                <p>Current connectivity status.</p>
+                            </button>
+
+                            <button class="diag-btn" onclick="callApi('/api/meter/devices')">
+                                <h4>📟 Devices</h4>
+                                <p>Detected meter interfaces.</p>
+                            </button>
+
+                            <button class="diag-btn" onclick="callApi('/api/meter/profiles')">
+                                <h4>📚 Profiles</h4>
+                                <p>Available meter profiles.</p>
+                            </button>
+
+                            <button class="diag-btn" onclick="callApi('/api/services/status')">
+                                <h4>🛰 Services</h4>
+                                <p>Backend service health.</p>
+                            </button>
+
+                            <button class="diag-btn" onclick="callApi('/api/qrcode/device')">
+                                <h4>🔳 Device QR</h4>
+                                <p>Generate provisioning QR code.</p>
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                    <div class="panel output">
+
+                        <div class="panel-head">
+                            <h3>Response Console</h3>
+                            <p>API responses, logs and QR previews</p>
+                        </div>
+
+                        <div class="output-body" id="response_pane">
+                            <pre>{
+                            "status":"ready",
+                            "gateway":"meter-001",
+                            "mqtt":"online"
+                            }</pre>
+                        </div>
+
+                        <div class="output-body qr-wrap hidden" id="qr_pane"></div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+    <script>
+
+        const fields = [
+            'device_id','society_id','panel_id',
+            'wi_fi_ssid','wi_fi_password',
+            'mqtt_endpoint','https_endpoint',
+            'oauth2_token','device_secret',
+            'meter_type','meter_device'
+        ];
+
+        function showView(id,el){
+
+            document.querySelectorAll('.view')
+                .forEach(v=>v.classList.remove('active'));
+
+            document.getElementById(id)
+                .classList.add('active');
+
+            document.querySelectorAll('.nav-btn')
+                .forEach(b=>b.classList.remove('active'));
+
+            el.classList.add('active');
+        }
+
+        function esc(t){
+            return String(t)
+                .replace(/&/g,'&amp;')
+                .replace(/</g,'&lt;')
+                .replace(/>/g,'&gt;');
+        }
+
+        function render(v){
+            return '<pre>'+esc(JSON.stringify(v,null,2))+'</pre>';
+        }
+
+        function showResponse(data){
+
+            const responsePane = document.getElementById('response_pane');
+            const qrPane = document.getElementById('qr_pane');
+
+            qrPane.classList.add('hidden');
+            responsePane.classList.remove('hidden');
+
+            const payload = data?.body ?? data;
+
+            if(payload && payload.qr_code){
+
+                qrPane.innerHTML = payload.qr_code;
+
+                responsePane.classList.add('hidden');
+                qrPane.classList.remove('hidden');
+
+                return;
             }
 
-            </script>
-            </body>
-        </html>
+            responsePane.innerHTML = render(payload);
+        }
+
+        async function callApi(path,opts={}){
+
+            try{
+
+                const r = await fetch(path,opts);
+
+                const txt = await r.text();
+
+                let data;
+
+                try{
+                    data = JSON.parse(txt);
+                }catch{
+                    data = txt;
+                }
+
+                showResponse({
+                    status:r.status,
+                    body:data
+                });
+
+            }catch(e){
+
+                showResponse(String(e));
+            }
+        }
+
+        function readForm(){
+
+            const out = {};
+
+            fields.forEach(id=>{
+                out[id] = document.getElementById(id).value;
+            });
+
+            return out;
+        }
+
+        async function saveConfig(){
+
+            await callApi('/api/config/set',{
+                method:'POST',
+                headers:{
+                    'Content-Type':'application/json'
+                },
+                body:JSON.stringify(readForm())
+            });
+
+            loadStatus();
+        }
+
+        async function loadConfig(){
+
+            try{
+
+                const r = await fetch('/api/config/get');
+
+                const cfg = await r.json();
+
+                fields.forEach(id=>{
+                    if(cfg[id] !== undefined){
+                        document.getElementById(id).value = cfg[id];
+                    }
+                });
+
+                showResponse(cfg);
+
+            }catch(e){
+
+                showResponse(String(e));
+            }
+        }
+
+        async function loadStatus(){
+
+            try{
+
+                const r = await fetch('/api/provisioning/status');
+
+                const d = await r.json();
+
+                document.getElementById('status_pill').innerText = d.status;
+                document.getElementById('step_pill').innerText = d.step + ' / 5';
+
+                document.getElementById('progress_bar').style.width =
+                    ((d.step || 1) * 20) + '%';
+
+            }catch{}
+        }
+
+        async function loadProfiles(){
+
+            try{
+
+                const r = await fetch('/api/meter/profiles');
+
+                const d = await r.json();
+
+                const sel = document.getElementById('meter_type');
+
+                sel.innerHTML = '';
+
+                (d.profiles || []).forEach(p=>{
+
+                    const o = document.createElement('option');
+
+                    o.value = p;
+                    o.textContent = p;
+
+                    sel.appendChild(o);
+                });
+
+            }catch{}
+        }
+
+        async function testMeter(){
+
+            const dev = encodeURIComponent(
+                document.getElementById('meter_device').value
+            );
+
+            const prf = encodeURIComponent(
+                document.getElementById('meter_type').value
+            );
+
+            await callApi(
+                `/api/meter/test?device=${dev}&profile=${prf}`,
+                {method:'POST'}
+            );
+        }
+
+        async function registerDevice(){
+
+            await callApi('/api/registration/submit',{
+
+                method:'POST',
+
+                headers:{
+                    'Content-Type':'application/json'
+                },
+
+                body:JSON.stringify({
+
+                    device_id:
+                        document.getElementById('device_id').value,
+
+                    oauth2_token:
+                        document.getElementById('oauth2_token').value
+                })
+            });
+        }
+
+        loadStatus();
+        loadProfiles();
+        loadConfig();
+
+    </script>
+
+    </body>
+    </html>
     """
 
 
