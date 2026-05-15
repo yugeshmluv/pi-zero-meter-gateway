@@ -499,8 +499,41 @@ async def dashboard() -> str:
                 padding: 18px;
                 border-radius: 18px;
                 border: 1px solid #2f4156;
-                min-height: 220px;
+                min-height: 260px;
+                max-height: 320px;
                 overflow-x: auto;
+                overflow-y: auto;
+                white-space: pre-wrap;
+                word-break: break-word;
+                transition: background 0.2s ease, border-color 0.2s ease;
+            }
+            .response-row {
+                display: flex;
+                gap: 14px;
+                padding: 8px 0;
+                border-bottom: 1px solid rgba(236, 245, 255, 0.08);
+                align-items: flex-start;
+            }
+            .response-key {
+                flex: 0 0 170px;
+                font-weight: 700;
+                color: #8fb6ff;
+                word-break: break-word;
+            }
+            .response-value {
+                flex: 1;
+                color: #e9f0ff;
+                word-break: break-word;
+            }
+            .response-object,
+            .response-array {
+                margin-left: 14px;
+            }
+            .response-item {
+                margin-left: 12px;
+            }
+            .response-placeholder {
+                color: #94a6c3;
             }
             @media (max-width: 900px) {
                 .form-grid,
@@ -618,9 +651,14 @@ async def dashboard() -> str:
                 </div>
             </div>
 
-            <div class="card">
+            <div class="card response-card">
                 <h2>API Response</h2>
-                <pre id="output">Results appear here.</pre>
+                <p class="response-placeholder">
+                    Click any diagnostic button to view structured response details here.
+                </p>
+                <pre id="output">
+                    Click a button to view a structured response here.
+                </pre>
             </div>
         </div>
         <script>
@@ -670,6 +708,37 @@ async def dashboard() -> str:
                     '<pre>' + JSON.stringify(details, null, 2) + '</pre>';
             }
 
+            function escapeHtml(text) {
+                return String(text)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            }
+
+            function renderResponse(value) {
+                if (value === null || value === undefined) {
+                    return '<div class="response-value">null</div>';
+                }
+                if (Array.isArray(value)) {
+                    return '<div class="response-array">' + value.map(item =>
+                        '<div class="response-item">' + renderResponse(item) + '</div>'
+                    ).join('') + '</div>';
+                }
+                if (typeof value === 'object') {
+                    return '<div class="response-object">' +
+                        Object.entries(value).map(([key, val]) =>
+                            '<div class="response-row">' +
+                                '<div class="response-key">' + escapeHtml(key) + '</div>' +
+                                '<div class="response-value">' + renderResponse(val) + '</div>' +
+                            '</div>'
+                        ).join('') +
+                    '</div>';
+                }
+                return '<div class="response-value">' + escapeHtml(value) + '</div>';
+            }
+
             function show(data) {
                 const output = document.getElementById('output');
                 const payload = data && typeof data === 'object' && data.body
@@ -692,14 +761,19 @@ async def dashboard() -> str:
                         }
                     }
                     updateQrPreview(payload.qr_code, details);
-                    output.innerText = JSON.stringify(sanitizeObject(details), null, 2);
+                    output.innerHTML = renderResponse(sanitizeObject(details));
                     return;
                 }
 
                 updateQrPreview(null, { message: 'No QR generated.' });
-                output.innerText = typeof payload === 'string'
-                    ? payload
-                    : JSON.stringify(sanitizeObject(payload), null, 2);
+                if (typeof payload === 'string') {
+                    output.innerHTML =
+                        '<div class="response-value">' +
+                        escapeHtml(payload) +
+                        '</div>';
+                } else {
+                    output.innerHTML = renderResponse(sanitizeObject(payload));
+                }
             }
 
             async function callApi(path, opts = {}) {
