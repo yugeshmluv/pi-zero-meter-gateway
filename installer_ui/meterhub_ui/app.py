@@ -382,7 +382,13 @@ async def dashboard() -> str:
             pre { overflow: auto; background: #111; color: #eee; padding: 12px;
                   border-radius: 4px; min-height: 80px; }
             .qr-code { text-align: center; margin: 20px 0; }
-            .qr-code img { max-width: 300px; border: 2px solid #ddd; padding: 10px; }
+            .qr-code img,
+            .qr-code svg {
+                max-width: 300px;
+                max-height: 300px;
+                border: 2px solid #ddd;
+                padding: 10px;
+            }
             @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
         </style>
     </head>
@@ -460,6 +466,7 @@ async def dashboard() -> str:
                 <button onclick="callApi('/api/qrcode/device')">Device QR</button>
                 <button onclick="callApi('/api/qrcode/wifi')">Wi-Fi QR</button>
                 <button onclick="registerDevice()">Register</button>
+                <div id="qr_output" class="qr-code"></div>
                 <pre id="output">Results appear here.</pre>
             </div>
         </div>
@@ -518,7 +525,31 @@ async def dashboard() -> str:
             }
 
             function show(data) {
-                document.getElementById('output').innerText =
+                const output = document.getElementById('output');
+                const qrOutput = document.getElementById('qr_output');
+                if (
+                    data &&
+                    typeof data === 'object' &&
+                    data.body &&
+                    typeof data.body === 'object' &&
+                    typeof data.body.qr_code === 'string'
+                ) {
+                    qrOutput.innerHTML = data.body.qr_code;
+                    const metadata = { ...data.body };
+                    delete metadata.qr_code;
+                    output.innerText = JSON.stringify(
+                        {
+                            status: data.status,
+                            body: metadata,
+                        },
+                        null,
+                        2
+                    );
+                    return;
+                }
+
+                qrOutput.innerHTML = '';
+                output.innerText =
                     typeof data === 'string' ? data : JSON.stringify(data, null, 2);
             }
 
